@@ -11,8 +11,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var ErrServerClosed = http.ErrServerClosed
-
 var routes = []struct {
 	path     string
 	methods  string
@@ -27,7 +25,7 @@ var routes = []struct {
 // Start starts the server. It has to run in goroutine
 //
 // Functions stops when stopChan is closed. If there's any error, function will send it into errChan
-// After stopping the server function sends ErrServerClosed into errChan
+// After stopping the server function sends http.ErrServerClosed into errChan
 func Start(stopChan chan struct{}, errChan chan<- error) {
 	router := mux.NewRouter()
 	for _, r := range routes {
@@ -58,6 +56,6 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	if err := server.Shutdown(ctx); err != nil {
 		errChan <- err
 	} else {
-		errChan <- ErrServerClosed
+		errChan <- http.ErrServerClosed
 	}
 }

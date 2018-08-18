@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -25,7 +26,7 @@ func main() {
 		close(stopChan)
 	}
 
-	if err := <-errChan; err != web.ErrServerClosed {
+	if err := <-errChan; err != http.ErrServerClosed {
 		log.Println(err)
 	}
 }
