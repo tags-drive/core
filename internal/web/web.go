@@ -8,18 +8,37 @@ import (
 	"time"
 
 	"github.com/ShoshinNikita/tags-drive/internal/params"
+	"github.com/gorilla/mux"
 )
 
 var ErrServerClosed = http.ErrServerClosed
+
+var routes = []struct {
+	path     string
+	methods  string
+	handler  http.HandlerFunc
+	needAuth bool
+}{
+	{"/", "GET", index, false}, // index should check is userdata correct itself
+	{"/login", "GET", login, false},
+	{"/login", "POST", auth, false},
+}
 
 // Start starts the server. It has to run in goroutine
 //
 // Functions stops when stopChan is closed. If there's any error, function will send it into errChan
 // After stopping the server function sends ErrServerClosed into errChan
 func Start(stopChan chan struct{}, errChan chan<- error) {
-	var handler http.Handler
+	router := mux.NewRouter()
+	for _, r := range routes {
+		var handler http.Handler = r.handler
+		if r.needAuth {
+			handler = checkAuth(r.handler)
+		}
+		router.Path(r.path).Methods(r.methods).Handler(handler)
+	}
 
-	server := &http.Server{Addr: params.Port, Handler: handler}
+	server := &http.Server{Addr: params.Port, Handler: router}
 
 	go func() {
 		if !params.IsTLS {
