@@ -17,11 +17,12 @@ For example, you want to save an image of a cat. You can save it into folder `ca
 
 **Parameters:**
 
-| Environment | Default | Description        |
-| ----------- | ------- | ------------------ |
-| PORT        | `:80`   | Port for website   |
-| LOGIN       | user    | Login for login    |
-| PSWRD       | qwerty  | Password for login |
-| DBG         | false   |                    |
+| Environment | Default | Description                     |
+| ----------- | ------- | ------------------------------- |
+| PORT        | 80      | Port for website                |
+| TLS         | false   | Should **Tags Drive** use https |
+| LOGIN       | user    | Login for login                 |
+| PSWRD       | qwerty  | Password for login              |
+| DBG         | false   |                                 |
 
 ### Frontend
