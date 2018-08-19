@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ShoshinNikita/tags-drive/internal/params"
+	"github.com/ShoshinNikita/log"
 	"github.com/gorilla/mux"
+
+	"github.com/ShoshinNikita/tags-drive/internal/params"
 )
 
 var routes = []struct {
@@ -39,6 +41,7 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	server := &http.Server{Addr: params.Port, Handler: router}
 
 	go func() {
+		log.Infoln("Start web server")
 		if !params.IsTLS {
 			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				errChan <- err
@@ -49,6 +52,7 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	}()
 
 	<-stopChan
+	log.Infoln("Stopping web server")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
