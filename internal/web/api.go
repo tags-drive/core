@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -13,6 +14,10 @@ const (
 	maxSize = 50000000 // 50MB
 )
 
+// upload uploads files
+//
+// Request: multipart/form-data
+// Response: json list of strings with status of files uploading
 func upload(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(maxSize)
 	if err != nil {
@@ -49,5 +54,5 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		messages = append(messages, msg)
 	}
 
-	fmt.Fprintln(w, messages)
+	json.NewEncoder(w).Encode(messages)
 }
