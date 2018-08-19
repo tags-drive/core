@@ -8,6 +8,7 @@ import (
 
 	"github.com/ShoshinNikita/log"
 
+	"github.com/ShoshinNikita/tags-drive/internal/storage"
 	"github.com/ShoshinNikita/tags-drive/internal/web"
 )
 
@@ -16,6 +17,11 @@ func main() {
 	log.PrintColor(true)
 
 	log.Infoln("Start")
+
+	err := storage.Init()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	stopChan := make(chan struct{})
 	errChan := make(chan error, 1)
@@ -33,7 +39,7 @@ func main() {
 	}
 
 	if err := <-errChan; err != http.ErrServerClosed {
-		log.Errorln(err)
+		log.Fatalln(err)
 	}
 
 	log.Infoln("Stop")
