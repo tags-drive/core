@@ -31,7 +31,13 @@ func (fs Files) write() {
 
 	// TODO
 	f, _ := os.OpenFile(params.TagsFile, os.O_RDWR, 0600)
-	json.NewEncoder(f).Encode(fs.info)
+	// Write pretty json if Debug mode
+	enc := json.NewEncoder(f)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+	enc.Encode(fs.info)
+
 	f.Close()
 }
 
