@@ -34,6 +34,8 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	router := mux.NewRouter()
 	// For static files
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
+	// For uploaded files
+	router.PathPrefix("/data/").Handler(http.StripPrefix("/data/", http.FileServer(http.Dir("data/"))))
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {
