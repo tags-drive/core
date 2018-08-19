@@ -6,6 +6,13 @@ import (
 	"strings"
 )
 
+const (
+	// DataFolder is a folder, in which all files are kept
+	DataFolder = "data"
+	// TagsFile is a json file with info about the files
+	TagsFile = "files.json"
+)
+
 var (
 	// Port for website
 	Port string
