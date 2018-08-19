@@ -1,13 +1,12 @@
 package web
 
 import (
-	"io"
+	"fmt"
+	"mime/multipart"
 	"net/http"
-	"os"
+	"sync"
 
-	"github.com/ShoshinNikita/log"
-
-	"github.com/ShoshinNikita/tags-drive/internal/params"
+	"github.com/ShoshinNikita/tags-drive/internal/storage"
 )
 
 const (
@@ -26,35 +25,29 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	msgChan := make(chan string, 50)
+	wg := new(sync.WaitGroup)
+
 	for _, f := range r.MultipartForm.File["files"] {
-		file, err := f.Open()
-		if err != nil {
-			log.Errorf("Can't open uploaded file: %s\n", err)
-			continue
-		}
-
-		path := params.DataFolder + "/" + f.Filename
-		// TODO
-		if _, err := os.Open(path); !os.IsNotExist(err) {
-			log.Errorf("File %s already exists\n", path)
-			continue
-		}
-
-		newFile, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
-		if err != nil {
-			log.Errorf("Can't create a new file %s: %s\n", path, err)
-			continue
-		}
-		_, err = io.Copy(newFile, file)
-		if err != nil {
-			log.Errorf("Can't copy a new file %s: %s", path, err)
-			// Deleting of a bad file
-			err = os.Remove(path)
+		wg.Add(1)
+		go func(header *multipart.FileHeader) {
+			defer wg.Done()
+			err := storage.UploadFile(header, []string{})
 			if err != nil {
-				log.Errorf("Can't delete a bad file %s: %s\n", path, err)
+				msgChan <- fmt.Sprintf("%s: %s", header.Filename, err)
+			} else {
+				msgChan <- fmt.Sprintf("%s: %s", header.Filename, "done")
 			}
-			continue
-		}
-		log.Infof("File %s is uploaded\n", f.Filename)
+		}(f)
 	}
+	wg.Wait()
+	close(msgChan)
+
+	var messages []string
+
+	for msg := range msgChan {
+		messages = append(messages, msg)
+	}
+
+	fmt.Fprintln(w, messages)
 }

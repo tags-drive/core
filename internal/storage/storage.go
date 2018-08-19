@@ -2,8 +2,12 @@ package storage
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
+	"mime/multipart"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
@@ -11,16 +15,10 @@ import (
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 )
 
-type File struct {
-	Filename string
-	Size     int64
-	Tags     []string
+var files = Files{
+	info:  make(map[string]FileInfo),
+	mutex: new(sync.RWMutex),
 }
-
-var (
-	filesMutex = new(sync.RWMutex)
-	files      []File
-)
 
 // Init reads params.TagsFiles and decode its data
 func Init() error {
@@ -33,9 +31,8 @@ func Init() error {
 			if err != nil {
 				return errors.Wrap(err, "can't create a new file")
 			}
-			// Write empty list
-			f.Write([]byte("[]"))
-			f.Close()
+			// Write empty structure
+			json.NewEncoder(f).Encode(files)
 			// Can exit because we don't need to decode files from the file
 			return nil
 		}
@@ -44,10 +41,40 @@ func Init() error {
 	}
 
 	defer f.Close()
-	err = json.NewDecoder(f).Decode(&files)
+	err = files.decode(f)
 	if err != nil {
 		return errors.Wrapf(err, "can't decode data")
 	}
 
 	return nil
+}
+
+// UploadFile tries to upload a new file. If it was successful, the function calls Files.add()
+func UploadFile(f *multipart.FileHeader, tags []string) error {
+	// Uploading //
+	file, err := f.Open()
+	if err != nil {
+		return errors.Wrapf(err, "can't open file")
+	}
+
+	path := params.DataFolder + "/" + f.Filename
+	// TODO
+	if _, err := os.Open(path); !os.IsNotExist(err) {
+		return fmt.Errorf("file %s already exists", path)
+	}
+
+	newFile, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
+	if err != nil {
+		return errors.Wrapf(err, "can't create a new file %s\n", path)
+	}
+
+	_, err = io.Copy(newFile, file)
+	if err != nil {
+		// Deleting of the bad file
+		os.Remove(path)
+		return errors.Wrap(err, "Can't copy a new file")
+	}
+
+	// Adding into global list //
+	return files.add(FileInfo{Filename: f.Filename, Size: f.Size, AddTime: time.Now(), Tags: tags})
 }
