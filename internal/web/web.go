@@ -22,6 +22,8 @@ var routes = []struct {
 	{"/", "GET", index, false}, // index should check is userdata correct itself
 	{"/login", "GET", login, false},
 	{"/login", "POST", auth, false},
+	// API
+	{"/api/upload", "POST", upload, true},
 }
 
 // Start starts the server. It has to run in goroutine
@@ -30,6 +32,8 @@ var routes = []struct {
 // After stopping the server function sends http.ErrServerClosed into errChan
 func Start(stopChan chan struct{}, errChan chan<- error) {
 	router := mux.NewRouter()
+	// For static files
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {
