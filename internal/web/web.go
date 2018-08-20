@@ -24,6 +24,8 @@ var routes = []struct {
 	{"/login", "POST", auth, false},
 	// API
 	{"/api/upload", "POST", upload, true},
+	{"/api/files", "GET", returnFiles, true},
+	{"/api/files/recent", "GET", returnRecentFiles, true},
 }
 
 // Start starts the server. It has to run in goroutine
