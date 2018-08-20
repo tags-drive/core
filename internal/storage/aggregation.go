@@ -23,8 +23,8 @@ const (
 	SortByNameDesc
 	SortByTimeAsc
 	SortByTimeDesc
-
-	// TODO add SizeAscMode and SizeDescMode
+	SortBySizeAsc
+	SortBySizeDecs
 )
 
 // isGoodFile checks if file has (or hasn't) passed tags
@@ -99,6 +99,14 @@ func sortFiles(s SortMode, files []FileInfo) {
 	case SortByTimeDesc:
 		sort.Slice(files, func(i, j int) bool {
 			return files[i].AddTime.After(files[j].AddTime) // after == >
+		})
+	case SortBySizeAsc:
+		sort.Slice(files, func(i, j int) bool {
+			return files[i].Size < files[j].Size
+		})
+	case SortBySizeDecs:
+		sort.Slice(files, func(i, j int) bool {
+			return files[i].Size > files[j].Size
 		})
 	}
 }

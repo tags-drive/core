@@ -41,8 +41,11 @@ func TestIsGoodFile(t *testing.T) {
 
 func TestSortFiles(t *testing.T) {
 	getTime := func(s string) time.Time {
-		t, _ := time.Parse("01-02-2006 15:04:05", s)
-		return t
+		tm, err := time.Parse("01-02-2006 15:04:05", s)
+		if err != nil {
+			t.Errorf("Bad time %s", s)
+		}
+		return tm
 	}
 
 	isEqual := func(a, b []storage.FileInfo) bool {
@@ -51,7 +54,8 @@ func TestSortFiles(t *testing.T) {
 		}
 		for i := range a {
 			if a[i].Filename != b[i].Filename ||
-				a[i].AddTime != b[i].AddTime {
+				a[i].AddTime != b[i].AddTime ||
+				a[i].Size != b[i].Size {
 				return false
 			}
 		}
@@ -118,6 +122,38 @@ func TestSortFiles(t *testing.T) {
 				storage.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},
 				storage.FileInfo{AddTime: getTime("05-05-2018 15:16:35")},
 				storage.FileInfo{AddTime: getTime("05-04-2018 15:22:35")},
+			},
+		},
+		{storage.SortBySizeAsc,
+			[]storage.FileInfo{
+				storage.FileInfo{Size: 15},
+				storage.FileInfo{Size: 1515},
+				storage.FileInfo{Size: 1885},
+				storage.FileInfo{Size: 1365},
+				storage.FileInfo{Size: 1551561651},
+			},
+			[]storage.FileInfo{
+				storage.FileInfo{Size: 15},
+				storage.FileInfo{Size: 1365},
+				storage.FileInfo{Size: 1515},
+				storage.FileInfo{Size: 1885},
+				storage.FileInfo{Size: 1551561651},
+			},
+		},
+		{storage.SortBySizeDecs,
+			[]storage.FileInfo{
+				storage.FileInfo{Size: 15},
+				storage.FileInfo{Size: 1515},
+				storage.FileInfo{Size: 1885},
+				storage.FileInfo{Size: 1365},
+				storage.FileInfo{Size: 1551561651},
+			},
+			[]storage.FileInfo{
+				storage.FileInfo{Size: 1551561651},
+				storage.FileInfo{Size: 1885},
+				storage.FileInfo{Size: 1515},
+				storage.FileInfo{Size: 1365},
+				storage.FileInfo{Size: 15},
 			},
 		},
 	}
