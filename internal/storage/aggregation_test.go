@@ -14,20 +14,20 @@ func TestIsGoodFile(t *testing.T) {
 		pTags []string
 		res   bool
 	}{
-		{storage.AndMode, []string{"a", "b", "c"}, []string{"a", "c"}, true},
-		{storage.AndMode, []string{"a", "b", "c"}, []string{"a", "e"}, false},
-		{storage.OrMode, []string{"a", "b", "c"}, []string{"a", "e"}, true},
-		{storage.OrMode, []string{"a", "b", "c"}, []string{"f", "e"}, false},
-		{storage.NotMode, []string{"p", "b", "c"}, []string{"a", "e"}, true},
-		{storage.NotMode, []string{"a", "b", "c"}, []string{"a", "e"}, false},
+		{storage.ModeAnd, []string{"a", "b", "c"}, []string{"a", "c"}, true},
+		{storage.ModeAnd, []string{"a", "b", "c"}, []string{"a", "e"}, false},
+		{storage.ModeOr, []string{"a", "b", "c"}, []string{"a", "e"}, true},
+		{storage.ModeOr, []string{"a", "b", "c"}, []string{"f", "e"}, false},
+		{storage.ModeNot, []string{"p", "b", "c"}, []string{"a", "e"}, true},
+		{storage.ModeNot, []string{"a", "b", "c"}, []string{"a", "e"}, false},
 		// Empty file tags
-		{storage.AndMode, []string{}, []string{"a", "e"}, false},
-		{storage.OrMode, []string{}, []string{"a", "e"}, false},
-		{storage.NotMode, []string{}, []string{"a", "e"}, true},
+		{storage.ModeAnd, []string{}, []string{"a", "e"}, false},
+		{storage.ModeOr, []string{}, []string{"a", "e"}, false},
+		{storage.ModeNot, []string{}, []string{"a", "e"}, true},
 		// Empty passed tags
-		{storage.AndMode, []string{"a", "b", "c"}, []string{}, true},
-		{storage.OrMode, []string{"a", "b", "c"}, []string{}, true},
-		{storage.NotMode, []string{"a", "b", "c"}, []string{}, true},
+		{storage.ModeAnd, []string{"a", "b", "c"}, []string{}, true},
+		{storage.ModeOr, []string{"a", "b", "c"}, []string{}, true},
+		{storage.ModeNot, []string{"a", "b", "c"}, []string{}, true},
 	}
 
 	for i, tt := range tests {
@@ -64,7 +64,7 @@ func TestSortFiles(t *testing.T) {
 		files []storage.FileInfo
 		res   []storage.FileInfo
 	}{
-		{storage.NameAscMode,
+		{storage.SortByNameAsc,
 			[]storage.FileInfo{
 				storage.FileInfo{Filename: "abc"},
 				storage.FileInfo{Filename: "cbd"},
@@ -78,7 +78,7 @@ func TestSortFiles(t *testing.T) {
 				storage.FileInfo{Filename: "fer"},
 			},
 		},
-		{storage.NameDescMode,
+		{storage.SortByNameDesc,
 			[]storage.FileInfo{
 				storage.FileInfo{Filename: "abc"},
 				storage.FileInfo{Filename: "cbd"},
@@ -92,7 +92,7 @@ func TestSortFiles(t *testing.T) {
 				storage.FileInfo{Filename: "aaa"},
 			},
 		},
-		{storage.TimeAscMode,
+		{storage.SortByTimeAsc,
 			[]storage.FileInfo{
 				storage.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
 				storage.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},
@@ -106,7 +106,7 @@ func TestSortFiles(t *testing.T) {
 				storage.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
 			},
 		},
-		{storage.TimeDescMode,
+		{storage.SortByTimeDesc,
 			[]storage.FileInfo{
 				storage.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
 				storage.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},

@@ -8,21 +8,21 @@ import (
 type TagMode int
 
 const (
-	// AndMode returns files, which have all tags (a && b && x)
-	AndMode TagMode = iota
-	// OrMode returns files, which have at least ont tag (a || b || x)
-	OrMode
-	//NotMode return files, which have not passed tags
-	NotMode
+	// ModeAnd returns files, which have all tags (a && b && x)
+	ModeAnd TagMode = iota
+	// ModeOr returns files, which have at least ont tag (a || b || x)
+	ModeOr
+	//ModeNot return files, which have not passed tags
+	ModeNot
 )
 
 type SortMode int
 
 const (
-	NameAscMode SortMode = iota
-	NameDescMode
-	TimeAscMode
-	TimeDescMode
+	SortByNameAsc SortMode = iota
+	SortByNameDesc
+	SortByTimeAsc
+	SortByTimeDesc
 
 	// TODO add SizeAscMode and SizeDescMode
 )
@@ -36,7 +36,7 @@ func isGoodFile(m TagMode, fileTags, passedTags []string) (res bool) {
 	}
 
 	switch m {
-	case AndMode:
+	case ModeAnd:
 		if len(fileTags) == 0 {
 			return false
 		}
@@ -53,7 +53,7 @@ func isGoodFile(m TagMode, fileTags, passedTags []string) (res bool) {
 			}
 		}
 		return true
-	case OrMode:
+	case ModeOr:
 		if len(fileTags) == 0 {
 			return false
 		}
@@ -65,7 +65,7 @@ func isGoodFile(m TagMode, fileTags, passedTags []string) (res bool) {
 			}
 		}
 		return false
-	case NotMode:
+	case ModeNot:
 		if len(fileTags) == 0 {
 			return true
 		}
@@ -84,19 +84,19 @@ func isGoodFile(m TagMode, fileTags, passedTags []string) (res bool) {
 
 func sortFiles(s SortMode, files []FileInfo) {
 	switch s {
-	case NameAscMode:
+	case SortByNameAsc:
 		sort.Slice(files, func(i, j int) bool {
 			return files[i].Filename < files[j].Filename
 		})
-	case NameDescMode:
+	case SortByNameDesc:
 		sort.Slice(files, func(i, j int) bool {
 			return files[i].Filename > files[j].Filename
 		})
-	case TimeAscMode:
+	case SortByTimeAsc:
 		sort.Slice(files, func(i, j int) bool {
 			return files[i].AddTime.Before(files[j].AddTime) // before == <
 		})
-	case TimeDescMode:
+	case SortByTimeDesc:
 		sort.Slice(files, func(i, j int) bool {
 			return files[i].AddTime.After(files[j].AddTime) // after == >
 		})
@@ -137,7 +137,7 @@ func GetWithTags(m TagMode, s SortMode, tags []string) []FileInfo {
 // GetAll returns all files
 func GetAll(s SortMode) []FileInfo {
 	// We can use any Mode
-	files := allFiles.getFiles(AndMode, []string{})
+	files := allFiles.getFiles(ModeAnd, []string{})
 	sortFiles(s, files)
 	return files
 }
@@ -146,7 +146,7 @@ func GetAll(s SortMode) []FileInfo {
 //
 // Func uses GetAll(TimeDescMode)
 func GetRecent(number int, maxAge time.Time) []FileInfo {
-	files := GetAll(TimeDescMode)
+	files := GetAll(SortByTimeDesc)
 	if len(files) > number {
 		files = files[:number]
 	}
