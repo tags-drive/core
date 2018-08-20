@@ -15,7 +15,7 @@ import (
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 )
 
-var files = Files{
+var allFiles = filesData{
 	info:  make(map[string]FileInfo),
 	mutex: new(sync.RWMutex),
 }
@@ -32,7 +32,7 @@ func Init() error {
 				return errors.Wrap(err, "can't create a new file")
 			}
 			// Write empty structure
-			json.NewEncoder(f).Encode(files)
+			json.NewEncoder(f).Encode(allFiles)
 			// Can exit because we don't need to decode files from the file
 			return nil
 		}
@@ -41,7 +41,7 @@ func Init() error {
 	}
 
 	defer f.Close()
-	err = files.decode(f)
+	err = allFiles.decode(f)
 	if err != nil {
 		return errors.Wrapf(err, "can't decode data")
 	}
@@ -76,5 +76,5 @@ func UploadFile(f *multipart.FileHeader, tags []string) error {
 	}
 
 	// Adding into global list //
-	return files.add(FileInfo{Filename: f.Filename, Size: f.Size, AddTime: time.Now(), Tags: tags})
+	return allFiles.add(FileInfo{Filename: f.Filename, Size: f.Size, AddTime: time.Now(), Tags: tags})
 }

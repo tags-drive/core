@@ -17,15 +17,15 @@ type FileInfo struct {
 	AddTime  time.Time `json:"add_time"`
 }
 
-// Files is a map (filename: File) with RWMutex
-// files.json keeps only Files.info
-type Files struct {
+// filesData is a map (filename: FileInfo) with RWMutex
+// files.json keeps only filesData.info
+type filesData struct {
 	info  map[string]FileInfo
 	mutex *sync.RWMutex
 }
 
 // write writes fs.info into params.TagsFile
-func (fs Files) write() {
+func (fs filesData) write() {
 	fs.mutex.RLock()
 	defer fs.mutex.RUnlock()
 
@@ -42,12 +42,12 @@ func (fs Files) write() {
 }
 
 // decode decodes fs.info
-func (fs *Files) decode(r io.Reader) error {
+func (fs *filesData) decode(r io.Reader) error {
 	return json.NewDecoder(r).Decode(&fs.info)
 }
 
 // add adds an element into fs.info and call fs.write()
-func (fs *Files) add(info FileInfo) error {
+func (fs *filesData) add(info FileInfo) error {
 	fs.mutex.Lock()
 	// TODO
 	if _, ok := fs.info[info.Filename]; ok {
@@ -63,6 +63,6 @@ func (fs *Files) add(info FileInfo) error {
 }
 
 // delete deletes an element and call fs.write()
-func (fs *Files) delete(filename string) {
+func (fs *filesData) delete(filename string) {
 	fs.write()
 }
