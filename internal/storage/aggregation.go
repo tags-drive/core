@@ -2,7 +2,6 @@ package storage
 
 import (
 	"sort"
-	"time"
 )
 
 type TagMode int
@@ -94,11 +93,11 @@ func sortFiles(s SortMode, files []FileInfo) {
 		})
 	case SortByTimeAsc:
 		sort.Slice(files, func(i, j int) bool {
-			return files[i].AddTime.Before(files[j].AddTime) // before == <
+			return files[i].AddTime.Unix() < files[j].AddTime.Unix()
 		})
 	case SortByTimeDesc:
 		sort.Slice(files, func(i, j int) bool {
-			return files[i].AddTime.After(files[j].AddTime) // after == >
+			return files[i].AddTime.Unix() > files[j].AddTime.Unix()
 		})
 	case SortBySizeAsc:
 		sort.Slice(files, func(i, j int) bool {
@@ -153,7 +152,7 @@ func GetAll(s SortMode) []FileInfo {
 // GetRecent returns the last uploaded files
 //
 // Func uses GetAll(TimeDescMode)
-func GetRecent(number int, maxAge time.Time) []FileInfo {
+func GetRecent(number int) []FileInfo {
 	files := GetAll(SortByTimeDesc)
 	if len(files) > number {
 		files = files[:number]
