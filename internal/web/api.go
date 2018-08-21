@@ -9,13 +9,18 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ShoshinNikita/tags-drive/internal/params"
+	"github.com/pkg/errors"
 
+	"github.com/ShoshinNikita/tags-drive/internal/params"
 	"github.com/ShoshinNikita/tags-drive/internal/storage"
 )
 
 const (
 	maxSize = 50000000 // 50MB
+)
+
+var (
+	ErrEmptyFilename = errors.New("name of a file can't be empty")
 )
 
 // POST /api/files (multipart/form-data)
@@ -68,7 +73,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 func deleteFile(w http.ResponseWriter, r *http.Request) {
 	filename := r.FormValue("file")
 	if filename == "" {
-		http.Error(w, "Filename can't be empty", http.StatusBadRequest)
+		http.Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -94,7 +99,7 @@ func renameFile(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if oldName == "" || newName == "" {
-		http.Error(w, "name of a file can't be empty", http.StatusBadRequest)
+		http.Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
 		return
 	}
 
