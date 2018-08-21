@@ -61,7 +61,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(messages)
 }
 
-// GET /api/files?sort=(name|size|time)&order(asc|desc)&tags=first,second,third&mode=(or|and|not)
+// GET /api/files?sort=(name|size|time)&order(asc|desc)&tags=first,second,third&mode=(or|and|not)&search=abc
 // tags - list of tags separated by ',' (can be empty, then all files will be returned)
 // First elements in params is default (name, asc and etc.)
 //
@@ -78,6 +78,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 
 			return strings.Split(t, ",")
 		}()
+		search = r.FormValue("search")
 
 		tagMode  = storage.ModeOr
 		sortMode = storage.SortByNameAsc
@@ -122,12 +123,12 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		enc.SetIndent("", "  ")
 	}
 
-	if len(tags) == 0 {
+	if len(tags) == 0 && search == "" {
 		enc.Encode(storage.GetAll(sortMode))
 		return
 	}
 
-	enc.Encode(storage.Get(tagMode, sortMode, tags))
+	enc.Encode(storage.Get(tagMode, sortMode, tags, search))
 }
 
 func getParam(def, passed string, options ...string) (s string) {
