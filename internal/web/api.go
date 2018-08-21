@@ -68,26 +68,42 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(messages)
 }
 
-// DELETE /api/files?file=filename
+// DELETE /api/files?file=file1&file=file2
 //
 // Response: -
 //
 func deleteFile(w http.ResponseWriter, r *http.Request) {
-	filename := r.FormValue("file")
-	if filename == "" {
-		http.Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
+	r.ParseForm()
+	filenames := r.Form["file"]
+	if len(filenames) == 0 {
+		http.Error(w, "list of files for deleting can't be empty", http.StatusBadRequest)
 		return
 	}
 
-	err := storage.DeleteFile(filename)
-	if err != nil {
-		if err == storage.ErrFileIsNotExist {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	msgChan := make(chan string, 50)
+	wg := new(sync.WaitGroup)
+
+	for _, filename := range filenames {
+		wg.Add(1)
+		go func(f string) {
+			err := storage.DeleteFile(f)
+			// Log only errors
+			if err != nil {
+				msgChan <- fmt.Sprintf("%s: %s", f, err.Error())
+			}
+			wg.Done()
+		}(filename)
 	}
+
+	wg.Wait()
+	close(msgChan)
+
+	var messages []string
+	for msg := range msgChan {
+		messages = append(messages, msg)
+	}
+
+	json.NewEncoder(w).Encode(messages)
 }
 
 // PUT /api/files?oldname=123&newname=567
