@@ -30,6 +30,8 @@ type filesData struct {
 	mutex *sync.RWMutex
 }
 
+/* Persistent */
+
 // write writes fs.info into params.TagsFile
 func (fs filesData) write() {
 	fs.mutex.RLock()
@@ -51,6 +53,8 @@ func (fs filesData) write() {
 func (fs *filesData) decode(r io.Reader) error {
 	return json.NewDecoder(r).Decode(&fs.info)
 }
+
+/* Files */
 
 // add adds an element into fs.info and call fs.write()
 func (fs *filesData) add(info FileInfo) error {
@@ -105,6 +109,28 @@ func (fs *filesData) delete(filename string) error {
 	}
 
 	delete(fs.info, filename)
+
+	fs.mutex.Unlock()
+
+	fs.write()
+
+	return nil
+}
+
+/* Tags */
+
+func (fs *filesData) changeTags(filename string, tags []string) error {
+	fs.mutex.Lock()
+
+	if _, ok := fs.info[filename]; !ok {
+		fs.mutex.Unlock()
+		return ErrFileIsNotExist
+	}
+
+	// Update map
+	f := fs.info[filename]
+	f.Tags = tags
+	fs.info[filename] = f
 
 	fs.mutex.Unlock()
 

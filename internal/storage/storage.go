@@ -93,3 +93,8 @@ func DeleteFile(filename string) error {
 func RenameFile(oldName, newName string) error {
 	return allFiles.rename(oldName, newName)
 }
+
+// ChangeTags changes the tags
+func ChangeTags(filename string, tags []string) error {
+	return allFiles.changeTags(filename, tags)
+}

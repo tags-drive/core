@@ -23,6 +23,8 @@ var (
 	ErrEmptyFilename = errors.New("name of a file can't be empty")
 )
 
+/* Files */
+
 // POST /api/files (multipart/form-data)
 //
 // Response: json list of strings with status of files uploading
@@ -211,4 +213,35 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(files)
+}
+
+/* Tags */
+
+// PUT /api/tags?file=filename&tags=first,second,third
+//
+// Response: -
+//
+func changeTags(w http.ResponseWriter, r *http.Request) {
+	var (
+		filename = r.FormValue("file")
+		tags     = func() []string {
+			t := r.FormValue("tags")
+			if t == "" {
+				return []string{}
+			}
+
+			return strings.Split(t, ",")
+		}()
+	)
+
+	if filename == "" {
+		http.Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := storage.ChangeTags(filename, tags)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

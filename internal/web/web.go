@@ -22,12 +22,14 @@ var routes = []struct {
 	{"/", "GET", index, false}, // index should check is userdata correct itself
 	{"/login", "GET", login, false},
 	{"/login", "POST", auth, false},
-	// API
+	// files
 	{"/api/files", "GET", returnFiles, true},
 	{"/api/files", "POST", upload, true},
 	{"/api/files", "PUT", renameFile, true},
 	{"/api/files", "DELETE", deleteFile, true},
 	{"/api/files/recent", "GET", returnRecentFiles, true},
+	// tags
+	{"/api/tags", "PUT", changeTags, true},
 }
 
 // Start starts the server. It has to run in goroutine
