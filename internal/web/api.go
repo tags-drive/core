@@ -123,11 +123,6 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		enc.SetIndent("", "  ")
 	}
 
-	if len(tags) == 0 && search == "" {
-		enc.Encode(storage.GetAll(sortMode))
-		return
-	}
-
 	enc.Encode(storage.Get(tagMode, sortMode, tags, search))
 }
 

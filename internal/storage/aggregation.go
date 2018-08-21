@@ -151,19 +151,11 @@ func Get(m TagMode, s SortMode, tags []string, search string) []FileInfo {
 	return files
 }
 
-// GetAll returns all files
-func GetAll(s SortMode) []FileInfo {
-	// We can use any Mode
-	files := allFiles.getFiles(ModeAnd, []string{}, "")
-	sortFiles(s, files)
-	return files
-}
-
 // GetRecent returns the last uploaded files
 //
 // Func uses GetAll(TimeDescMode)
 func GetRecent(number int) []FileInfo {
-	files := GetAll(SortByTimeDesc)
+	files := Get(ModeAnd, SortByTimeDesc, []string{}, "")
 	if len(files) > number {
 		files = files[:number]
 	}
