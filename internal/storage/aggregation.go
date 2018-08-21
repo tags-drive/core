@@ -113,6 +113,7 @@ func sortFiles(s SortMode, files []FileInfo) {
 
 // getFiles returns slice of FileInfo with passed tags. If tags is an empty slice, function will return all files
 func (fs filesData) getFiles(m TagMode, tags []string, search string) (files []FileInfo) {
+	fs.mutex.RLock()
 	if len(tags) == 0 {
 		files = make([]FileInfo, len(fs.info))
 		i := 0
@@ -127,6 +128,8 @@ func (fs filesData) getFiles(m TagMode, tags []string, search string) (files []F
 			}
 		}
 	}
+
+	fs.mutex.RUnlock()
 
 	if search == "" {
 		return files
