@@ -18,7 +18,7 @@ const (
 	maxSize = 50000000 // 50MB
 )
 
-// POST /api/upload (multipart/form-data)
+// POST /api/files (multipart/form-data)
 //
 // Response: json list of strings with status of files uploading
 //
