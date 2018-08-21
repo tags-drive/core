@@ -2,21 +2,21 @@
 
 ## Meta information
 
-Meta information is kept in `.json` files.
-
-There's a main file – `files.json`. It keeps information about files and their tags.
+The main file is `files.json`. It keeps information about files and their tags.
 
 **Basic structure:**
 
 ```json
-[
-  {
-    "filename": "",
-    "tags": []
+{
+  "filename": {
+    "filename": "filename",
+    "size": 123,
+    "tags": [],
+    "add_time": "2018-08-19T17:15:41.7045266+03:00"
   }
-]
+}
 ```
 
-## Rendering
+## Files
 
-The main renderings is processing on backend. Frontend just have to show ready html.
+All files are kept in `data` folder.
