@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -23,6 +22,14 @@ var (
 	ErrEmptyFilename = errors.New("name of a file can't be empty")
 )
 
+// multiplyResponse is used as response by POST /api/files and DELETE /api/files
+type multiplyResponse struct {
+	Filename string `json:"filename"`
+	IsError  bool   `json:"isError"`
+	Error    string `json:"error"`
+	Status   string `json:"status"` // Status isn't empty when IsError == false
+}
+
 /* Files */
 
 // POST /api/files (multipart/form-data)
@@ -41,7 +48,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msgChan := make(chan string, 50)
+	respChan := make(chan multiplyResponse, 50)
 	wg := new(sync.WaitGroup)
 
 	for _, f := range r.MultipartForm.File["files"] {
@@ -50,22 +57,25 @@ func upload(w http.ResponseWriter, r *http.Request) {
 			defer wg.Done()
 			err := storage.UploadFile(header, []string{})
 			if err != nil {
-				msgChan <- fmt.Sprintf("%s: %s", header.Filename, err)
+				respChan <- multiplyResponse{Filename: header.Filename, IsError: true, Error: err.Error()}
 			} else {
-				msgChan <- fmt.Sprintf("%s: %s", header.Filename, "done")
+				respChan <- multiplyResponse{Filename: header.Filename, Status: "uploaded"}
 			}
 		}(f)
 	}
 	wg.Wait()
-	close(msgChan)
+	close(respChan)
 
-	var messages []string
-
-	for msg := range msgChan {
-		messages = append(messages, msg)
+	var response []multiplyResponse
+	for resp := range respChan {
+		response = append(response, resp)
 	}
 
-	json.NewEncoder(w).Encode(messages)
+	enc := json.NewEncoder(w)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+	enc.Encode(response)
 }
 
 // DELETE /api/files?file=file1&file=file2
@@ -80,30 +90,35 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msgChan := make(chan string, 50)
+	respChan := make(chan multiplyResponse, 50)
 	wg := new(sync.WaitGroup)
 
 	for _, filename := range filenames {
 		wg.Add(1)
 		go func(f string) {
+			defer wg.Done()
 			err := storage.DeleteFile(f)
-			// Log only errors
 			if err != nil {
-				msgChan <- fmt.Sprintf("%s: %s", f, err.Error())
+				respChan <- multiplyResponse{Filename: f, IsError: true, Error: err.Error()}
+			} else {
+				respChan <- multiplyResponse{Filename: f, Status: "deleted"}
 			}
-			wg.Done()
 		}(filename)
 	}
 
 	wg.Wait()
-	close(msgChan)
+	close(respChan)
 
-	var messages []string
-	for msg := range msgChan {
-		messages = append(messages, msg)
+	var response []multiplyResponse
+	for resp := range respChan {
+		response = append(response, resp)
 	}
 
-	json.NewEncoder(w).Encode(messages)
+	enc := json.NewEncoder(w)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+	enc.Encode(response)
 }
 
 // PUT /api/files?oldname=123&newname=567
