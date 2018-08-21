@@ -127,7 +127,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	enc.Encode(storage.GetWithTags(tagMode, sortMode, tags))
+	enc.Encode(storage.Get(tagMode, sortMode, tags))
 }
 
 func getParam(def, passed string, options ...string) (s string) {

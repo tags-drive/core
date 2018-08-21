@@ -133,9 +133,9 @@ func (fs filesData) getFiles(m TagMode, tags []string) []FileInfo {
 	return files
 }
 
-// GetWithTags returns all files with (or without) passed tags
+// Get returns all files with (or without) passed tags
 // For more information, see AndMode, OrMode, NotMode
-func GetWithTags(m TagMode, s SortMode, tags []string) []FileInfo {
+func Get(m TagMode, s SortMode, tags []string) []FileInfo {
 	files := allFiles.getFiles(m, tags)
 	sortFiles(s, files)
 	return files
