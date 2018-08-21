@@ -68,6 +68,33 @@ func (fs *filesData) add(info FileInfo) error {
 	return nil
 }
 
+// rename renames a file
+func (fs *filesData) rename(oldName string, newName string) error {
+	fs.mutex.Lock()
+	if _, ok := fs.info[oldName]; !ok {
+		fs.mutex.Unlock()
+		return ErrFileIsNotExist
+	}
+
+	// Update map
+	f := fs.info[oldName]
+	delete(fs.info, oldName)
+	f.Filename = newName
+	f.AddTime = time.Now()
+	fs.info[newName] = f
+
+	// We have to unlock mutex after renaming, in order to user can't get invalid file
+	err := os.Rename(params.DataFolder+"/"+oldName, params.DataFolder+"/"+newName)
+	fs.mutex.Unlock()
+	if err != nil {
+		return err
+	}
+
+	fs.write()
+
+	return nil
+}
+
 // delete deletes an element (from structure) and call fs.write()
 func (fs *filesData) delete(filename string) error {
 	fs.mutex.Lock()

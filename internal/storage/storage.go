@@ -88,3 +88,8 @@ func DeleteFile(filename string) error {
 
 	return os.Remove(params.DataFolder + "/" + filename)
 }
+
+// RenameFile renames a file
+func RenameFile(oldName, newName string) error {
+	return allFiles.rename(oldName, newName)
+}

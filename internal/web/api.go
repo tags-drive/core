@@ -83,6 +83,29 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// PUT /api/files?oldname=123&newname=567
+//
+// Response: -
+//
+func renameFile(w http.ResponseWriter, r *http.Request) {
+	var (
+		oldName = r.FormValue("oldname")
+		newName = r.FormValue("newname")
+	)
+
+	if oldName == "" || newName == "" {
+		http.Error(w, "name of a file can't be empty", http.StatusBadRequest)
+		return
+	}
+
+	// We can skip checking of invalid characters, because Go will return an error
+	err := storage.RenameFile(oldName, newName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 // GET /api/files?sort=(name|size|time)&order(asc|desc)&tags=first,second,third&mode=(or|and|not)&search=abc
 // tags - list of tags separated by ',' (can be empty, then all files will be returned)
 // First elements in params is default (name, asc and etc.)

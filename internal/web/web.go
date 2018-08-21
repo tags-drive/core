@@ -23,8 +23,9 @@ var routes = []struct {
 	{"/login", "GET", login, false},
 	{"/login", "POST", auth, false},
 	// API
-	{"/api/files", "POST", upload, true},
 	{"/api/files", "GET", returnFiles, true},
+	{"/api/files", "POST", upload, true},
+	{"/api/files", "PUT", renameFile, true},
 	{"/api/files", "DELETE", deleteFile, true},
 	{"/api/files/recent", "GET", returnRecentFiles, true},
 }
