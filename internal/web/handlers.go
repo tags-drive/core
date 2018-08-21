@@ -1,17 +1,18 @@
 package web
 
 import (
-	"html/template"
+	"io"
 	"net/http"
+	"os"
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("templates/index.html")
+	f, err := os.Open("templates/index.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	t.Execute(w, nil)
+	io.Copy(w, f)
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
