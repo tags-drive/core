@@ -78,3 +78,13 @@ func UploadFile(f *multipart.FileHeader, tags []string) error {
 	// Adding into global list //
 	return allFiles.add(FileInfo{Filename: f.Filename, Size: f.Size, AddTime: time.Now(), Tags: tags})
 }
+
+// DeleteFile deletes file from structure and from disk
+func DeleteFile(filename string) error {
+	err := allFiles.delete(filename)
+	if err != nil {
+		return err
+	}
+
+	return os.Remove(params.DataFolder + "/" + filename)
+}

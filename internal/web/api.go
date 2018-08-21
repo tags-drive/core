@@ -61,6 +61,28 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(messages)
 }
 
+// DELETE /api/files?file=filename
+//
+// Response: -
+//
+func deleteFile(w http.ResponseWriter, r *http.Request) {
+	filename := r.FormValue("file")
+	if filename == "" {
+		http.Error(w, "Filename can't be empty", http.StatusBadRequest)
+		return
+	}
+
+	err := storage.DeleteFile(filename)
+	if err != nil {
+		if err == storage.ErrFileIsNotExist {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 // GET /api/files?sort=(name|size|time)&order(asc|desc)&tags=first,second,third&mode=(or|and|not)&search=abc
 // tags - list of tags separated by ',' (can be empty, then all files will be returned)
 // First elements in params is default (name, asc and etc.)

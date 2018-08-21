@@ -7,7 +7,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/ShoshinNikita/tags-drive/internal/params"
+)
+
+var (
+	ErrFileIsNotExist = errors.New("the file doesn't exist")
 )
 
 type FileInfo struct {
@@ -49,7 +55,7 @@ func (fs *filesData) decode(r io.Reader) error {
 // add adds an element into fs.info and call fs.write()
 func (fs *filesData) add(info FileInfo) error {
 	fs.mutex.Lock()
-	// TODO
+	// TODO + unlock
 	if _, ok := fs.info[info.Filename]; ok {
 
 	}
@@ -62,7 +68,20 @@ func (fs *filesData) add(info FileInfo) error {
 	return nil
 }
 
-// delete deletes an element and call fs.write()
-func (fs *filesData) delete(filename string) {
+// delete deletes an element (from structure) and call fs.write()
+func (fs *filesData) delete(filename string) error {
+	fs.mutex.Lock()
+
+	if _, ok := fs.info[filename]; !ok {
+		fs.mutex.Unlock()
+		return ErrFileIsNotExist
+	}
+
+	delete(fs.info, filename)
+
+	fs.mutex.Unlock()
+
 	fs.write()
+
+	return nil
 }

@@ -25,6 +25,7 @@ var routes = []struct {
 	// API
 	{"/api/files", "POST", upload, true},
 	{"/api/files", "GET", returnFiles, true},
+	{"/api/files", "DELETE", deleteFile, true},
 	{"/api/files/recent", "GET", returnRecentFiles, true},
 }
 
