@@ -10,6 +10,7 @@ import (
 
 	"github.com/ShoshinNikita/tags-drive/internal/storage"
 	"github.com/ShoshinNikita/tags-drive/internal/web"
+	"github.com/ShoshinNikita/tags-drive/internal/web/auth"
 )
 
 func main() {
@@ -19,6 +20,11 @@ func main() {
 	log.Infoln("Start")
 
 	err := storage.Init()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = auth.Init()
 	if err != nil {
 		log.Fatalln(err)
 	}
