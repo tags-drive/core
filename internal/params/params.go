@@ -4,6 +4,7 @@ package params
 import (
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -11,6 +12,12 @@ const (
 	DataFolder = "data"
 	// TagsFile is a json file with info about the files
 	TagsFile = "files.json"
+	// TokensFile is a json file with list of tokens
+	TokensFile = "tokens.json"
+	// MaxTokenLife define the max lifetime of token (2 months)
+	MaxTokenLife = time.Hour * 24 * 60
+	// AuthCookieName defines name of cookie, which contains token
+	AuthCookieName = "auth"
 )
 
 var (
