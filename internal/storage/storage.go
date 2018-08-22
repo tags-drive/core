@@ -39,6 +39,7 @@ func Init() error {
 			// Write empty structure
 			json.NewEncoder(f).Encode(allFiles)
 			// Can exit because we don't need to decode files from the file
+			f.Close()
 			return nil
 		}
 

@@ -33,7 +33,7 @@ func (fs filesData) write() {
 	defer fs.mutex.RUnlock()
 
 	// TODO
-	f, _ := os.OpenFile(params.TagsFile, os.O_RDWR, 0600)
+	f, _ := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0600)
 	// Write pretty json if Debug mode
 	enc := json.NewEncoder(f)
 	if params.Debug {
