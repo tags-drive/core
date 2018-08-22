@@ -61,7 +61,7 @@ func (t *tokens) delete(token string) {
 		return
 	}
 
-	t.tokens = append(t.tokens[:tokenIndex], t.tokens[:tokenIndex+1]...)
+	t.tokens = append(t.tokens[:tokenIndex], t.tokens[tokenIndex+1:]...)
 
 	t.mutex.Unlock()
 
