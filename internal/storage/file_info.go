@@ -7,15 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 )
 
-var (
-	ErrFileIsNotExist = errors.New("the file doesn't exist")
-)
-
+// FileInfo contains the information about a file
 type FileInfo struct {
 	Filename string    `json:"filename"`
 	Size     int64     `json:"size"`
@@ -59,9 +54,10 @@ func (fs *filesData) decode(r io.Reader) error {
 // add adds an element into fs.info and call fs.write()
 func (fs *filesData) add(info FileInfo) error {
 	fs.mutex.Lock()
-	// TODO + unlock
-	if _, ok := fs.info[info.Filename]; ok {
 
+	if _, ok := fs.info[info.Filename]; ok {
+		fs.mutex.Unlock()
+		return ErrAlreadyExist
 	}
 
 	fs.info[info.Filename] = info

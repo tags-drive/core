@@ -2,7 +2,6 @@ package storage
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"os"
@@ -13,6 +12,12 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/ShoshinNikita/tags-drive/internal/params"
+)
+
+// Errors
+var (
+	ErrFileIsNotExist = errors.New("the file doesn't exist")
+	ErrAlreadyExist   = errors.New("file already exists")
 )
 
 var allFiles = filesData{
@@ -54,25 +59,24 @@ func UploadFile(f *multipart.FileHeader, tags []string) error {
 	// Uploading //
 	file, err := f.Open()
 	if err != nil {
-		return errors.Wrapf(err, "can't open file")
+		return errors.Wrap(err, "can't open a file")
 	}
 
 	path := params.DataFolder + "/" + f.Filename
-	// TODO
 	if _, err := os.Open(path); !os.IsNotExist(err) {
-		return fmt.Errorf("file %s already exists", path)
+		return ErrAlreadyExist
 	}
 
 	newFile, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
-		return errors.Wrapf(err, "can't create a new file %s\n", path)
+		return errors.Wrap(err, "can't create a new file")
 	}
 
 	_, err = io.Copy(newFile, file)
 	if err != nil {
 		// Deleting of the bad file
 		os.Remove(path)
-		return errors.Wrap(err, "Can't copy a new file")
+		return errors.Wrap(err, "can't copy a new file")
 	}
 
 	// Adding into global list //
