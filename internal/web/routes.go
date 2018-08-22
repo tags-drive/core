@@ -8,9 +8,11 @@ var routes = []struct {
 	handler  http.HandlerFunc
 	needAuth bool
 }{
-	{"/", "GET", index, false}, // index should check is userdata correct itself
+	{"/", "GET", index, true},
+	// auth
 	{"/login", "GET", login, false},
-	{"/login", "POST", auth, false},
+	{"/login", "POST", authentication, false},
+	{"/logout", "POST", logout, true},
 	// files
 	{"/api/files", "GET", returnFiles, true},
 	{"/api/files", "POST", upload, true},

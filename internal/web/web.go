@@ -26,7 +26,7 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {
-			handler = checkAuth(r.handler)
+			handler = authMiddleware(r.handler)
 		}
 		router.Path(r.path).Methods(r.methods).Handler(handler)
 	}
