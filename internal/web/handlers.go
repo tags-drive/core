@@ -22,6 +22,13 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
+	// Redirect to / if user is authorized
+	c, err := r.Cookie(params.AuthCookieName)
+	if err != http.ErrNoCookie && auth.CheckToken(c.Value) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	f, err := os.Open("templates/login.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
