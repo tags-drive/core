@@ -78,6 +78,12 @@ func authentication(w http.ResponseWriter, r *http.Request) {
 
 func authMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Redirect won't help
+		if r.Method != "GET" {
+			http.Error(w, "need auth", http.StatusForbidden)
+			return
+		}
+
 		c, err := r.Cookie(params.AuthCookieName)
 		if err == http.ErrNoCookie {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
