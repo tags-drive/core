@@ -3,6 +3,8 @@ package web
 import (
 	"net/http"
 
+	"github.com/minio/sio"
+
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 	"github.com/ShoshinNikita/tags-drive/internal/web/auth"
 )
@@ -38,8 +40,24 @@ func authMiddleware(h http.Handler) http.Handler {
 	})
 }
 
-func decryptMiddleware(h http.Handler) http.Handler {
+func decryptMiddleware(dir http.Dir) http.Handler {
+	if !params.Encrypt {
+		return http.FileServer(dir)
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(w, r)
+		fileName := r.URL.Path
+		f, err := dir.Open(fileName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		defer f.Close()
+
+		_, err = sio.Decrypt(w, f, sio.Config{Key: params.Key[:]})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	})
 }
