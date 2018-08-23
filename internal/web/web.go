@@ -22,7 +22,7 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	// For static files
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
 	// For uploaded files
-	router.PathPrefix("/data/").Handler(http.StripPrefix("/data/", http.FileServer(http.Dir("data/"))))
+	router.PathPrefix("/data/").Handler(http.StripPrefix("/data/", decryptMiddleware(http.Dir(params.DataFolder+"/"))))
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {
