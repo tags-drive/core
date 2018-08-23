@@ -62,6 +62,7 @@ func UploadFile(f *multipart.FileHeader, tags []string) error {
 	if err != nil {
 		return errors.Wrap(err, "can't open a file")
 	}
+	defer file.Close()
 
 	path := params.DataFolder + "/" + f.Filename
 	if _, err := os.Open(path); !os.IsNotExist(err) {
@@ -72,6 +73,7 @@ func UploadFile(f *multipart.FileHeader, tags []string) error {
 	if err != nil {
 		return errors.Wrap(err, "can't create a new file")
 	}
+	defer newFile.Close()
 
 	_, err = io.Copy(newFile, file)
 	if err != nil {
