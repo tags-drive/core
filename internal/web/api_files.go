@@ -266,5 +266,3 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 	}
 	enc.Encode(files)
 }
-
-/* Tags */
