@@ -121,7 +121,7 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(response)
 }
 
-// PUT /api/files?file=123&newname=567&tags=tag1,tag2,tag3
+// PUT /api/files?file=123&new-name=567&tags=tag1,tag2,tag3
 // newname or tags can be skipped
 //
 // Response: -
@@ -129,7 +129,7 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 func changeFile(w http.ResponseWriter, r *http.Request) {
 	var (
 		filename = r.FormValue("file")
-		newName  = r.FormValue("newname")
+		newName  = r.FormValue("new-name")
 		tags     = func() []string {
 			t := r.FormValue("tags")
 			if t == "" {
