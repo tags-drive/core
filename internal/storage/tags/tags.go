@@ -11,6 +11,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	// DefaultColor is a white color
+	DefaultColor = "#ffffff"
+)
+
 type Tag struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
@@ -24,9 +29,10 @@ type tagsStruct struct {
 func (t tagsStruct) write() {
 	t.mutex.RLock()
 	defer t.mutex.RUnlock()
+	// TODO
 }
 
-func (t tagsStruct) decode(r io.Reader) error {
+func (t *tagsStruct) decode(r io.Reader) error {
 	return json.NewDecoder(r).Decode(&t.tags)
 }
 
@@ -60,6 +66,34 @@ func (t *tagsStruct) delete(name string) {
 	}
 
 	t.tags = append(t.tags[0:index], t.tags[index+1:]...)
+	t.mutex.Unlock()
+
+	t.write()
+}
+
+func (t *tagsStruct) change(tag, newName, newColor string) {
+	t.mutex.Lock()
+
+	index := -1
+	for i := range t.tags {
+		if t.tags[i].Name == tag {
+			index = i
+			break
+		}
+	}
+	if index == -1 {
+		t.mutex.Unlock()
+		return
+	}
+
+	if newName != "" {
+		t.tags[index].Name = newName
+	}
+
+	if newColor != "" {
+		t.tags[index].Color = newColor
+	}
+
 	t.mutex.Unlock()
 
 	t.write()
@@ -121,6 +155,12 @@ func AddTag(t Tag) {
 	allTags.add(t)
 }
 
-func DeleteTAg(name string) {
+func DeleteTag(name string) {
 	allTags.delete(name)
+}
+
+// Change changes a tag with Name name.
+// If pass empty newName (or newColor), field Name (or Color) won't be changed.
+func Change(name, newName, newColor string) {
+	allTags.change(name, newName, newColor)
 }
