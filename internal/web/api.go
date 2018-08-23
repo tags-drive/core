@@ -121,26 +121,47 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(response)
 }
 
-// PUT /api/files?oldname=123&newname=567
+// PUT /api/files?file=123&newname=567&tags=tag1,tag2,tag3
+// newname or tags can be skipped
 //
 // Response: -
 //
-func renameFile(w http.ResponseWriter, r *http.Request) {
+func changeFile(w http.ResponseWriter, r *http.Request) {
 	var (
-		oldName = r.FormValue("oldname")
-		newName = r.FormValue("newname")
+		filename = r.FormValue("file")
+		newName  = r.FormValue("newname")
+		tags     = func() []string {
+			t := r.FormValue("tags")
+			if t == "" {
+				return []string{}
+			}
+
+			return strings.Split(t, ",")
+		}()
 	)
 
-	if oldName == "" || newName == "" {
+	if filename == "" {
 		http.Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// We can skip checking of invalid characters, because Go will return an error
-	err := storage.RenameFile(oldName, newName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	// Change tags, at first
+	if len(tags) != 0 {
+		err := storage.ChangeTags(filename, tags)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Change filename
+	if newName != "" {
+		// We can skip checking of invalid characters, because Go will return an error
+		err := storage.RenameFile(filename, newName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -247,32 +268,3 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 }
 
 /* Tags */
-
-// PUT /api/tags?file=filename&tags=first,second,third
-//
-// Response: -
-//
-func changeTags(w http.ResponseWriter, r *http.Request) {
-	var (
-		filename = r.FormValue("file")
-		tags     = func() []string {
-			t := r.FormValue("tags")
-			if t == "" {
-				return []string{}
-			}
-
-			return strings.Split(t, ",")
-		}()
-	)
-
-	if filename == "" {
-		http.Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
-		return
-	}
-
-	err := storage.ChangeTags(filename, tags)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
