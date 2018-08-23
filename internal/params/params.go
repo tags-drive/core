@@ -2,6 +2,7 @@
 package params
 
 import (
+	"crypto/sha256"
 	"os"
 	"strings"
 	"time"
@@ -31,6 +32,11 @@ var (
 	Password string
 	// Debug defines is debug mode
 	Debug bool
+	// Encrypt defines, should the program encrypt files. False by default
+	// TODO false or true
+	Encrypt bool
+	// Key is used for encrypting of files. Key is a sha256 sum of Password
+	Key [32]byte
 )
 
 func init() {
@@ -77,4 +83,15 @@ func init() {
 		}
 		return false
 	}()
+
+	Encrypt = func() bool {
+		enc := os.Getenv("ENCRYPT")
+		if enc == "true" {
+			return true
+		}
+
+		return false
+	}()
+
+	Key = sha256.Sum256([]byte(Password))
 }
