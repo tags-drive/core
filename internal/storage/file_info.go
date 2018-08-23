@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ShoshinNikita/log"
+
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 )
 
@@ -32,9 +34,12 @@ func (fs filesData) write() {
 	fs.mutex.RLock()
 	defer fs.mutex.RUnlock()
 
-	// TODO
-	f, _ := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0600)
-	// Write pretty json if Debug mode
+	f, err := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0600)
+	if err != nil {
+		log.Errorf("Can't open file %s: %s\n", params.TagsFile, err)
+		return
+	}
+
 	enc := json.NewEncoder(f)
 	if params.Debug {
 		enc.SetIndent("", "  ")

@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ShoshinNikita/log"
+
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 )
 
@@ -25,7 +27,7 @@ func (t tokens) write() {
 
 	f, err := os.OpenFile(params.TokensFile, os.O_TRUNC|os.O_RDWR, 0600)
 	if err != nil {
-		// TODO
+		log.Errorf("Can't open file %s: %s\n", params.TokensFile, err)
 		return
 	}
 
