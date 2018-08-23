@@ -27,7 +27,7 @@ const (
 	SortBySizeDecs
 )
 
-// isGoodFile checks if file has (or hasn't) passed tags
+// isGoodFile checks if file has passed tags
 //
 // We can use nested loop, because number of tags is small
 func isGoodFile(m TagMode, fileTags, passedTags []string) (res bool) {
@@ -123,7 +123,11 @@ func (fs filesData) getFiles(m TagMode, tags []string, search string) (files []F
 		}
 	} else {
 		for _, v := range fs.info {
-			if isGoodFile(m, v.Tags, tags) {
+			stringTags := make([]string, len(v.Tags))
+			for i, t := range v.Tags {
+				stringTags[i] = t.Name
+			}
+			if isGoodFile(m, stringTags, tags) {
 				files = append(files, v)
 			}
 		}

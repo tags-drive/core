@@ -27,7 +27,7 @@ var allFiles = filesData{
 	mutex: new(sync.RWMutex),
 }
 
-// Init reads params.TagsFiles and decode its data
+// Init reads params.Files and decode its data
 func Init() error {
 	f, err := os.OpenFile(params.Files, os.O_RDWR, 0600)
 	if err != nil {
@@ -58,7 +58,7 @@ func Init() error {
 }
 
 // UploadFile tries to upload a new file. If it was successful, the function calls Files.add()
-func UploadFile(f *multipart.FileHeader, tags []string) error {
+func UploadFile(f *multipart.FileHeader) error {
 	// Uploading //
 	file, err := f.Open()
 	if err != nil {
@@ -85,7 +85,7 @@ func UploadFile(f *multipart.FileHeader, tags []string) error {
 	}
 
 	// Adding into global list //
-	return allFiles.add(FileInfo{Filename: f.Filename, Size: f.Size, AddTime: time.Now(), Tags: tags})
+	return allFiles.add(FileInfo{Filename: f.Filename, Size: f.Size, AddTime: time.Now()})
 }
 
 // writeFile writes file on a disk. It encrypts (or doesn't encrypt) the file according to params.Encrypt

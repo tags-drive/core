@@ -55,7 +55,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		wg.Add(1)
 		go func(header *multipart.FileHeader) {
 			defer wg.Done()
-			err := files.UploadFile(header, []string{})
+			err := files.UploadFile(header)
 			if err != nil {
 				respChan <- multiplyResponse{Filename: header.Filename, IsError: true, Error: err.Error()}
 			} else {

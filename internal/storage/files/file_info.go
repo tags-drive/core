@@ -10,14 +10,15 @@ import (
 	"github.com/ShoshinNikita/log"
 
 	"github.com/ShoshinNikita/tags-drive/internal/params"
+	"github.com/ShoshinNikita/tags-drive/internal/storage/tags"
 )
 
 // FileInfo contains the information about a file
 type FileInfo struct {
-	Filename string    `json:"filename"`
-	Size     int64     `json:"size"`
-	Tags     []string  `json:"tags"`
-	AddTime  time.Time `json:"add_time"`
+	Filename string     `json:"filename"`
+	Size     int64      `json:"size"`
+	Tags     []tags.Tag `json:"tags"`
+	AddTime  time.Time  `json:"add_time"`
 }
 
 // filesData is a map (filename: FileInfo) with RWMutex
@@ -120,7 +121,7 @@ func (fs *filesData) delete(filename string) error {
 
 /* Tags */
 
-func (fs *filesData) changeTags(filename string, tags []string) error {
+func (fs *filesData) changeTags(filename string, changedTags []string) error {
 	fs.mutex.Lock()
 
 	if _, ok := fs.info[filename]; !ok {
@@ -130,7 +131,7 @@ func (fs *filesData) changeTags(filename string, tags []string) error {
 
 	// Update map
 	f := fs.info[filename]
-	f.Tags = tags
+	f.Tags = tags.GetTags(changedTags)
 	fs.info[filename] = f
 
 	fs.mutex.Unlock()

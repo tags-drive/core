@@ -67,7 +67,7 @@ func (t *tagsStruct) delete(name string) {
 
 var allTags = tagsStruct{mutex: new(sync.RWMutex)}
 
-// Init 
+// Init reads params.TagsFiles and decode its data
 func Init() error {
 	f, err := os.OpenFile(params.TagsFile, os.O_RDWR, 0600)
 	if err != nil {
@@ -99,6 +99,22 @@ func Init() error {
 
 func GetAllTags() []Tag {
 	return allTags.getAll()
+}
+
+// GetTags returns tags with passed names
+func GetTags(names []string) []Tag {
+	tags := allTags.getAll()
+	var res []Tag
+	for _, t := range tags {
+		for _, n := range names {
+			if t.Name == n {
+				res = append(res, t)
+				break
+			}
+		}
+	}
+
+	return res
 }
 
 func AddTag(t Tag) {
