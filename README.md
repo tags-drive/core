@@ -17,9 +17,9 @@ All API methods require auth.
 ### Files
 
 - `GET /api/files?sort=(name|size|time)&order(asc|desc)&tags=first,second,third&mode=(or|and|not)&search=abc` - get list of files.
-- `GET /api/files/recent?number=5` - get list of the last uploaded files ((5 is a default number of returned files)
-- `PUT /api/files?oldname=123&newname=567` - rename file.
+- `GET /api/files/recent?number=5` - get list of the last uploaded files (5 is a default number of returned files)
 - `POST /api/files` - upload files (`Content-Type: multipart/form-data`)
+- `PUT /api/files?file=123&new-name=567&tags=tag1,tag2,tag3` - rename file, change file tags.
 - `DELETE /api/files?file=file1&file=file2` - delete file.
 
 ```go
@@ -34,7 +34,10 @@ type multiplyResponse struct {
 
 ### Tags
 
-- `PUT /api/tags?file=filename&tags=first,second,third` - change tags.
+- `GET /api/tags` - get list of all tags
+- `POST /api/tags?tag=newtag` - create a new tag
+- `PUT /api/tag?tag=tagname&color=new-color&new-name=new-name` - change name, color
+- `DELETE /api/tags?tag=tagname` - delete a tag
 
 ## Install
 

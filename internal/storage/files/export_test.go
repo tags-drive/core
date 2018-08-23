@@ -1,4 +1,4 @@
-package storage
+package files
 
 var (
 	IsGoodFile = isGoodFile

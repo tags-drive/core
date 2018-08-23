@@ -11,10 +11,12 @@ import (
 const (
 	// DataFolder is a folder, in which all files are kept
 	DataFolder = "data"
-	// TagsFile is a json file with info about the files
-	TagsFile = "files.json"
+	// Files is a json file with info about the files
+	Files = "files.json"
 	// TokensFile is a json file with list of tokens
 	TokensFile = "tokens.json"
+	// TagsFile is a json file with list of tags (with name and color)
+	TagsFile = "tags.json"
 	// MaxTokenLife define the max lifetime of token (2 months)
 	MaxTokenLife = time.Hour * 24 * 60
 	// AuthCookieName defines name of cookie, which contains token
