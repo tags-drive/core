@@ -20,4 +20,8 @@ var routes = []struct {
 	{"/api/files", "DELETE", deleteFile, true},
 	{"/api/files/recent", "GET", returnRecentFiles, true},
 	// tags
+	{"/api/tags", "GET", returnTags, true},
+	{"/api/tags", "POST", addTag, true},
+	{"/api/tags", "PUT", changeTag, true},
+	{"/api/tags", "DELETE", deleteTag, true},
 }
