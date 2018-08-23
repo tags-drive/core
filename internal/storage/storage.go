@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/minio/sio"
+
 	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
 
@@ -75,7 +77,7 @@ func UploadFile(f *multipart.FileHeader, tags []string) error {
 	}
 	defer newFile.Close()
 
-	_, err = io.Copy(newFile, file)
+	_, err = writeFile(newFile, file)
 	if err != nil {
 		// Deleting of the bad file
 		os.Remove(path)
@@ -84,6 +86,15 @@ func UploadFile(f *multipart.FileHeader, tags []string) error {
 
 	// Adding into global list //
 	return allFiles.add(FileInfo{Filename: f.Filename, Size: f.Size, AddTime: time.Now(), Tags: tags})
+}
+
+// writeFile writes file on a disk. It encrypts (or doesn't encrypt) the file according to params.Encrypt
+func writeFile(dst io.Writer, src io.Reader) (int64, error) {
+	if params.Encrypt {
+		return sio.Encrypt(dst, src, sio.Config{Key: params.Key[:]})
+	}
+
+	return io.Copy(dst, src)
 }
 
 // DeleteFile deletes file from structure and from disk
