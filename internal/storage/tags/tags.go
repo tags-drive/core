@@ -16,6 +16,10 @@ const (
 	DefaultColor = "#ffffff"
 )
 
+var (
+	ErrTagIsNotExist = errors.New("tag doesn't exist")
+)
+
 type Tag struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
@@ -58,6 +62,14 @@ func (t tagsStruct) getAll() []Tag {
 
 func (t *tagsStruct) add(tag Tag) {
 	t.mutex.Lock()
+	// Don't add equal tag
+	for i := range t.tags {
+		if t.tags[i].Name == tag.Name {
+			t.mutex.Unlock()
+			return
+		}
+	}
+
 	t.tags = append(t.tags, tag)
 	t.mutex.Unlock()
 
@@ -84,6 +96,19 @@ func (t *tagsStruct) delete(name string) {
 	t.write()
 }
 
+func (t *tagsStruct) check(name string) bool {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+
+	for _, t := range t.tags {
+		if t.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (t *tagsStruct) change(tag, newName, newColor string) {
 	t.mutex.Lock()
 
@@ -104,6 +129,9 @@ func (t *tagsStruct) change(tag, newName, newColor string) {
 	}
 
 	if newColor != "" {
+		if newColor[0] != '#' {
+			newColor = "#" + newColor
+		}
 		t.tags[index].Color = newColor
 	}
 
@@ -170,6 +198,10 @@ func AddTag(t Tag) {
 
 func DeleteTag(name string) {
 	allTags.delete(name)
+}
+
+func Check(name string) bool {
+	return allTags.check(name)
 }
 
 // Change changes a tag with Name name.
