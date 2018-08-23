@@ -24,7 +24,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 func login(w http.ResponseWriter, r *http.Request) {
 	// Redirect to / if user is authorized
 	c, err := r.Cookie(params.AuthCookieName)
-	if err != http.ErrNoCookie && auth.CheckToken(c.Value) {
+	if err == nil && auth.CheckToken(c.Value) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
@@ -37,7 +37,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, f)
 }
 
-// TODO: check
 func logout(w http.ResponseWriter, r *http.Request) {
 	// We can skip err, because we already checked is there a cookie in authMiddleware()
 	c, _ := r.Cookie(params.AuthCookieName)
@@ -78,20 +77,27 @@ func authentication(w http.ResponseWriter, r *http.Request) {
 
 func authMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Redirect won't help
-		if r.Method != "GET" {
-			http.Error(w, "need auth", http.StatusForbidden)
-			return
-		}
+		validToken := func() bool {
+			c, err := r.Cookie(params.AuthCookieName)
+			if err != nil {
+				return false
+			}
 
-		c, err := r.Cookie(params.AuthCookieName)
-		if err == http.ErrNoCookie {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
+			token := c.Value
+			if !auth.CheckToken(token) {
+				return false
+			}
 
-		token := c.Value
-		if !auth.CheckToken(token) {
+			return true
+		}()
+
+		if !validToken {
+			// Redirect won't help
+			if r.Method != "GET" {
+				http.Error(w, "need auth", http.StatusForbidden)
+				return
+			}
+
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
