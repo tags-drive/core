@@ -29,7 +29,20 @@ type tagsStruct struct {
 func (t tagsStruct) write() {
 	t.mutex.RLock()
 	defer t.mutex.RUnlock()
-	// TODO
+
+	f, err := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0600)
+	if err != nil {
+		log.Errorf("Can't open file %s: %s\n", params.TagsFile, err)
+		return
+	}
+
+	enc := json.NewEncoder(f)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+	enc.Encode(t.tags)
+
+	f.Close()
 }
 
 func (t *tagsStruct) decode(r io.Reader) error {
