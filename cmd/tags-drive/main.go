@@ -8,7 +8,7 @@ import (
 
 	"github.com/ShoshinNikita/log"
 
-	"github.com/ShoshinNikita/tags-drive/internal/storage/files"
+	"github.com/ShoshinNikita/tags-drive/internal/storage"
 	"github.com/ShoshinNikita/tags-drive/internal/web"
 	"github.com/ShoshinNikita/tags-drive/internal/web/auth"
 )
@@ -19,7 +19,7 @@ func main() {
 
 	log.Infoln("Start")
 
-	err := files.Init()
+	err := storage.Init()
 	if err != nil {
 		log.Fatalln(err)
 	}
