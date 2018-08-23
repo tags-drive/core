@@ -6,6 +6,10 @@
 
 For example, you want to save an image of a cat. You can save it into folder `cats` or into folder `cute`. Of course, you may keeps 2 equal files, but it would be better to use tags system. So, you just need to add tags `cats` and `cute` to the photo.
 
+## Security
+
+Uploaded files can be encrypted. The program uses sha256 sum of the password for encryption. Encryption is realized by [minio/sio](https://github.com/minio/sio) package.
+
 ## API
 
 All API methods require auth.
@@ -43,13 +47,14 @@ type multiplyResponse struct {
 
 **Parameters:**
 
-| Environment | Default | Description                     |
-| ----------- | ------- | ------------------------------- |
-| PORT        | 80      | Port for website                |
-| TLS         | false   | Should **Tags Drive** use https |
-| LOGIN       | user    | Login for login                 |
-| PSWRD       | qwerty  | Password for login              |
-| DBG         | false   |                                 |
+| Environment | Default | Description                                      |
+| ----------- | ------- | -------------------------------                  |
+| PORT        | 80      | Port for website                                 |
+| TLS         | false   | Should **Tags Drive** use https                  |
+| LOGIN       | user    | Login for login                                  |
+| PSWRD       | qwerty  | Password for login                               |
+| ENCRYPT     | false   | Should the **Tags Drive** encrypt uploaded files |
+| DBG         | false   |                                                  |
 
 ### Frontend
 
