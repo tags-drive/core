@@ -10,8 +10,8 @@ import (
 const (
 	// DataFolder is a folder, in which all files are kept
 	DataFolder = "data"
-	// TagsFile is a json file with info about the files
-	TagsFile = "files.json"
+	// Files is a json file with info about the files
+	Files = "files.json"
 	// TokensFile is a json file with list of tokens
 	TokensFile = "tokens.json"
 	// MaxTokenLife define the max lifetime of token (2 months)
