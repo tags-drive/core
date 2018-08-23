@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/ShoshinNikita/tags-drive/internal/params"
-	"github.com/ShoshinNikita/tags-drive/internal/storage"
+	"github.com/ShoshinNikita/tags-drive/internal/storage/files"
 )
 
 const (
@@ -55,7 +55,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		wg.Add(1)
 		go func(header *multipart.FileHeader) {
 			defer wg.Done()
-			err := storage.UploadFile(header, []string{})
+			err := files.UploadFile(header, []string{})
 			if err != nil {
 				respChan <- multiplyResponse{Filename: header.Filename, IsError: true, Error: err.Error()}
 			} else {
@@ -97,7 +97,7 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		wg.Add(1)
 		go func(f string) {
 			defer wg.Done()
-			err := storage.DeleteFile(f)
+			err := files.DeleteFile(f)
 			if err != nil {
 				respChan <- multiplyResponse{Filename: f, IsError: true, Error: err.Error()}
 			} else {
@@ -147,7 +147,7 @@ func changeFile(w http.ResponseWriter, r *http.Request) {
 
 	// Change tags, at first
 	if len(tags) != 0 {
-		err := storage.ChangeTags(filename, tags)
+		err := files.ChangeTags(filename, tags)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -157,7 +157,7 @@ func changeFile(w http.ResponseWriter, r *http.Request) {
 	// Change filename
 	if newName != "" {
 		// We can skip checking of invalid characters, because Go will return an error
-		err := storage.RenameFile(filename, newName)
+		err := files.RenameFile(filename, newName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -184,8 +184,8 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		}()
 		search = r.FormValue("search")
 
-		tagMode  = storage.ModeOr
-		sortMode = storage.SortByNameAsc
+		tagMode  = files.ModeOr
+		sortMode = files.SortByNameAsc
 	)
 
 	// Set sortMode
@@ -193,21 +193,21 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 	switch r.FormValue("sort") {
 	case "name":
 		if order == "asc" {
-			sortMode = storage.SortByNameAsc
+			sortMode = files.SortByNameAsc
 		} else {
-			sortMode = storage.SortByNameDesc
+			sortMode = files.SortByNameDesc
 		}
 	case "size":
 		if order == "asc" {
-			sortMode = storage.SortBySizeAsc
+			sortMode = files.SortBySizeAsc
 		} else {
-			sortMode = storage.SortBySizeDecs
+			sortMode = files.SortBySizeDecs
 		}
 	case "time":
 		if order == "asc" {
-			sortMode = storage.SortByTimeAsc
+			sortMode = files.SortByTimeAsc
 		} else {
-			sortMode = storage.SortByTimeDesc
+			sortMode = files.SortByTimeDesc
 		}
 	}
 
@@ -215,11 +215,11 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 	// Can skip default
 	switch r.FormValue("mode") {
 	case "or":
-		tagMode = storage.ModeOr
+		tagMode = files.ModeOr
 	case "and":
-		tagMode = storage.ModeAnd
+		tagMode = files.ModeAnd
 	case "not":
-		tagMode = storage.ModeNot
+		tagMode = files.ModeNot
 	}
 
 	enc := json.NewEncoder(w)
@@ -227,7 +227,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		enc.SetIndent("", "  ")
 	}
 
-	enc.Encode(storage.Get(tagMode, sortMode, tags, search))
+	enc.Encode(files.Get(tagMode, sortMode, tags, search))
 }
 
 func getParam(def, passed string, options ...string) (s string) {
@@ -258,7 +258,7 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 		return int(n)
 	}()
 
-	files := storage.GetRecent(number)
+	files := files.GetRecent(number)
 
 	enc := json.NewEncoder(w)
 	if params.Debug {

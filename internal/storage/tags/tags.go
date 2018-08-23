@@ -67,6 +67,7 @@ func (t *tagsStruct) delete(name string) {
 
 var allTags = tagsStruct{mutex: new(sync.RWMutex)}
 
+// Init 
 func Init() error {
 	f, err := os.OpenFile(params.TagsFile, os.O_RDWR, 0600)
 	if err != nil {
