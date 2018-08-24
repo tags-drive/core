@@ -53,20 +53,34 @@ var searchBar = new Vue({
     el: "#searchBox",
     data: {
         sharedState: store.state,
+        tagForAdding: "",
         pickedTags: [],
         text: "",
-        tagForAdding: ""
+        selectedSortType: "Name",
+        selectedSortOrder: "Asc",
+        selectedMode: "And"
     },
     methods: {
         search: function() {
             let params = new URLSearchParams();
-            let tags = [];
-            for (let tag of this.pickedTags) {
-                tags.push(tag.name);
+            // tags
+            if (this.pickedTags.length != 0) {
+                let tags = [];
+                for (let tag of this.pickedTags) {
+                    tags.push(tag.name);
+                }
+                params.append("tags", tags.join(","));
             }
-
-            params.append("tags", tags.join(","));
-            params.append("search", this.text);
+            // search
+            if (this.text != "") {
+                params.append("search", this.text);
+            }
+            // sort
+            params.append("sort", this.selectedSortType.toLowerCase());
+            // order
+            params.append("order", this.selectedSortOrder.toLowerCase());
+            // mode
+            params.append("mode", this.selectedMode.toLowerCase());
 
             fetch("/api/files?" + params, {
                 method: "GET",

@@ -27,8 +27,28 @@
 				</datalist>
 				<i @click="addTag" class="material-icons" style="cursor: pointer;">add_circle_outline</i>
 			</div>
+			<div class="vertCenter" style="border-right: 1px solid black; height: 90%;"></div>
+			<div id="advancedSearchBlock">
+				<input v-model="text" type="text" placeholder="Text for search" style="margin-right: 5px;">
 
-			<div style="height: 100%;">
+				<div class="vertCenter" style="margin-right: 5px;">Sort by</div>
+				<select v-model="selectedSortType" style="margin-right: 5px;">
+					<option>Name</option>
+					<option>Size</option>
+					<option>Time</option>
+				</select>
+				<select v-model="selectedSortOrder" style="margin-right: 5px;">
+					<option>Asc</option>
+					<option>Desc</option>
+				</select>
+				<div class="vertCenter" style="margin-right: 5px;">Mode</div>
+				<select v-model="selectedMode" style="margin-right: 5px;">
+					<option>And</option>this.selectedSortType.toLowerCase()
+					<option>Or</option>
+					<option>Not</option>
+				</select>
+			</div>
+			<div style="height: 100%; right: 0px; position: absolute;">
 				<i @click="search" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
 			</div>
 		</div>

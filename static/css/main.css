@@ -1,3 +1,8 @@
+.vertCenter {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -20,9 +25,10 @@ body {
 }
 
 #searchBox {
+    position: relative;
     margin-top: auto;
     margin-bottom: auto;
-    width: 500px;
+    width: 80%;
     height: 80%;
     display: flex;
     background-color: white;
@@ -32,7 +38,18 @@ body {
     margin-top: auto;
     margin-bottom: auto;
     display: flex;
-    width: 500px;
+    height: 25px;
+    width: 50%;
+    padding: 5px;
+    margin-right: 5px;
+}
+
+#advancedSearchBlock {
+    margin-top: auto;
+    margin-bottom: auto;
+    display: flex;
+    height: 25px;
+    width: 43%;
     padding: 5px;
 }
 
@@ -40,8 +57,7 @@ body {
     cursor: default;
     display: flex;
     border: 1px rgba(66, 64, 64, 0.226) solid;
-    /* width: auto; */
-    padding: 4px;
+    padding: 2px;
     border-radius: 7px;
     height: 20px;
     line-height: 20px;
