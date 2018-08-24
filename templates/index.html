@@ -1,19 +1,51 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<meta charset="utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>Page Title</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" media="screen" href="/static/css/main.css" />
-	<script src="/static/js/main.js"></script>
+	<!-- Material icons  -->
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-<body>
-	<form method="POST" action="/api/upload" enctype="multipart/form-data">
-		<input type="file" name="files" multiple>
-		<br>
-		<br>
-		<input type="submit">
-	</form>	
+
+<body onload="Init();">
+	<!-- Search bar -->
+	<div id="topBar">
+		<div id="tagsDrive">
+			<span>Tags Drive</span>
+		</div>
+		<div id="searchBox">
+			<div id="tagsBlock">
+				<tag v-for="tag in pickedTags" :name="tag.name" :color="tag.color"></tag>
+				<input id="tagInput" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="addTag">
+				<datalist id="tagsList">
+					<option v-for="tag in sharedState.allTags">{{tag.name}}</option>
+				</datalist>
+				<i @click="addTag" class="material-icons" style="cursor: pointer;">add_circle_outline</i>
+			</div>
+
+			<div style="height: 100%;">
+				<i @click="search" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
+			</div>
+		</div>
+	</div>
+
+
+	<div id="mainBlock">
+		<ul>
+			<li v-for="file in sharedState.allFiles">{{file}}</li>
+		</ul>
+	</div>
+
+	<!-- Vue -->
+	<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+	<!-- Custom -->
+	<script src="/static/js/components.js"></script>
+	<script src="/static/js/main.js"></script>
 </body>
+
 </html>

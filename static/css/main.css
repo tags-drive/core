@@ -1,0 +1,70 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Top bar */
+#topBar {
+    display: flex;
+    height: 50px;
+    width: 100%;
+    background-color: #88888888;
+}
+
+#tagsDrive {
+    height: 50px;
+    line-height: 50px;
+    font-size: 25px;
+    margin: 0 10px 0 10px;
+    vertical-align: middle;
+}
+
+#searchBox {
+    margin-top: auto;
+    margin-bottom: auto;
+    width: 500px;
+    height: 80%;
+    display: flex;
+    background-color: white;
+}
+
+#tagsBlock {
+    margin-top: auto;
+    margin-bottom: auto;
+    display: flex;
+    width: 500px;
+    padding: 5px;
+}
+
+.tag {
+    cursor: default;
+    display: flex;
+    border: 1px rgba(66, 64, 64, 0.226) solid;
+    /* width: auto; */
+    padding: 4px;
+    border-radius: 7px;
+    height: 20px;
+    line-height: 20px;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.material-icons {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+#tagInput {
+    border: 0;
+    outline: none;
+    padding-right: 2px;
+    width: 100px;
+    border-bottom: 1px black solid;
+}
+
+/* Remove arrow in input with datalist */
+input::-webkit-calendar-picker-indicator {
+    display: none;
+}
