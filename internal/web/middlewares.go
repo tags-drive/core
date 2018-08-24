@@ -1,7 +1,9 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/minio/sio"
 
@@ -59,5 +61,21 @@ func decryptMiddleware(dir http.Dir) http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+	})
+}
+
+func debugMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Don't log favicon.ico
+		if !strings.HasSuffix(r.URL.Path, "favicon.ico") {
+			fmt.Printf("%s ", r.Method)
+			fmt.Print(r.URL.Path)
+			if r.URL.RawQuery != "" {
+				fmt.Printf("?%s", r.URL.RawQuery)
+			}
+			fmt.Println()
+		}
+
+		h.ServeHTTP(w, r)
 	})
 }

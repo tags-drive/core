@@ -31,7 +31,12 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 		router.Path(r.path).Methods(r.methods).Handler(handler)
 	}
 
-	server := &http.Server{Addr: params.Port, Handler: router}
+	var handler http.Handler = router
+	if params.Debug {
+		handler = debugMiddleware(router)
+	}
+
+	server := &http.Server{Addr: params.Port, Handler: handler}
 
 	go func() {
 		log.Infoln("Start web server")
