@@ -18,7 +18,7 @@ type FileInfo struct {
 	Filename string     `json:"filename"`
 	Size     int64      `json:"size"`
 	Tags     []tags.Tag `json:"tags"`
-	AddTime  time.Time  `json:"add_time"`
+	AddTime  time.Time  `json:"addTime"`
 }
 
 // filesData is a map (filename: FileInfo) with RWMutex
