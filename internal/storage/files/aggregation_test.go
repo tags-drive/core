@@ -4,34 +4,34 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ShoshinNikita/tags-drive/internal/storage"
+	"github.com/ShoshinNikita/tags-drive/internal/storage/files"
 )
 
 func TestIsGoodFile(t *testing.T) {
 	tests := []struct {
-		m     storage.TagMode
+		m     files.TagMode
 		fTags []string
 		pTags []string
 		res   bool
 	}{
-		{storage.ModeAnd, []string{"a", "b", "c"}, []string{"a", "c"}, true},
-		{storage.ModeAnd, []string{"a", "b", "c"}, []string{"a", "e"}, false},
-		{storage.ModeOr, []string{"a", "b", "c"}, []string{"a", "e"}, true},
-		{storage.ModeOr, []string{"a", "b", "c"}, []string{"f", "e"}, false},
-		{storage.ModeNot, []string{"p", "b", "c"}, []string{"a", "e"}, true},
-		{storage.ModeNot, []string{"a", "b", "c"}, []string{"a", "e"}, false},
+		{files.ModeAnd, []string{"a", "b", "c"}, []string{"a", "c"}, true},
+		{files.ModeAnd, []string{"a", "b", "c"}, []string{"a", "e"}, false},
+		{files.ModeOr, []string{"a", "b", "c"}, []string{"a", "e"}, true},
+		{files.ModeOr, []string{"a", "b", "c"}, []string{"f", "e"}, false},
+		{files.ModeNot, []string{"p", "b", "c"}, []string{"a", "e"}, true},
+		{files.ModeNot, []string{"a", "b", "c"}, []string{"a", "e"}, false},
 		// Empty file tags
-		{storage.ModeAnd, []string{}, []string{"a", "e"}, false},
-		{storage.ModeOr, []string{}, []string{"a", "e"}, false},
-		{storage.ModeNot, []string{}, []string{"a", "e"}, true},
+		{files.ModeAnd, []string{}, []string{"a", "e"}, false},
+		{files.ModeOr, []string{}, []string{"a", "e"}, false},
+		{files.ModeNot, []string{}, []string{"a", "e"}, true},
 		// Empty passed tags
-		{storage.ModeAnd, []string{"a", "b", "c"}, []string{}, true},
-		{storage.ModeOr, []string{"a", "b", "c"}, []string{}, true},
-		{storage.ModeNot, []string{"a", "b", "c"}, []string{}, true},
+		{files.ModeAnd, []string{"a", "b", "c"}, []string{}, true},
+		{files.ModeOr, []string{"a", "b", "c"}, []string{}, true},
+		{files.ModeNot, []string{"a", "b", "c"}, []string{}, true},
 	}
 
 	for i, tt := range tests {
-		res := storage.IsGoodFile(tt.m, tt.fTags, tt.pTags)
+		res := files.IsGoodFile(tt.m, tt.fTags, tt.pTags)
 		if res != tt.res {
 			t.Errorf("Test #%d Want: %v Got %v", i, tt.res, res)
 		}
@@ -48,7 +48,7 @@ func TestSortFiles(t *testing.T) {
 		return tm
 	}
 
-	isEqual := func(a, b []storage.FileInfo) bool {
+	isEqual := func(a, b []files.FileInfo) bool {
 		if len(a) != len(b) {
 			return false
 		}
@@ -64,102 +64,102 @@ func TestSortFiles(t *testing.T) {
 	}
 
 	tests := []struct {
-		s     storage.SortMode
-		files []storage.FileInfo
-		res   []storage.FileInfo
+		s     files.SortMode
+		files []files.FileInfo
+		res   []files.FileInfo
 	}{
-		{storage.SortByNameAsc,
-			[]storage.FileInfo{
-				storage.FileInfo{Filename: "abc"},
-				storage.FileInfo{Filename: "cbd"},
-				storage.FileInfo{Filename: "aaa"},
-				storage.FileInfo{Filename: "fer"},
+		{files.SortByNameAsc,
+			[]files.FileInfo{
+				files.FileInfo{Filename: "abc"},
+				files.FileInfo{Filename: "cbd"},
+				files.FileInfo{Filename: "aaa"},
+				files.FileInfo{Filename: "fer"},
 			},
-			[]storage.FileInfo{
-				storage.FileInfo{Filename: "aaa"},
-				storage.FileInfo{Filename: "abc"},
-				storage.FileInfo{Filename: "cbd"},
-				storage.FileInfo{Filename: "fer"},
-			},
-		},
-		{storage.SortByNameDesc,
-			[]storage.FileInfo{
-				storage.FileInfo{Filename: "abc"},
-				storage.FileInfo{Filename: "cbd"},
-				storage.FileInfo{Filename: "aaa"},
-				storage.FileInfo{Filename: "fer"},
-			},
-			[]storage.FileInfo{
-				storage.FileInfo{Filename: "fer"},
-				storage.FileInfo{Filename: "cbd"},
-				storage.FileInfo{Filename: "abc"},
-				storage.FileInfo{Filename: "aaa"},
+			[]files.FileInfo{
+				files.FileInfo{Filename: "aaa"},
+				files.FileInfo{Filename: "abc"},
+				files.FileInfo{Filename: "cbd"},
+				files.FileInfo{Filename: "fer"},
 			},
 		},
-		{storage.SortByTimeAsc,
-			[]storage.FileInfo{
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:16:35")},
-				storage.FileInfo{AddTime: getTime("05-04-2018 15:22:35")},
+		{files.SortByNameDesc,
+			[]files.FileInfo{
+				files.FileInfo{Filename: "abc"},
+				files.FileInfo{Filename: "cbd"},
+				files.FileInfo{Filename: "aaa"},
+				files.FileInfo{Filename: "fer"},
 			},
-			[]storage.FileInfo{
-				storage.FileInfo{AddTime: getTime("05-04-2018 15:22:35")},
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:16:35")},
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
-			},
-		},
-		{storage.SortByTimeDesc,
-			[]storage.FileInfo{
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:16:35")},
-				storage.FileInfo{AddTime: getTime("05-04-2018 15:22:35")},
-			},
-			[]storage.FileInfo{
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},
-				storage.FileInfo{AddTime: getTime("05-05-2018 15:16:35")},
-				storage.FileInfo{AddTime: getTime("05-04-2018 15:22:35")},
+			[]files.FileInfo{
+				files.FileInfo{Filename: "fer"},
+				files.FileInfo{Filename: "cbd"},
+				files.FileInfo{Filename: "abc"},
+				files.FileInfo{Filename: "aaa"},
 			},
 		},
-		{storage.SortBySizeAsc,
-			[]storage.FileInfo{
-				storage.FileInfo{Size: 15},
-				storage.FileInfo{Size: 1515},
-				storage.FileInfo{Size: 1885},
-				storage.FileInfo{Size: 1365},
-				storage.FileInfo{Size: 1551561651},
+		{files.SortByTimeAsc,
+			[]files.FileInfo{
+				files.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
+				files.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},
+				files.FileInfo{AddTime: getTime("05-05-2018 15:16:35")},
+				files.FileInfo{AddTime: getTime("05-04-2018 15:22:35")},
 			},
-			[]storage.FileInfo{
-				storage.FileInfo{Size: 15},
-				storage.FileInfo{Size: 1365},
-				storage.FileInfo{Size: 1515},
-				storage.FileInfo{Size: 1885},
-				storage.FileInfo{Size: 1551561651},
+			[]files.FileInfo{
+				files.FileInfo{AddTime: getTime("05-04-2018 15:22:35")},
+				files.FileInfo{AddTime: getTime("05-05-2018 15:16:35")},
+				files.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},
+				files.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
 			},
 		},
-		{storage.SortBySizeDecs,
-			[]storage.FileInfo{
-				storage.FileInfo{Size: 15},
-				storage.FileInfo{Size: 1515},
-				storage.FileInfo{Size: 1885},
-				storage.FileInfo{Size: 1365},
-				storage.FileInfo{Size: 1551561651},
+		{files.SortByTimeDesc,
+			[]files.FileInfo{
+				files.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
+				files.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},
+				files.FileInfo{AddTime: getTime("05-05-2018 15:16:35")},
+				files.FileInfo{AddTime: getTime("05-04-2018 15:22:35")},
 			},
-			[]storage.FileInfo{
-				storage.FileInfo{Size: 1551561651},
-				storage.FileInfo{Size: 1885},
-				storage.FileInfo{Size: 1515},
-				storage.FileInfo{Size: 1365},
-				storage.FileInfo{Size: 15},
+			[]files.FileInfo{
+				files.FileInfo{AddTime: getTime("05-05-2018 15:45:35")},
+				files.FileInfo{AddTime: getTime("05-05-2018 15:22:35")},
+				files.FileInfo{AddTime: getTime("05-05-2018 15:16:35")},
+				files.FileInfo{AddTime: getTime("05-04-2018 15:22:35")},
+			},
+		},
+		{files.SortBySizeAsc,
+			[]files.FileInfo{
+				files.FileInfo{Size: 15},
+				files.FileInfo{Size: 1515},
+				files.FileInfo{Size: 1885},
+				files.FileInfo{Size: 1365},
+				files.FileInfo{Size: 1551561651},
+			},
+			[]files.FileInfo{
+				files.FileInfo{Size: 15},
+				files.FileInfo{Size: 1365},
+				files.FileInfo{Size: 1515},
+				files.FileInfo{Size: 1885},
+				files.FileInfo{Size: 1551561651},
+			},
+		},
+		{files.SortBySizeDecs,
+			[]files.FileInfo{
+				files.FileInfo{Size: 15},
+				files.FileInfo{Size: 1515},
+				files.FileInfo{Size: 1885},
+				files.FileInfo{Size: 1365},
+				files.FileInfo{Size: 1551561651},
+			},
+			[]files.FileInfo{
+				files.FileInfo{Size: 1551561651},
+				files.FileInfo{Size: 1885},
+				files.FileInfo{Size: 1515},
+				files.FileInfo{Size: 1365},
+				files.FileInfo{Size: 15},
 			},
 		},
 	}
 
 	for i, tt := range tests {
-		storage.SortFiles(tt.s, tt.files)
+		files.SortFiles(tt.s, tt.files)
 		if !isEqual(tt.files, tt.res) {
 			t.Errorf("Test #%d Want: %v Got: %v", i, tt.res, tt.files)
 		}
