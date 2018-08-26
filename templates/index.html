@@ -20,7 +20,7 @@
 		</div>
 		<div id="searchBox">
 			<div id="tagsBlock">
-				<tag v-for="tag in pickedTags" :name="tag.name" :color="tag.color"></tag>
+				<search-tag v-for="tag in pickedTags" :name="tag.name" :color="tag.color"></search-tag>
 				<input id="tagInput" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="addTag">
 				<datalist id="tagsList">
 					<option v-for="tag in sharedState.allTags">{{tag.name}}</option>
@@ -54,18 +54,28 @@
 		</div>
 	</div>
 
+	<!-- Left bar -->
+	<div id="leftBar">
+		<div id="recentFiles">
+			<ul>
+				<li v-for="file in recentFiles">
+					{{file.filename}}
+				</li>
+			</ul>
+		</div>
+	</div>
 
+	<!-- Main block -->
 	<div id="mainBlock">
-		<ul>
-			<li v-for="file in sharedState.allFiles">{{file}}</li>
-		</ul>
+		<files :files="sharedState.allFiles"></files>
 	</div>
 
 	<!-- Vue -->
-	<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue "></script>
 	<!-- Custom -->
-	<script src="/static/js/components.js"></script>
-	<script src="/static/js/main.js"></script>
+	<script src="/static/js/stevenlevithan/date.format.js "></script>
+	<script src="/static/js/components.js "></script>
+	<script src="/static/js/main.js "></script>
 </body>
 
 </html>

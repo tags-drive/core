@@ -1,11 +1,32 @@
+/* Common */
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
 .vertCenter {
     margin-top: auto;
     margin-bottom: auto;
 }
 
-body {
-    margin: 0;
-    padding: 0;
+.material-icons {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+.tag {
+    cursor: default;
+    display: flex;
+    border: 1px rgba(66, 64, 64, 0.226) solid;
+    padding: 2px;
+    border-radius: 7px;
+    height: 20px;
+    line-height: 20px;
+    vertical-align: middle;
+    margin-right: 5px;
 }
 
 /* Top bar */
@@ -53,25 +74,6 @@ body {
     padding: 5px;
 }
 
-.tag {
-    cursor: default;
-    display: flex;
-    border: 1px rgba(66, 64, 64, 0.226) solid;
-    padding: 2px;
-    border-radius: 7px;
-    height: 20px;
-    line-height: 20px;
-    vertical-align: middle;
-    margin-right: 5px;
-}
-
-.material-icons {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    vertical-align: middle;
-}
-
 #tagInput {
     border: 0;
     outline: none;
@@ -83,4 +85,41 @@ body {
 /* Remove arrow in input with datalist */
 input::-webkit-calendar-picker-indicator {
     display: none;
+}
+
+/* Left bar */
+
+#leftBar {
+    width: 250px;
+    float: left;
+}
+
+/* Main block */
+#mainBlock {
+    overflow: hidden;
+}
+
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+}
+
+td,
+th {
+    border-bottom: 1px solid #dddddd;
+    text-align: left;
+    padding: 4px;
+    height: 40px;
+}
+
+.fileName {
+    /* Opera */
+    -o-text-overflow: ellipsis;
+    /* IE, Safari (WebKit) */
+    text-overflow: ellipsis;
+    /* don't show excess chars */
+    overflow: hidden;
+    /* force single line */
+    white-space: nowrap;
+    width: 200px;
 }

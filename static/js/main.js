@@ -13,9 +13,7 @@ var store = {
             credentials: "same-origin"
         })
             .then(data => data.json())
-            .then(files => {
-                this.state.allFiles = files;
-            })
+            .then(files => this.setFiles(files))
             .catch(err => console.log(err));
     },
     updateTags: function() {
@@ -30,6 +28,12 @@ var store = {
             .catch(err => console.log(err));
     },
     setFiles: function(files) {
+        // Change time from "2018-08-23T22:48:59.0459184+03:00" to "23-08-2018 22:48"
+        for (let i in files) {
+            files[i].addTime = new Date(files[i].addTime).format(
+                "dd-mm-yyyy HH:MM"
+            );
+        }
         this.state.allFiles = files;
     }
 };
@@ -38,6 +42,7 @@ var store = {
 function Init() {
     store.updateTags();
     store.updateFiles();
+    recentFiles.update();
 }
 
 // Main block
@@ -124,6 +129,24 @@ var searchBar = new Vue({
                     break;
                 }
             }
+        }
+    }
+});
+
+// Recent files
+var recentFiles = new Vue({
+    el: "#recentFiles",
+    data: {
+        recentFiles: []
+    },
+    methods: {
+        update: function() {
+            fetch("/api/files/recent", {
+                method: "GET",
+                credentials: "same-origin"
+            })
+                .then(data => data.json())
+                .then(files => (this.recentFiles = files));
         }
     }
 });
