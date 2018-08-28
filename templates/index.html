@@ -66,8 +66,15 @@
 	</div>
 
 	<!-- Main block -->
-	<div id="mainBlock">
-		<files :files="sharedState.allFiles"></files>
+	<div id="mainBlock" @dragenter="counter++;" @dragleave="counter--;" @drop.prevent="upload" @dragover.prevent style="position: relative; text-align: center;">
+		<div v-if="counter != 0" id="uploadLayer">
+			<div style="display: table; height: 100%; overflow: hidden; margin: auto;">
+				<div style="display: table-cell; vertical-align: middle; text-align: center;">
+					Upload new files
+				</div>
+			</div>
+		</div>
+		<files :files="sharedState.allFiles" :style="[counter != 0 ? {'opacity': '0.3'} : {'opacity': '1'}]"></files>
 	</div>
 
 	<!-- Vue -->

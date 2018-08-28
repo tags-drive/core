@@ -45,11 +45,42 @@ function Init() {
     recentFiles.update();
 }
 
+function updateStore() {
+    store.updateFiles();
+    store.updateTags();
+}
+
 // Main block
 var main = new Vue({
     el: "#mainBlock",
     data: {
-        sharedState: store.state
+        sharedState: store.state,
+        counter: 0 // for definition did user drag file into div. If counter > 0, user dragged file.
+    },
+    methods: {
+        upload: function(event) {
+            this.counter = 0;
+
+            var formData = new FormData();
+
+            for (file of event.dataTransfer.files) {
+                formData.append("files", file, file.name);
+            }
+
+            fetch("/api/files", {
+                body: formData,
+                method: "POST",
+                credentials: "same-origin"
+            })
+                .then(res => res.json())
+                .then(log => {
+                    console.log(log);
+                    this.logs = log;
+                    // Update list of files
+                    updateStore();
+                })
+                .catch(err => console.log(err));
+        }
     }
 });
 
@@ -150,4 +181,3 @@ var recentFiles = new Vue({
         }
     }
 });
-

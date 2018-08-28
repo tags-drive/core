@@ -88,7 +88,6 @@ input::-webkit-calendar-picker-indicator {
 }
 
 /* Left bar */
-
 #leftBar {
     width: 250px;
     float: left;
@@ -97,6 +96,21 @@ input::-webkit-calendar-picker-indicator {
 /* Main block */
 #mainBlock {
     overflow: hidden;
+}
+
+#uploadLayer {
+	position: absolute;
+	width: 90%;
+	height: 90%;
+	border: 2px #888888 dotted;
+	display: inline-block;
+	left: 50%;
+	top: 50%;
+	transform: translateX(-50%) translateY(-50%);
+	color: #888888;
+	font-size: 50px;
+	z-index: 1;
+	border-radius: 15px;
 }
 
 table {
