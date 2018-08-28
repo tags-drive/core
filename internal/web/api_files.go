@@ -178,16 +178,17 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(response)
 }
 
-// PUT /api/files?file=123&new-name=567&tags=tag1,tag2,tag3
+// PUT /api/files?file=123&new-name=567&tags=tag1,tag2,tag3&description=some-new-cool-description
 // newname or tags can be skipped
 //
 // Response: -
 //
 func changeFile(w http.ResponseWriter, r *http.Request) {
 	var (
-		filename = r.FormValue("file")
-		newName  = r.FormValue("new-name")
-		tags     = func() []string {
+		filename       = r.FormValue("file")
+		newName        = r.FormValue("new-name")
+		newDescription = r.FormValue("description")
+		tags           = func() []string {
 			t := r.FormValue("tags")
 			if t == "" {
 				return []string{}
@@ -215,6 +216,15 @@ func changeFile(w http.ResponseWriter, r *http.Request) {
 	if newName != "" {
 		// We can skip checking of invalid characters, because Go will return an error
 		err := files.RenameFile(filename, newName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Change description
+	if newDescription != "" {
+		err := files.ChangeDescription(filename, newDescription)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
