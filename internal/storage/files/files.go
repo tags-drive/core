@@ -116,3 +116,8 @@ func RenameFile(oldName, newName string) error {
 func ChangeTags(filename string, tags []string) error {
 	return allFiles.changeTags(filename, tags)
 }
+
+// ChangeDescription changes the description of a file
+func ChangeDescription(filename, newDescription string) error {
+	return allFiles.changeDescription(filename, newDescription)
+}

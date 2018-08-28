@@ -15,10 +15,11 @@ import (
 
 // FileInfo contains the information about a file
 type FileInfo struct {
-	Filename string     `json:"filename"`
-	Size     int64      `json:"size"`
-	Tags     []tags.Tag `json:"tags"`
-	AddTime  time.Time  `json:"addTime"`
+	Filename    string     `json:"filename"`
+	Description string     `json:"description"`
+	Size        int64      `json:"size"`
+	Tags        []tags.Tag `json:"tags"`
+	AddTime     time.Time  `json:"addTime"`
 }
 
 // filesData is a map (filename: FileInfo) with RWMutex
@@ -119,8 +120,6 @@ func (fs *filesData) delete(filename string) error {
 	return nil
 }
 
-/* Tags */
-
 func (fs *filesData) changeTags(filename string, changedTags []string) error {
 	fs.mutex.Lock()
 
@@ -132,6 +131,26 @@ func (fs *filesData) changeTags(filename string, changedTags []string) error {
 	// Update map
 	f := fs.info[filename]
 	f.Tags = tags.GetTags(changedTags)
+	fs.info[filename] = f
+
+	fs.mutex.Unlock()
+
+	fs.write()
+
+	return nil
+}
+
+func (fs *filesData) changeDescription(filename string, newDesc string) error {
+	fs.mutex.Lock()
+
+	if _, ok := fs.info[filename]; !ok {
+		fs.mutex.Unlock()
+		return ErrFileIsNotExist
+	}
+
+	// Update map
+	f := fs.info[filename]
+	f.Description = newDesc
 	fs.info[filename] = f
 
 	fs.mutex.Unlock()
