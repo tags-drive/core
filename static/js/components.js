@@ -24,14 +24,17 @@ Vue.component("files", {
 				<th>Time of adding</th>
 			</tr>
 			<tr v-for="file in files">
-				<td style="width: 30px; text-align: center;">
+				<td v-if="file.filename.endsWith('.jpg') || file.filename.endsWith('.jpeg') || file.filename.endsWith('.png') || file.filename.endsWith('.gif')">
+					<img :src="'/data/' + file.filename" style="width: 30px;">
+				</td>
+				<td v-else style="width: 30px; text-align: center;">
 					<i class="material-icons">
 						assignment
 					</i>
-				</td>
+				</td>	
 				<td style="width: 200px;">
 					<div class="fileName">
-						{{file.filename}}
+						<a :href="'/data/' + file.filename" download>{{file.filename}}</a>
 					</div>
 				</td>
 				<td>
