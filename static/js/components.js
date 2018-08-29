@@ -43,7 +43,7 @@ Vue.component("files", {
 						</file-tag>
 					</div>
 				</td>
-				<td>{{file.size}}</td>
+				<td>{{(file.size / (1024 * 1024)).toFixed(1)}}</td>
 				<td>{{file.addTime}}</td>
 			</tr>
 	</table>`
