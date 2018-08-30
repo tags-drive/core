@@ -28,9 +28,7 @@ Vue.component("files", {
 					<img :src="'/data/' + file.filename" style="width: 30px;">
 				</td>
 				<td v-else style="width: 30px; text-align: center;">
-					<i class="material-icons">
-						assignment
-					</i>
+					<img :src="'/ext/' + file.filename.split('.').pop()" style="width: 30px;">
 				</td>	
 				<td style="width: 200px;">
 					<div class="fileName">
