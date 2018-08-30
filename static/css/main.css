@@ -104,15 +104,19 @@ input::-webkit-calendar-picker-indicator {
     overflow: hidden;
 }
 
+#uploadBlock {
+    text-align: center;
+}
+
 #uploadLayer {
+    position: fixed;
+    right: 5vw;
+    width: 70vw;
+    top: 8vh;
+    height: 90vh;
     position: absolute;
-    width: 90%;
-    height: 90%;
     border: 2px #888888 dotted;
     display: inline-block;
-    left: 50%;
-    top: 50%;
-    transform: translateX(-50%) translateY(-50%);
     color: #888888;
     font-size: 50px;
     z-index: 1;

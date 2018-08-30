@@ -16,7 +16,8 @@ var store = {
     state: {
         msg: "Test",
         allFiles: [],
-        allTags: []
+        allTags: [],
+        opacity: 1
     },
     updateFiles: function() {
         fetch("/api/files", {
@@ -65,12 +66,30 @@ function updateStore() {
 var uploader = new Vue({
     el: "#uploadBlock",
     data: {
+        sharedState: store.state,
         counter: 0 // for definition did user drag file into div. If counter > 0, user dragged file.
+    },
+    created() {
+        // Add listeners
+        document.ondragenter = () => {
+            this.counter++;
+        };
+        document.ondragleave = () => {
+            this.counter--;
+        };
+        document.ondrop = () => {
+            this.counter = 0;
+        };
+        setInterval(() => {
+            if (this.counter == 0) {
+                this.sharedState.opacity = 1;
+            } else {
+                this.sharedState.opacity = 0.3;
+            }
+        }, 20);
     },
     methods: {
         upload: function(event) {
-            this.counter = 0;
-
             var formData = new FormData();
 
             for (file of event.dataTransfer.files) {
@@ -99,6 +118,7 @@ var mainBlock = new Vue({
     el: "#mainBlock",
     data: {
         sharedState: store.state,
+        opacity: 1,
 
         sortByNameModeAsc: true,
         sortBySizeModeAsc: true,
@@ -155,7 +175,7 @@ var mainBlock = new Vue({
         }
     },
     template: `
-	<table style="width:100%;">
+	<table :style="{'opacity': sharedState.opacity}" style="width:100%;">
 			<tr style="position: sticky; top: 100px;">
 				<th></th>
 				<th>
