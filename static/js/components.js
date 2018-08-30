@@ -24,7 +24,7 @@ Vue.component("files", {
 				<th>Time of adding</th>
 			</tr>
 			<tr v-for="file in files">
-				<td v-if="file.filename.endsWith('.jpg') || file.filename.endsWith('.jpeg') || file.filename.endsWith('.png') || file.filename.endsWith('.gif')">
+				<td v-if="file.filename.endsWith('.jpg') || file.filename.endsWith('.jpeg') || file.filename.endsWith('.png') || file.filename.endsWith('.gif')" style="width: 30px;">
 					<img :src="'/data/' + file.filename" style="width: 30px;">
 				</td>
 				<td v-else style="width: 30px; text-align: center;">
