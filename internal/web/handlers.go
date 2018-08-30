@@ -74,3 +74,24 @@ func authentication(w http.ResponseWriter, r *http.Request) {
 	auth.AddToken(token)
 	http.SetCookie(w, &http.Cookie{Name: params.AuthCookieName, Value: token, HttpOnly: true, Expires: time.Now().Add(params.MaxTokenLife)})
 }
+
+func extensionHandler(dir http.Dir) http.Handler {
+	const blankFilename = "_blank.png"
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ext := r.URL.Path
+		f, err := dir.Open(ext + ".png")
+		if err != nil {
+			// return blank icon
+			f, err = dir.Open(blankFilename)
+			if err != nil {
+				return
+			}
+			io.Copy(w, f)
+			f.Close()
+			return
+		}
+
+		io.Copy(w, f)
+		f.Close()
+	})
+}
