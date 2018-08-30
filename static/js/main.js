@@ -102,34 +102,47 @@ var mainBlock = new Vue({
 
         sortByNameModeAsc: true,
         sortBySizeModeAsc: true,
-        sortByTimeModeAsc: true
+        sortByTimeModeAsc: true,
+        lastSortType: sortType.name
     },
     methods: {
         sortByName: function() {
-            // Reset to defaults and change sortByNameMode
-            this.sortByNameModeAsc = !this.sortByNameModeAsc;
-            this.sortBySizeModeAsc = true;
-            this.sortByTimeModeAsc = true;
+            if (this.lastSortType == sortType.name) {
+                this.sortByNameModeAsc = !this.sortByNameModeAsc;
+            } else {
+                // Use default settings
+                this.resetSortParams();
+            }
+            this.lastSortType = sortType.name;
+
             let type = sortType.name,
                 order = this.sortByNameModeAsc ? sortOrder.asc : sortOrder.desc;
 
             searchBar.advancedSearch(type, order);
         },
         sortBySize: function() {
-            // Reset to defaults and change sortBySizeMode
-            this.sortByNameModeAsc = true;
-            this.sortBySizeModeAsc = !this.sortBySizeModeAsc;
-            this.sortByTimeModeAsc = true;
+            if (this.lastSortType == sortType.size) {
+                this.sortBySizeModeAsc = !this.sortBySizeModeAsc;
+            } else {
+                // Use default settings
+                this.resetSortParams();
+            }
+            this.lastSortType = sortType.size;
+
             let type = sortType.size,
                 order = this.sortBySizeModeAsc ? sortOrder.asc : sortOrder.desc;
 
             searchBar.advancedSearch(type, order);
         },
         sortByTime: function() {
-            // Reset to defaults and change sortByTimeMode
-            this.sortByNameModeAsc = true;
-            this.sortBySizeModeAsc = true;
-            this.sortByTimeModeAsc = !this.sortByTimeModeAsc;
+            if (this.lastSortType == sortType.time) {
+                this.sortByTimeModeAsc = !this.sortByTimeModeAsc;
+            } else {
+                // Use default settings
+                this.resetSortParams();
+            }
+            this.lastSortType = sortType.time;
+
             let type = sortType.time,
                 order = this.sortByTimeModeAsc ? sortOrder.asc : sortOrder.desc;
 
