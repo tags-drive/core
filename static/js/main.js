@@ -111,7 +111,7 @@ var mainBlock = new Vue({
                 this.sortByNameModeAsc = !this.sortByNameModeAsc;
             } else {
                 // Use default settings
-                this.resetSortParams();
+                this.resetSortTypes();
             }
             this.lastSortType = sortType.name;
 
@@ -125,7 +125,7 @@ var mainBlock = new Vue({
                 this.sortBySizeModeAsc = !this.sortBySizeModeAsc;
             } else {
                 // Use default settings
-                this.resetSortParams();
+                this.resetSortTypes();
             }
             this.lastSortType = sortType.size;
 
@@ -139,7 +139,7 @@ var mainBlock = new Vue({
                 this.sortByTimeModeAsc = !this.sortByTimeModeAsc;
             } else {
                 // Use default settings
-                this.resetSortParams();
+                this.resetSortTypes();
             }
             this.lastSortType = sortType.time;
 
@@ -148,7 +148,7 @@ var mainBlock = new Vue({
 
             searchBar.advancedSearch(type, order);
         },
-        resetSortParams: function() {
+        resetSortTypes: function() {
             this.sortByNameModeAsc = true;
             this.sortBySizeModeAsc = true;
             this.sortByTimeModeAsc = true;
@@ -245,7 +245,7 @@ var searchBar = new Vue({
                 .then(files => {
                     store.setFiles(files);
                     // Reset sortParams
-                    mainBlock.resetSortParams();
+                    mainBlock.resetSortTypes();
                 });
         },
         advancedSearch: function(sType, sOrder) {
