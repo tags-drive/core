@@ -1,5 +1,16 @@
 // For every fetch request we have to use `credentials: "same-origin"` to pass Cookie
 
+const sortType = {
+    name: "name",
+    size: "size",
+    time: "time"
+};
+
+const sortOrder = {
+    asc: "asc",
+    desc: "desc"
+};
+
 // store contains global data
 var store = {
     state: {
@@ -50,11 +61,10 @@ function updateStore() {
     store.updateTags();
 }
 
-// Main block
-var main = new Vue({
-    el: "#mainBlock",
+// Upload block
+var uploader = new Vue({
+    el: "#uploadBlock",
     data: {
-        sharedState: store.state,
         counter: 0 // for definition did user drag file into div. If counter > 0, user dragged file.
     },
     methods: {
@@ -84,6 +94,104 @@ var main = new Vue({
     }
 });
 
+// Main block
+var mainBlock = new Vue({
+    el: "#mainBlock",
+    data: {
+        sharedState: store.state,
+
+        sortByNameModeAsc: true,
+        sortBySizeModeAsc: true,
+        sortByTimeModeAsc: true
+    },
+    methods: {
+        sortByName: function() {
+            // Reset to defaults and change sortByNameMode
+            this.sortByNameModeAsc = !this.sortByNameModeAsc;
+            this.sortBySizeModeAsc = true;
+            this.sortByTimeModeAsc = true;
+            let type = sortType.name,
+                order = this.sortByNameModeAsc ? sortOrder.asc : sortOrder.desc;
+
+            searchBar.advancedSearch(type, order);
+        },
+        sortBySize: function() {
+            // Reset to defaults and change sortBySizeMode
+            this.sortByNameModeAsc = true;
+            this.sortBySizeModeAsc = !this.sortBySizeModeAsc;
+            this.sortByTimeModeAsc = true;
+            let type = sortType.size,
+                order = this.sortBySizeModeAsc ? sortOrder.asc : sortOrder.desc;
+
+            searchBar.advancedSearch(type, order);
+        },
+        sortByTime: function() {
+            // Reset to defaults and change sortByTimeMode
+            this.sortByNameModeAsc = true;
+            this.sortBySizeModeAsc = true;
+            this.sortByTimeModeAsc = !this.sortByTimeModeAsc;
+            let type = sortType.time,
+                order = this.sortByTimeModeAsc ? sortOrder.asc : sortOrder.desc;
+
+            searchBar.advancedSearch(type, order);
+        },
+        resetSortParams: function() {
+            this.sortByNameModeAsc = true;
+            this.sortBySizeModeAsc = true;
+            this.sortByTimeModeAsc = true;
+        }
+    },
+    template: `
+	<table style="width:100%;">
+			<tr style="position: sticky; top: 100px;">
+				<th></th>
+				<th>
+					Filename
+					<i class="material-icons" id="sortByNameIcon" @click="sortByName" :style="[sortByNameModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="font-size: 20px; cursor: pointer;">
+						sort
+					</i>
+				</th>
+				<th>Tags</th>
+				<th>
+					Size (MB)
+					<i class="material-icons" id="sortByNameSize" @click="sortBySize" :style="[sortBySizeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
+						sort
+					</i>
+				</th>
+				<th>
+					Time of adding
+					<i class="material-icons" id="sortByNameTime" @click="sortByTime" :style="[sortByTimeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
+						sort
+					</i>
+				</th>
+			</tr>
+			<tr v-for="file in sharedState.allFiles">
+				<td v-if="file.filename.endsWith('.jpg') || file.filename.endsWith('.jpeg') || file.filename.endsWith('.png') || file.filename.endsWith('.gif')" style="width: 30px;">
+					<img :src="'/data/' + file.filename" style="width: 30px;">
+				</td>
+				<td v-else style="width: 30px; text-align: center;">
+					<img :src="'/ext/' + file.filename.split('.').pop()" style="width: 30px;">
+				</td>	
+				<td style="width: 200px;">
+					<div class="fileName">
+						<a :href="'/data/' + file.filename" :title="file.filename" download>{{file.filename}}</a>
+					</div>
+				</td>
+				<td>
+					<div style="display: flex;">
+						<file-tag
+							v-for="tag in file.tags"
+							:name="tag.name"
+							:color="tag.color">
+						</file-tag>
+					</div>
+				</td>
+				<td>{{(file.size / (1024 * 1024)).toFixed(1)}}</td>
+				<td>{{file.addTime}}</td>
+			</tr>
+	</table>`
+});
+
 // Search bar
 var searchBar = new Vue({
     el: "#searchBox",
@@ -92,8 +200,6 @@ var searchBar = new Vue({
         tagForAdding: "",
         pickedTags: [],
         text: "",
-        selectedSortType: "Name",
-        selectedSortOrder: "Asc",
         selectedMode: "And"
     },
     methods: {
@@ -112,9 +218,41 @@ var searchBar = new Vue({
                 params.append("search", this.text);
             }
             // sort
-            params.append("sort", this.selectedSortType.toLowerCase());
+            params.append("sort", sortType.name);
             // order
-            params.append("order", this.selectedSortOrder.toLowerCase());
+            params.append("order", sortOrder.asc);
+            // mode
+            params.append("mode", this.selectedMode.toLowerCase());
+
+            fetch("/api/files?" + params, {
+                method: "GET",
+                credentials: "same-origin"
+            })
+                .then(data => data.json())
+                .then(files => {
+                    store.setFiles(files);
+                    // Reset sortParams
+                    mainBlock.resetSortParams();
+                });
+        },
+        advancedSearch: function(sType, sOrder) {
+            let params = new URLSearchParams();
+            // tags
+            if (this.pickedTags.length != 0) {
+                let tags = [];
+                for (let tag of this.pickedTags) {
+                    tags.push(tag.name);
+                }
+                params.append("tags", tags.join(","));
+            }
+            // search
+            if (this.text != "") {
+                params.append("search", this.text);
+            }
+            // sort
+            params.append("sort", sType);
+            // order
+            params.append("order", sOrder);
             // mode
             params.append("mode", this.selectedMode.toLowerCase());
 

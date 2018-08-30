@@ -31,16 +31,6 @@
 			<div id="advancedSearchBlock">
 				<input v-model="text" type="text" placeholder="Text for search" style="margin-right: 5px;">
 
-				<div class="vertCenter" style="margin-right: 5px;">Sort by</div>
-				<select v-model="selectedSortType" style="margin-right: 5px;">
-					<option>Name</option>
-					<option>Size</option>
-					<option>Time</option>
-				</select>
-				<select v-model="selectedSortOrder" style="margin-right: 5px;">
-					<option>Asc</option>
-					<option>Desc</option>
-				</select>
 				<div class="vertCenter" style="margin-right: 5px;">Mode</div>
 				<select v-model="selectedMode" style="margin-right: 5px;">
 					<option>And</option>this.selectedSortType.toLowerCase()
@@ -54,19 +44,8 @@
 		</div>
 	</div>
 
-	<!-- Left bar -->
-	<div id="leftBar">
-		<div id="recentFiles">
-			<ul>
-				<li v-for="file in recentFiles">
-					{{file.filename}}
-				</li>
-			</ul>
-		</div>
-	</div>
-
-	<!-- Main block -->
-	<div id="mainBlock" @dragenter="counter++;" @dragleave="counter--;" @drop.prevent="upload" @dragover.prevent style="position: relative; text-align: center;">
+	<!-- Upload block -->
+	<div id="uploadBlock" @dragenter="counter++;" @dragleave="counter--;" @drop.prevent="upload" @dragover.prevent style="position: relative; text-align: center;">
 		<div v-if="counter != 0" id="uploadLayer">
 			<div style="display: table; height: 100%; overflow: hidden; margin: auto;">
 				<div style="display: table-cell; vertical-align: middle; text-align: center;">
@@ -74,7 +53,22 @@
 				</div>
 			</div>
 		</div>
-		<files :files="sharedState.allFiles" :style="[counter != 0 ? {'opacity': '0.3'} : {'opacity': '1'}]"></files>
+	</div>
+
+	<!-- Left bar -->
+	<!-- <div id="leftBar" style="float: left; width: 200px;">
+		<div id="recentFiles">
+			<ul>
+				<li v-for="file in recentFiles" style="overflow-wrap: break-word;">
+					{{file.filename}}
+				</li>
+			</ul>
+		</div>
+	</div> -->
+
+	<!-- Main block -->
+	<div>
+		<div id="mainBlock"></div>
 	</div>
 
 	<!-- Vue -->
