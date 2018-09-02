@@ -1,7 +1,9 @@
 package resizing_test
 
 import (
+	"io"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/ShoshinNikita/tags-drive/internal/storage/files/resizing"
@@ -20,15 +22,32 @@ func TestResizing(t *testing.T) {
 		{"testdata/6.png", "testdata/6_res.png"},
 	}
 	for i, tt := range tests {
-		im, err := os.Open(tt.origin)
+		file, err := os.Open(tt.origin)
 		if err != nil {
 			t.Errorf("Test #%d can't open file %s: %s", i, tt.origin, err)
 		}
-		err = resizing.Resize(im, tt.resized)
+		im, err := resizing.Decode(file)
+		file.Close()
 		if err != nil {
 			t.Fatal(err)
 		}
-		im.Close()
+
+		resizedImage := resizing.Resize(im)
+		r, err := resizing.Encode(resizedImage, filepath.Ext(tt.origin))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Save an image
+		f, err := os.Create(tt.resized)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = io.Copy(f, r)
+		if err != nil {
+			t.Fatal(err)
+		}
+		f.Close()
 
 		// Delete file
 		err = os.Remove(tt.resized)
@@ -36,5 +55,4 @@ func TestResizing(t *testing.T) {
 			t.Logf("Can't delete file %s: %s", tt.resized, err)
 		}
 	}
-
 }
