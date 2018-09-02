@@ -198,30 +198,7 @@ var mainBlock = new Vue({
 					</i>
 				</th>
 			</tr>
-			<tr v-for="file in sharedState.allFiles">
-				<td v-if="file.type == 'image'" style="width: 30px;">
-					<img :src="file.preview" style="width: 30px;">
-				</td>
-				<td v-else style="width: 30px; text-align: center;">
-					<img :src="'/ext/' + file.filename.split('.').pop()" style="width: 30px;">
-				</td>	
-				<td style="width: 200px;">
-					<div class="fileName">
-						<a :href="file.origin" :title="file.filename" download>{{file.filename}}</a>
-					</div>
-				</td>
-				<td>
-					<div style="display: flex;">
-						<file-tag
-							v-for="tag in file.tags"
-							:name="tag.name"
-							:color="tag.color">
-						</file-tag>
-					</div>
-				</td>
-				<td>{{(file.size / (1024 * 1024)).toFixed(1)}}</td>
-				<td>{{file.addTime}}</td>
-			</tr>
+			<files v-for="file in sharedState.allFiles" :file="file"></files>
 	</table>`
 });
 
