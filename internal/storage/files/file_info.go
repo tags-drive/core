@@ -16,10 +16,15 @@ import (
 // FileInfo contains the information about a file
 type FileInfo struct {
 	Filename    string     `json:"filename"`
+	Type        string     `json:"type"`
+	Origin      string     `json:"origin"`
 	Description string     `json:"description"`
 	Size        int64      `json:"size"`
 	Tags        []tags.Tag `json:"tags"`
 	AddTime     time.Time  `json:"addTime"`
+
+	// Only if Type == TypeImage
+	Preview string `json:"preview,omitempty"` // link to resized image
 }
 
 // filesData is a map (filename: FileInfo) with RWMutex
