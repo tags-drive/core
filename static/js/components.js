@@ -27,11 +27,17 @@ Vue.component("files", {
             hover: false
         };
     },
+    methods: {
+        showContextMenu: function(event, fileData) {
+            this.$parent.showContextMenu(event, fileData);
+        }
+    },
     template: `
 	<tr
 		:style="[hover ? {'background-color': 'rgba(0, 0, 0, 0.1)'} : {'background-color': 'white'} ]"
 		@mouseover="hover = true;"
 		@mouseleave="hover = false;"
+		@click.right.prevent="showContextMenu(event, file);"
 	>
 		<td v-if="file.type == 'image'" style="width: 30px;">
 			<img :src="file.preview" style="width: 30px;">

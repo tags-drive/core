@@ -126,6 +126,12 @@ var mainBlock = new Vue({
         lastSortType: sortType.name
     },
     methods: {
+        // Context menu
+        showContextMenu: function(event, file) {
+            contextMenu.setFile(file);
+            contextMenu.showMenu(event.x, event.y);
+        },
+        // Sort
         sortByName: function() {
             if (this.lastSortType == sortType.name) {
                 this.sortByNameModeAsc = !this.sortByNameModeAsc;
@@ -200,6 +206,39 @@ var mainBlock = new Vue({
 			</tr>
 			<files v-for="file in sharedState.allFiles" :file="file"></files>
 	</table>`
+});
+
+var contextMenu = new Vue({
+    el: "#contextMenu",
+    mixins: [VueClickaway.mixin], // from vue-clickaway
+    data: {
+        file: null,
+        top: 0,
+        left: 0,
+        show: false
+    },
+    methods: {
+        setFile: function(file) {
+            this.file = file;
+        },
+        showMenu: function(x, y) {
+            this.left = x + 10 + "px";
+            this.top = y + 10 + "px";
+            this.show = true;
+        },
+        hideMenu: function() {
+            this.show = false;
+        }
+    },
+    template: `
+	<div
+		v-if="show"
+		v-on-clickaway="hideMenu"
+		:style="{'top': top, 'left': left}"
+		style="position: fixed; border: 1px solid black;"
+	>
+		TODO
+	</div>`
 });
 
 // Search bar
