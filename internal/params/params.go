@@ -37,7 +37,6 @@ var (
 	// Debug defines is debug mode
 	Debug bool
 	// Encrypt defines, should the program encrypt files. False by default
-	// TODO false or true
 	Encrypt bool
 	// Key is used for encrypting of files. Key is a sha256 sum of Password
 	Key [32]byte
