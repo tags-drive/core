@@ -199,15 +199,15 @@ var mainBlock = new Vue({
 				</th>
 			</tr>
 			<tr v-for="file in sharedState.allFiles">
-				<td v-if="file.filename.endsWith('.jpg') || file.filename.endsWith('.jpeg') || file.filename.endsWith('.png') || file.filename.endsWith('.gif')" style="width: 30px;">
-					<img :src="'/data/' + file.filename" style="width: 30px;">
+				<td v-if="file.type == 'image'" style="width: 30px;">
+					<img :src="file.preview" style="width: 30px;">
 				</td>
 				<td v-else style="width: 30px; text-align: center;">
 					<img :src="'/ext/' + file.filename.split('.').pop()" style="width: 30px;">
 				</td>	
 				<td style="width: 200px;">
 					<div class="fileName">
-						<a :href="'/data/' + file.filename" :title="file.filename" download>{{file.filename}}</a>
+						<a :href="file.origin" :title="file.filename" download>{{file.filename}}</a>
 					</div>
 				</td>
 				<td>
