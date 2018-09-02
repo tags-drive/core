@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
 
 	"github.com/ShoshinNikita/tags-drive/internal/params"
@@ -168,6 +169,10 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	var response []multiplyResponse
 	for resp := range respChan {
+		// Log an error
+		if resp.IsError {
+			log.Errorf("Can't load a file %s: %s\n", resp.Filename, resp.Error)
+		}
 		response = append(response, resp)
 	}
 
