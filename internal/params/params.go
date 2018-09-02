@@ -11,6 +11,8 @@ import (
 const (
 	// DataFolder is a folder, in which all files are kept
 	DataFolder = "data"
+	// ResizedImagesFolder is a folder, in which all resized images are kept
+	ResizedImagesFolder = "data/resized"
 	// Files is a json file with info about the files
 	Files = "files.json"
 	// TokensFile is a json file with list of tokens
