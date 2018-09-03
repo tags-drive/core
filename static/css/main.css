@@ -163,3 +163,45 @@ th {
     white-space: nowrap;
     width: 200px;
 }
+
+/* Context menu */
+#context-menu {
+    position: fixed;
+    padding: 5px;
+    text-align: center;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.context-menu__input {
+    width: 100%;
+    cursor: pointer;
+    margin-bottom: 3px;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+    outline: none;
+}
+
+.context-menu__input:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.context-menu__input--href {
+    text-decoration: none;
+    color: black;
+    display: block;
+
+    /* Same as input */
+    font-style: normal;
+    font-variant-ligatures: normal;
+    font-variant-caps: normal;
+    font-variant-numeric: normal;
+    font-variant-east-asian: normal;
+    font-weight: 400;
+    font-stretch: normal;
+    font-size: 13.3333px;
+    line-height: normal;
+    font-family: Arial;
+}

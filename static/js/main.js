@@ -209,36 +209,62 @@ var mainBlock = new Vue({
 });
 
 var contextMenu = new Vue({
-    el: "#contextMenu",
+    el: "#context-menu",
     mixins: [VueClickaway.mixin], // from vue-clickaway
     data: {
         file: null,
-        top: 0,
-        left: 0,
-        show: false
+        // Style
+        top: "0px",
+        left: "0px",
+        show: false,
+        // File changing
+        newName: "",
+        newTags: [],
+        description: "",
+        // For calculation of position
+        divWidth: 140,
+        divHeight: 125
     },
     methods: {
         setFile: function(file) {
             this.file = file;
         },
         showMenu: function(x, y) {
-            this.left = x + 10 + "px";
-            this.top = y + 10 + "px";
+            const offset = 10;
+            x += offset;
+            y += offset;
+            if (x + this.divWidth > window.innerWidth) {
+                x -= offset * 2;
+                x -= this.divWidth;
+            }
+            if (y + this.divHeight > window.innerHeight) {
+                y -= offset * 2;
+                y -= this.divHeight;
+            }
+            this.left = x + "px";
+            this.top = y + "px";
             this.show = true;
         },
         hideMenu: function() {
             this.show = false;
+        },
+        changeName: function() {
+            this.show = false;
+            console.log("Change name");
+        },
+        changeTags: function() {
+            this.show = false;
+            console.log("Change tags");
+        },
+        changeDescription: function() {
+            this.show = false;
+            console.log("Change description");
+        },
+        deleteFile: function() {
+            this.show = false;
+            console.log("Delete");
         }
-    },
-    template: `
-	<div
-		v-if="show"
-		v-on-clickaway="hideMenu"
-		:style="{'top': top, 'left': left}"
-		style="position: fixed; border: 1px solid black;"
-	>
-		TODO
-	</div>`
+    }
 });
 
 // Search bar

@@ -72,7 +72,20 @@
 	</div>
 
 	<!-- Context menu -->
-	<div id="contextMenu"></div>
+	<div id="context-menu" v-if="show" :style="{'top': top, 'left': left}">
+		<div v-on-clickaway="hideMenu">
+			<input type="button" class="context-menu__input" @click="changeName" value="Rename">
+			<br>
+			<input type="button" class="context-menu__input" @click="changeTags" value="Update tags">
+			<br>
+			<input type="button" class="context-menu__input" @click="changeDescription" value="Update description">
+			<br>
+			<div class="context-menu__input" style="box-sizing : border-box;" @click="hideMenu">
+				<a :href="file.origin" class="context-menu__input--href" download>Download</a>
+			</div>
+			<input type="button" class="context-menu__input" @click="deleteFile" value="Delete" style="margin-bottom: 0px;">
+		</div>
+	</div>
 
 	<!-- Vue -->
 	<script src="https://cdn.jsdelivr.net/npm/vue "></script>
