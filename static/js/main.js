@@ -64,7 +64,7 @@ function updateStore() {
 
 // Upload block
 var uploader = new Vue({
-    el: "#uploadBlock",
+    el: "#upload-block",
     data: {
         sharedState: store.state,
         counter: 0 // for definition did user drag file into div. If counter > 0, user dragged file.
@@ -115,7 +115,7 @@ var uploader = new Vue({
 
 // Main block
 var mainBlock = new Vue({
-    el: "#mainBlock",
+    el: "#main-block",
     data: {
         sharedState: store.state,
         opacity: 1,
@@ -181,7 +181,7 @@ var mainBlock = new Vue({
         }
     },
     template: `
-	<table :style="{'opacity': sharedState.opacity}" style="width:100%;">
+	<table :style="{'opacity': sharedState.opacity}" class="file-table" style="width:100%;">
 			<tr style="position: sticky; top: 100px;">
 				<th></th>
 				<th>
@@ -243,7 +243,7 @@ var contextMenu = new Vue({
 
 // Search bar
 var searchBar = new Vue({
-    el: "#searchBox",
+    el: "#top-bar__search",
     data: {
         sharedState: store.state,
         tagForAdding: "",

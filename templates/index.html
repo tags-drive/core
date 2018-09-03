@@ -14,24 +14,24 @@
 
 <body onload="Init();">
 	<!-- Search bar -->
-	<div id="topBar">
-		<div id="tagsDrive">
+	<div id="top-bar">
+		<div id="top-bar__logo">
 			<span>Tags Drive</span>
 		</div>
-		<div id="searchBox">
-			<div id="tagsBlock">
+		<div id="top-bar__search">
+			<div id="top-bar__search__tags">
 				<search-tag v-for="tag in pickedTags" :name="tag.name" :color="tag.color"></search-tag>
-				<input id="tagInput" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="addTag">
+				<input id="top-bar__search__tag-input" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="addTag">
 				<datalist id="tagsList">
 					<option v-for="tag in sharedState.allTags">{{tag.name}}</option>
 				</datalist>
 				<i @click="addTag" class="material-icons" style="cursor: pointer;">add_circle_outline</i>
 			</div>
-			<div class="vertCenter" style="border-right: 1px solid black; height: 90%;"></div>
-			<div id="advancedSearchBlock">
+			<div class="vertically" style="border-right: 1px solid black; height: 90%;"></div>
+			<div id="top-bar__search__advanced">
 				<input v-model="text" type="text" placeholder="Text for search" style="margin-right: 5px;">
 
-				<div class="vertCenter" style="margin-right: 5px;">Mode</div>
+				<div class="vertically" style="margin-right: 5px;">Mode</div>
 				<select v-model="selectedMode" style="margin-right: 5px;">
 					<option>And</option>this.selectedSortType.toLowerCase()
 					<option>Or</option>
@@ -45,8 +45,8 @@
 	</div>
 
 	<!-- Upload block -->
-	<div id="uploadBlock" @drop.prevent="upload" @dragover.prevent>
-		<div v-if="counter != 0" id="uploadLayer">
+	<div id="upload-block" @drop.prevent="upload" @dragover.prevent>
+		<div v-if="counter != 0" id="upload-block__layer">
 			<div style="display: table; height: 100%; overflow: hidden; margin: auto;">
 				<div style="display: table-cell; vertical-align: middle; text-align: center;">
 					Upload new files
@@ -56,7 +56,7 @@
 	</div>
 
 	<!-- Left bar -->
-	<div id="leftBar" style="float: left; width: 19vw;">
+	<div id="left-bar" style="float: left; width: 19vw;">
 		<div id="recentFiles">
 			<ul>
 				<li v-for="file in recentFiles" style="overflow-wrap: break-word;">
@@ -68,7 +68,7 @@
 
 	<!-- Main block -->
 	<div style="width: 80vw; height: 93vh; overflow: auto; float: right;">
-		<div id="mainBlock"></div>
+		<div id="main-block"></div>
 	</div>
 
 	<!-- Context menu -->

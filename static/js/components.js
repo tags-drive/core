@@ -46,7 +46,7 @@ Vue.component("files", {
 			<img :src="'/ext/' + file.filename.split('.').pop()" style="width: 30px;">
 		</td>	
 		<td style="width: 200px;">
-			<div class="fileName">
+			<div class="filename">
 				<a :href="file.origin" :title="file.filename" download>{{file.filename}}</a>
 			</div>
 		</td>
