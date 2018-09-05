@@ -92,15 +92,24 @@
 		<div id="modal-window__block">
 			<!-- Rename mode -->
 			<div v-if="renameMode" class="modal-window__input">
+				<div style="margin-bottom: 5px;">Current filename: "{{file.filename}}"</div>
+				<input type="text" style="margin-bottom: 5px; width: 400px;" v-model="newFilename" placeholder="New filename">
+				<br>
+				<input class="btn" type="button" value="Rename" @click="rename">
 			</div>
 			<!-- Change tags mode -->
 			<div v-else-if="tagsMode" class="modal-window__input">
 			</div>
 			<!-- Change description mode -->
 			<div v-else-if="descriptionMode" class="modal-window__input">
+				<textarea style="outline: none; margin-bottom: 5px;" placeholder="Current description: empty" readonly="readonly">{{file.description}}</textarea>
+				<textarea style="margin-bottom: 5px;" placeholder="New description" v-model="newDescription"></textarea>
+				<input class="btn" type="button" value="Update" @click="updateDescription">
 			</div>
 			<!-- Delete mode -->
 			<div v-else-if="deleteMode" class="modal-window__input">
+				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="deleteFile">
+				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hide">
 			</div>
 			<!-- Error -->
 			<div v-if="error != ''" id="modal-window__error">Error: {{error}}</div>

@@ -288,12 +288,26 @@ var modalWindow = new Vue({
     methods: {
         // UI
         showRenameWindow: function(file) {
+            this.file = file;
+            this.renameMode = true;
+            this.newFilename = file.filename;
+
+            this.show = true;
         },
         showTagsWindow: function(file) {
         },
         showDescriptionWindow: function(file) {
+            this.file = file;
+            this.unusedTags;
+            this.descriptionMode = true;
+
+            this.show = true;
         },
         showDeleteWindow: function(file) {
+            this.file = file;
+            this.deleteMode = true;
+
+            this.show = true;
         },
         hide: function() {
             this.renameMode = false;
@@ -301,6 +315,80 @@ var modalWindow = new Vue({
             this.descriptionMode = false;
             this.deleteMode = false;
             this.show = false;
+        },
+        // Requests
+        rename: function() {
+            let params = new URLSearchParams();
+            params.append("file", this.file.filename);
+            params.append("new-name", this.newFilename);
+
+            fetch("/api/files", {
+                method: "PUT",
+                body: params,
+                credentials: "same-origin"
+            })
+                .then(resp => {
+                    if (resp.status >= 400 && resp.status < 600) {
+                        // TODO: return resp.text(). How to do?
+                        throw new Error("TODO");
+                    }
+                    // Refresh list of files
+                    searchBar.search();
+                    this.hide();
+                })
+                .catch(err => {
+                    this.error = err;
+                    console.log(err);
+                });
+        },
+        updateDescription: function() {
+            let params = new URLSearchParams();
+            params.append("file", this.file.filename);
+            params.append("description", this.newDescription);
+
+            fetch("/api/files", {
+                method: "PUT",
+                body: params,
+                credentials: "same-origin"
+            })
+                .then(resp => {
+                    if (resp.status >= 400 && resp.status < 600) {
+                        // TODO: return resp.text(). How to do?
+                        throw new Error("TODO");
+                    }
+                    // Refresh list of files
+                    searchBar.search();
+                    this.hide();
+                })
+                .catch(err => {
+                    this.error = err;
+                    console.log(err);
+                });
+        },
+        deleteFile: function() {
+            let params = new URLSearchParams();
+            params.append("file", this.file.filename);
+
+            fetch("/api/files?" + params, {
+                method: "DELETE",
+                credentials: "same-origin"
+            })
+                .then(resp => {
+                    if (resp.status >= 400 && resp.status < 600) {
+                        // TODO: return resp.text(). How to do?
+                        return Promise.reject("TODO");
+                    }
+
+                    // Refresh list of files
+                    searchBar.search();
+                    this.hide();
+                    return resp.json();
+                })
+                .then(resp => console.log(resp))
+                .catch(err => {
+                    this.error = err;
+                    console.log(err);
+                });
         }
     }
 });

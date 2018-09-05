@@ -29,6 +29,25 @@ body {
     margin-right: 5px;
 }
 
+.btn {
+    cursor: pointer;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+}
+
+.btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.deleteBtn {
+    background-color: rgba(255, 0, 0, 0.65);
+}
+
+.deleteBtn:hover {
+    background-color: rgba(221, 3, 3, 0.8);
+}
+
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -232,6 +251,14 @@ th {
 .modal-window__input {
     padding: 5px;
     text-align: center;
+}
+
+.modal-window__input > textarea {
+    display: block;
+    margin: auto;
+    resize: none;
+    width: 400px;
+    height: 70px;
 }
 
 #modal-window__error {
