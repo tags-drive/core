@@ -162,12 +162,32 @@ func writeFile(dst io.Writer, src io.Reader) (int64, error) {
 
 // DeleteFile deletes file from structure and from disk
 func DeleteFile(filename string) error {
-	err := allFiles.delete(filename)
+	file, err := allFiles.get(filename)
 	if err != nil {
 		return err
 	}
 
-	return os.Remove(params.DataFolder + "/" + filename)
+	err = allFiles.delete(filename)
+	if err != nil {
+		return err
+	}
+
+	// Delete the original file
+	err = os.Remove(file.Origin)
+	if err != nil {
+		return err
+	}
+
+	if file.Preview != "" {
+		// Delete the resized image
+		err = os.Remove(file.Preview)
+		if err != nil {
+			// Only log error
+			log.Errorf("Can't delete a resized image %s: %s", file.Filename, err)
+		}
+	}
+
+	return nil
 }
 
 // RenameFile renames a file
