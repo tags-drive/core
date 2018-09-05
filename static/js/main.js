@@ -250,19 +250,57 @@ var contextMenu = new Vue({
         },
         changeName: function() {
             this.show = false;
-            console.log("Change name");
+            modalWindow.showRenameWindow(this.file);
         },
         changeTags: function() {
             this.show = false;
-            console.log("Change tags");
+            modalWindow.showTagsWindow(this.file);
         },
         changeDescription: function() {
             this.show = false;
-            console.log("Change description");
+            modalWindow.showDescriptionWindow(this.file);
         },
         deleteFile: function() {
             this.show = false;
-            console.log("Delete");
+            modalWindow.showDeleteWindow(this.file);
+        }
+    }
+});
+
+// Modal window
+var modalWindow = new Vue({
+    el: "#modal-window",
+    data: {
+        file: null,
+        show: false,
+        error: "",
+        // Modes
+        renameMode: false,
+        tagsMode: false,
+        descriptionMode: false,
+        deleteMode: false,
+        //
+        newFilename: "",
+        unusedTags: [],
+        newTags: [],
+        newDescription: ""
+    },
+    methods: {
+        // UI
+        showRenameWindow: function(file) {
+        },
+        showTagsWindow: function(file) {
+        },
+        showDescriptionWindow: function(file) {
+        },
+        showDeleteWindow: function(file) {
+        },
+        hide: function() {
+            this.renameMode = false;
+            this.tagsMode = false;
+            this.descriptionMode = false;
+            this.deleteMode = false;
+            this.show = false;
         }
     }
 });

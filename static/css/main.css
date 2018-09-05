@@ -205,3 +205,42 @@ th {
     line-height: normal;
     font-family: Arial;
 }
+
+/* Modal window */
+#modal-window {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+#modal-window__block {
+    position: relative;
+    z-index: 3;
+    margin-left: auto;
+    margin-right: auto;
+    top: 10vh;
+    width: 600px;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: white;
+}
+
+.modal-window__input {
+    padding: 5px;
+    text-align: center;
+}
+
+#modal-window__error {
+    border: 1.5px rgba(255, 0, 0, 0.65) solid;
+    border-radius: 5px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    padding: 5px;
+    width: 80%;
+    background-color: rgba(255, 161, 161, 0.883);
+}

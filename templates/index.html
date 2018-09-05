@@ -87,6 +87,26 @@
 		</div>
 	</div>
 
+	<!-- Modal window -->
+	<div id="modal-window" v-if="show" @click.self="hide">
+		<div id="modal-window__block">
+			<!-- Rename mode -->
+			<div v-if="renameMode" class="modal-window__input">
+			</div>
+			<!-- Change tags mode -->
+			<div v-else-if="tagsMode" class="modal-window__input">
+			</div>
+			<!-- Change description mode -->
+			<div v-else-if="descriptionMode" class="modal-window__input">
+			</div>
+			<!-- Delete mode -->
+			<div v-else-if="deleteMode" class="modal-window__input">
+			</div>
+			<!-- Error -->
+			<div v-if="error != ''" id="modal-window__error">Error: {{error}}</div>
+		</div>
+	</div>
+
 	<!-- Vue -->
 	<script src="/static/js/vuejs/vue.min.js"></script>
 	<!-- vue-clickaway (https://github.com/simplesmiler/vue-clickaway) -->

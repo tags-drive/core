@@ -38,6 +38,7 @@ Vue.component("files", {
 		@mouseover="hover = true;"
 		@mouseleave="hover = false;"
 		@click.right.prevent="showContextMenu(event, file);"
+		:title="file.description"
 	>
 		<td v-if="file.type == 'image'" style="width: 30px;">
 			<img :src="file.preview" style="width: 30px;">
