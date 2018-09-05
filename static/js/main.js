@@ -17,7 +17,8 @@ var store = {
         msg: "Test",
         allFiles: [],
         allTags: [],
-        opacity: 1
+        opacity: 1,
+        showDropLayer: true // when we show modal-window with tags showDropLayer is false
     },
     updateFiles: function() {
         fetch("/api/files", {
@@ -72,13 +73,19 @@ var uploader = new Vue({
     created() {
         // Add listeners
         document.ondragenter = () => {
-            this.counter++;
+            if (store.state.showDropLayer) {
+                this.counter++;
+            }
         };
         document.ondragleave = () => {
-            this.counter--;
+            if (store.state.showDropLayer) {
+                this.counter--;
+            }
         };
         document.ondrop = () => {
-            this.counter = 0;
+            if (store.state.showDropLayer) {
+                this.counter = 0;
+            }
         };
         setInterval(() => {
             if (this.counter == 0) {
