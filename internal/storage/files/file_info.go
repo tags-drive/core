@@ -72,6 +72,7 @@ func (fs *filesData) add(info FileInfo) error {
 		return ErrAlreadyExist
 	}
 
+	info.Tags = []tags.Tag{} // https://github.com/ShoshinNikita/tags-drive/issues/19
 	fs.info[info.Filename] = info
 	fs.mutex.Unlock()
 
