@@ -261,6 +261,17 @@ th {
     height: 70px;
 }
 
+.modal-window__tags-field {
+    border: 1px dashed rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    padding: 10px;
+    flex-wrap: wrap;
+    width: 80%;
+    min-height: 40px;
+    display: flex;
+    margin: 0 auto;
+}
+
 #modal-window__error {
     border: 1.5px rgba(255, 0, 0, 0.65) solid;
     border-radius: 5px;

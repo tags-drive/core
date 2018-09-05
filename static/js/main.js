@@ -302,6 +302,20 @@ var modalWindow = new Vue({
             this.show = true;
         },
         showTagsWindow: function(file) {
+            store.state.showDropLayer = false;
+            this.unusedTags = store.state.allTags.filter(tag => {
+                for (i in file.tags) {
+                    if (file.tags[i].name == tag.name) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+            this.newTags = file.tags.slice();
+            this.file = file;
+            this.tagsMode = true;
+
+            this.show = true;
         },
         showDescriptionWindow: function(file) {
             this.file = file;
@@ -322,12 +336,69 @@ var modalWindow = new Vue({
             this.descriptionMode = false;
             this.deleteMode = false;
             this.show = false;
+            store.state.showDropLayer = true;
+        },
+        // Tags drag and drop
+        addTag: function(ev) {
+            let tagName = ev.dataTransfer.getData("tagName");
+            let index = -1;
+            for (i in this.unusedTags) {
+                if (this.unusedTags[i].name == tagName) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index == -1) {
+                return;
+            }
+            this.newTags.push(this.unusedTags[index]);
+            this.unusedTags.splice(index, 1);
+        },
+        deleteTag: function(ev) {
+            let tagName = ev.dataTransfer.getData("tagName");
+            let index = -1;
+            for (i in this.newTags) {
+                if (this.newTags[i].name == tagName) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index == -1) {
+                return;
+            }
+            this.unusedTags.push(this.newTags[index]);
+            this.newTags.splice(index, 1);
         },
         // Requests
         rename: function() {
             let params = new URLSearchParams();
             params.append("file", this.file.filename);
             params.append("new-name", this.newFilename);
+
+            fetch("/api/files", {
+                method: "PUT",
+                body: params,
+                credentials: "same-origin"
+            })
+                .then(resp => {
+                    if (resp.status >= 400 && resp.status < 600) {
+                        // TODO: return resp.text(). How to do?
+                        throw new Error("TODO");
+                    }
+                    // Refresh list of files
+                    searchBar.search();
+                    this.hide();
+                })
+                .catch(err => {
+                    this.error = err;
+                    console.log(err);
+                });
+        },
+        updateTags: function() {
+            let params = new URLSearchParams();
+            let tags = this.newTags.map(tag => tag.name);
+            params.append("file", this.file.filename);
+            params.append("tags", tags.join(","));
 
             fetch("/api/files", {
                 method: "PUT",

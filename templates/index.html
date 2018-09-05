@@ -99,6 +99,19 @@
 			</div>
 			<!-- Change tags mode -->
 			<div v-else-if="tagsMode" class="modal-window__input">
+				<!-- Current tags -->
+				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="addTag(event)" @dragover.prevent>
+					<tags-input v-for="tag in newTags" :name="tag.name" :color="tag.color"></tags-input>
+				</div>
+
+				<div style="border-bottom: 1px solid black; width: 90%; margin: 20px auto 20px auto;"></div>
+
+				<!-- All tags -->
+				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="deleteTag(event)" @dragover.prevent>
+					<tags-input v-for="tag in unusedTags" :name="tag.name" :color="tag.color"></tags-input>
+				</div>
+				<br>
+				<input class="btn" type="button" value="Change tags" @click="updateTags">
 			</div>
 			<!-- Change description mode -->
 			<div v-else-if="descriptionMode" class="modal-window__input">
