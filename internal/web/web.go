@@ -63,3 +63,11 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 		errChan <- http.ErrServerClosed
 	}
 }
+
+func Error(w http.ResponseWriter, err string, code int) {
+	if params.Debug {
+		log.Errorf("Request error: %s (code: %d)\n", err, code)
+	}
+
+	http.Error(w, err, code)
+}

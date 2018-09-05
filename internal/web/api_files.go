@@ -142,9 +142,9 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case http.ErrNotMultipart:
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			Error(w, err.Error(), http.StatusBadRequest)
 		default:
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
@@ -204,7 +204,7 @@ func changeFile(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if filename == "" {
-		http.Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
+		Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -212,7 +212,7 @@ func changeFile(w http.ResponseWriter, r *http.Request) {
 	if len(tags) != 0 {
 		err := files.ChangeTags(filename, tags)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -222,7 +222,7 @@ func changeFile(w http.ResponseWriter, r *http.Request) {
 		// We can skip checking of invalid characters, because Go will return an error
 		err := files.RenameFile(filename, newName)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -231,7 +231,7 @@ func changeFile(w http.ResponseWriter, r *http.Request) {
 	if newDescription != "" {
 		err := files.ChangeDescription(filename, newDescription)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -245,7 +245,7 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	filenames := r.Form["file"]
 	if len(filenames) == 0 {
-		http.Error(w, "list of files for deleting can't be empty", http.StatusBadRequest)
+		Error(w, "list of files for deleting can't be empty", http.StatusBadRequest)
 		return
 	}
 

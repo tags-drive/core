@@ -29,7 +29,7 @@ func returnTags(w http.ResponseWriter, r *http.Request) {
 func addTag(w http.ResponseWriter, r *http.Request) {
 	tagName := r.FormValue("tag")
 	if tagName == "" {
-		http.Error(w, "tag is empty", http.StatusBadRequest)
+		Error(w, "tag is empty", http.StatusBadRequest)
 		return
 	}
 
@@ -50,12 +50,12 @@ func changeTag(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if tagName == "" {
-		http.Error(w, "tag is empty", http.StatusBadRequest)
+		Error(w, "tag is empty", http.StatusBadRequest)
 		return
 	}
 
 	if !tags.Check(tagName) {
-		http.Error(w, tags.ErrTagIsNotExist.Error(), http.StatusBadRequest)
+		Error(w, tags.ErrTagIsNotExist.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -69,7 +69,7 @@ func changeTag(w http.ResponseWriter, r *http.Request) {
 func deleteTag(w http.ResponseWriter, r *http.Request) {
 	tagName := r.FormValue("tag")
 	if tagName == "" {
-		http.Error(w, "tag is empty", http.StatusBadRequest)
+		Error(w, "tag is empty", http.StatusBadRequest)
 		return
 	}
 	tags.DeleteTag(tagName)
