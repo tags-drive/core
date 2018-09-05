@@ -17,14 +17,14 @@ import (
 type FileInfo struct {
 	Filename    string     `json:"filename"`
 	Type        string     `json:"type"`
-	Origin      string     `json:"origin"`
+	Origin      string     `json:"origin"` // Origin is a path to a file (params.DataFolder/filename)
 	Description string     `json:"description"`
 	Size        int64      `json:"size"`
 	Tags        []tags.Tag `json:"tags"`
 	AddTime     time.Time  `json:"addTime"`
 
 	// Only if Type == TypeImage
-	Preview string `json:"preview,omitempty"` // link to resized image
+	Preview string `json:"preview,omitempty"` // Preview is a path to a resized image
 }
 
 // filesData is a map (filename: FileInfo) with RWMutex
@@ -62,6 +62,17 @@ func (fs *filesData) decode(r io.Reader) error {
 }
 
 /* Files */
+
+func (fs filesData) get(filename string) (FileInfo, error) {
+	fs.mutex.RLock()
+	defer fs.mutex.RUnlock()
+
+	f, ok := fs.info[filename]
+	if !ok {
+		return FileInfo{}, ErrFileIsNotExist
+	}
+	return f, nil
+}
 
 // add adds an element into fs.info and call fs.write()
 func (fs *filesData) add(info FileInfo) error {
