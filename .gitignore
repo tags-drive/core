@@ -1,5 +1,9 @@
+# folders
 .vscode
 data
 vendor
+# files
+TODO.md
+run.sh
 *.bat
 *.json
