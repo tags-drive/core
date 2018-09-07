@@ -8,6 +8,22 @@
 	<link rel="stylesheet" type="text/css" media="screen" href="/static/css/main.css" />
 	<!-- Material icons  -->
 	<link href="/static/fonts/material-icons/material-icons.css" rel="stylesheet">
+
+	<style>
+		#top-bar__settings {
+			cursor: pointer;
+			margin-left: 10px;
+			height: 80%;
+			width: 30px;
+			position: relative;
+		}
+		#top-bar__settings > img {
+			width: 100%;
+			position: absolute;
+			top: 0; bottom: 0; /* middle */
+			margin: auto;
+		}
+	</style>
 </head>
 
 <body onload="Init();">
@@ -41,6 +57,10 @@
 			<div style="height: 100%; right: 0px; position: absolute;">
 				<i @click="search" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
 			</div>
+		</div>
+		<!-- Settings -->
+		<div id="top-bar__settings" class="vertically" @click="changeTags">
+			<img src="/static/icons/tag.png" title="Change tags">
 		</div>
 	</div>
 
