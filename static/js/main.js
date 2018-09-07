@@ -255,29 +255,29 @@ var mainBlock = new Vue({
     },
     template: `
 	<table :style="{'opacity': sharedState.opacity}" class="file-table" style="width:100%;">
-			<tr style="position: sticky; top: 100px;">
-				<th></th>
-				<th>
-					Filename
-					<i class="material-icons" id="sortByNameIcon" @click="sortByName" :style="[sortByNameModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="font-size: 20px; cursor: pointer;">
-						sort
-					</i>
-				</th>
-				<th>Tags</th>
-				<th>
-					Size (MB)
-					<i class="material-icons" id="sortByNameSize" @click="sortBySize" :style="[sortBySizeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
-						sort
-					</i>
-				</th>
-				<th>
-					Time of adding
-					<i class="material-icons" id="sortByNameTime" @click="sortByTime" :style="[sortByTimeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
-						sort
-					</i>
-				</th>
-			</tr>
-			<files v-for="file in sharedState.allFiles" :file="file"></files>
+		<tr style="position: sticky; top: 100px;">
+			<th></th>
+			<th>
+				Filename
+				<i class="material-icons" id="sortByNameIcon" @click="sortByName" :style="[sortByNameModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="font-size: 20px; cursor: pointer;">
+					sort
+				</i>
+			</th>
+			<th>Tags</th>
+			<th>
+				Size (MB)
+				<i class="material-icons" id="sortByNameSize" @click="sortBySize" :style="[sortBySizeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
+					sort
+				</i>
+			</th>
+			<th>
+				Time of adding
+				<i class="material-icons" id="sortByNameTime" @click="sortByTime" :style="[sortByTimeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
+					sort
+				</i>
+			</th>
+		</tr>
+		<files v-for="file in sharedState.allFiles" :file="file"></files>
 	</table>`
 });
 
