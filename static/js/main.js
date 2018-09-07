@@ -56,7 +56,7 @@ var store = {
 function Init() {
     store.updateTags();
     store.updateFiles();
-    recentFiles.update();
+    leftBar.update();
 }
 
 function updateStore() {
@@ -66,9 +66,9 @@ function updateStore() {
 
 /* Main instances */
 
-// Search bar
-var searchBar = new Vue({
-    el: "#top-bar__search",
+// Top bar
+var topBar = new Vue({
+    el: "#top-bar",
     data: {
         sharedState: store.state,
         tagForAdding: "",
@@ -207,7 +207,7 @@ var mainBlock = new Vue({
             let type = sortType.name,
                 order = this.sortByNameModeAsc ? sortOrder.asc : sortOrder.desc;
 
-            searchBar.advancedSearch(type, order);
+            topBar.advancedSearch(type, order);
         },
         sortBySize: function() {
             if (this.lastSortType == sortType.size) {
@@ -221,7 +221,7 @@ var mainBlock = new Vue({
             let type = sortType.size,
                 order = this.sortBySizeModeAsc ? sortOrder.asc : sortOrder.desc;
 
-            searchBar.advancedSearch(type, order);
+            topBar.advancedSearch(type, order);
         },
         sortByTime: function() {
             if (this.lastSortType == sortType.time) {
@@ -235,7 +235,7 @@ var mainBlock = new Vue({
             let type = sortType.time,
                 order = this.sortByTimeModeAsc ? sortOrder.asc : sortOrder.desc;
 
-            searchBar.advancedSearch(type, order);
+            topBar.advancedSearch(type, order);
         },
         resetSortTypes: function() {
             this.sortByNameModeAsc = true;
@@ -271,9 +271,9 @@ var mainBlock = new Vue({
 	</table>`
 });
 
-// Recent files
-var recentFiles = new Vue({
-    el: "#recentFiles",
+// Left bar
+var leftBar = new Vue({
+    el: "#left-bar",
     data: {
         recentFiles: []
     },
@@ -521,7 +521,7 @@ var modalWindow = new Vue({
                         throw new Error("TODO");
                     }
                     // Refresh list of files
-                    searchBar.search();
+                    topBar.search();
                     this.hide();
                 })
                 .catch(err => {
@@ -546,7 +546,7 @@ var modalWindow = new Vue({
                         throw new Error("TODO");
                     }
                     // Refresh list of files
-                    searchBar.search();
+                    topBar.search();
                     this.hide();
                 })
                 .catch(err => {
@@ -570,7 +570,7 @@ var modalWindow = new Vue({
                         throw new Error("TODO");
                     }
                     // Refresh list of files
-                    searchBar.search();
+                    topBar.search();
                     this.hide();
                 })
                 .catch(err => {
@@ -593,7 +593,7 @@ var modalWindow = new Vue({
                     }
 
                     // Refresh list of files
-                    searchBar.search();
+                    topBar.search();
                     this.hide();
                     return resp.json();
                 })
