@@ -8,7 +8,7 @@ Vue.component("search-tag", {
 	</div>`,
     methods: {
         deleteTagFromSearch: function(name) {
-            this.$parent.deleteTagFromSearch(name);
+            this.$parent.input().tags.delete(name);
         }
     }
 });
