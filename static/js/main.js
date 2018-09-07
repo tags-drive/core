@@ -15,7 +15,6 @@ const sortOrder = {
 // store contains global data
 var store = {
     state: {
-        msg: "Test",
         allFiles: [],
         allTags: [],
         opacity: 1,
@@ -448,11 +447,14 @@ var modalWindow = new Vue({
         tagsMode: false,
         descriptionMode: false,
         deleteMode: false,
-        //
-        newFilename: "",
-        unusedTags: [],
-        newTags: [],
-        newDescription: ""
+        globalTagsMode: false,
+        // For files API
+        fileNewData: {
+            newFilename: "",
+            unusedTags: [],
+            newTags: [],
+            newDescription: ""
+        },
     },
     methods: {
         // UI
@@ -461,21 +463,23 @@ var modalWindow = new Vue({
                 renaming: file => {
                     this.file = file;
                     this.renameMode = true;
-                    this.newFilename = file.filename;
+                    this.fileNewData.newFilename = file.filename;
 
                     this.show = true;
                 },
                 fileTags: file => {
                     store.state.showDropLayer = false;
-                    this.unusedTags = store.state.allTags.filter(tag => {
-                        for (i in file.tags) {
-                            if (file.tags[i].name == tag.name) {
-                                return false;
+                    this.fileNewData.unusedTags = store.state.allTags.filter(
+                        tag => {
+                            for (i in file.tags) {
+                                if (file.tags[i].name == tag.name) {
+                                    return false;
+                                }
                             }
+                            return true;
                         }
-                        return true;
-                    });
-                    this.newTags = file.tags.slice();
+                    );
+                    this.fileNewData.newTags = file.tags.slice();
                     this.file = file;
                     this.tagsMode = true;
 
@@ -483,7 +487,7 @@ var modalWindow = new Vue({
                 },
                 description: file => {
                     this.file = file;
-                    this.unusedTags;
+                    this.fileNewData.unusedTags;
                     this.descriptionMode = true;
 
                     this.show = true;
@@ -495,7 +499,9 @@ var modalWindow = new Vue({
                     this.show = true;
                 },
                 globalTags: () => {
-                    alert("TODO");
+                    this.globalTagsMode = true;
+
+                    this.show = true;
                 }
             };
         },
@@ -513,8 +519,8 @@ var modalWindow = new Vue({
                 addToFile: ev => {
                     let tagName = ev.dataTransfer.getData("tagName");
                     let index = -1;
-                    for (i in this.unusedTags) {
-                        if (this.unusedTags[i].name == tagName) {
+                    for (i in this.fileNewData.unusedTags) {
+                        if (this.fileNewData.unusedTags[i].name == tagName) {
                             index = i;
                             break;
                         }
@@ -522,14 +528,14 @@ var modalWindow = new Vue({
                     if (index == -1) {
                         return;
                     }
-                    this.newTags.push(this.unusedTags[index]);
-                    this.unusedTags.splice(index, 1);
+                    this.fileNewData.newTags.push(this.fileNewData.unusedTags[index]);
+                    this.fileNewData.unusedTags.splice(index, 1);
                 },
                 delFromFile: ev => {
                     let tagName = ev.dataTransfer.getData("tagName");
                     let index = -1;
-                    for (i in this.newTags) {
-                        if (this.newTags[i].name == tagName) {
+                    for (i in this.fileNewData.newTags) {
+                        if (this.fileNewData.newTags[i].name == tagName) {
                             index = i;
                             break;
                         }
@@ -537,8 +543,8 @@ var modalWindow = new Vue({
                     if (index == -1) {
                         return;
                     }
-                    this.unusedTags.push(this.newTags[index]);
-                    this.newTags.splice(index, 1);
+                    this.fileNewData.unusedTags.push(this.fileNewData.newTags[index]);
+                    this.fileNewData.newTags.splice(index, 1);
                 }
             };
         },
@@ -548,7 +554,7 @@ var modalWindow = new Vue({
                 rename: () => {
                     let params = new URLSearchParams();
                     params.append("file", this.file.filename);
-                    params.append("new-name", this.newFilename);
+                    params.append("new-name", this.fileNewData.newFilename);
 
                     fetch("/api/files", {
                         method: "PUT",
@@ -571,7 +577,7 @@ var modalWindow = new Vue({
                 },
                 updateTags: () => {
                     let params = new URLSearchParams();
-                    let tags = this.newTags.map(tag => tag.name);
+                    let tags = this.fileNewData.newTags.map(tag => tag.name);
                     params.append("file", this.file.filename);
                     params.append("tags", tags.join(","));
 
@@ -597,7 +603,7 @@ var modalWindow = new Vue({
                 updateDescription: () => {
                     let params = new URLSearchParams();
                     params.append("file", this.file.filename);
-                    params.append("description", this.newDescription);
+                    params.append("description", this.fileNewData.newDescription);
 
                     fetch("/api/files", {
                         method: "PUT",
