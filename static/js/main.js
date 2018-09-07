@@ -108,7 +108,7 @@ var topBar = new Vue({
                         .then(files => {
                             store.setFiles(files);
                             // Reset sortParams
-                            mainBlock.resetSortTypes();
+                            mainBlock.sort().reset();
                         });
                 },
                 advanced: (sType, sOrder) => {
@@ -203,55 +203,65 @@ var mainBlock = new Vue({
         showContextMenu: function(event, file) {
             contextMenu.setFile(file);
             contextMenu.showMenu(event.x, event.y);
+		},
+		// Sorts
+        sort: function() {
+            return {
+                byName: () => {
+                    if (this.lastSortType == sortType.name) {
+                        this.sortByNameModeAsc = !this.sortByNameModeAsc;
+                    } else {
+                        // Use default settings
+                        this.sort().reset();
+                    }
+                    this.lastSortType = sortType.name;
+
+                    let type = sortType.name,
+                        order = this.sortByNameModeAsc
+                            ? sortOrder.asc
+                            : sortOrder.desc;
+
+                    topBar.search().advanced(type, order);
+                },
+                bySize: () => {
+                    if (this.lastSortType == sortType.size) {
+                        this.sortBySizeModeAsc = !this.sortBySizeModeAsc;
+                    } else {
+                        // Use default settings
+                        this.sort().reset();
+                    }
+                    this.lastSortType = sortType.size;
+
+                    let type = sortType.size,
+                        order = this.sortBySizeModeAsc
+                            ? sortOrder.asc
+                            : sortOrder.desc;
+
+                    topBar.search().advanced(type, order);
+                },
+                byTime: () => {
+                    if (this.lastSortType == sortType.time) {
+                        this.sortByTimeModeAsc = !this.sortByTimeModeAsc;
+                    } else {
+                        // Use default settings
+                        this.sort().reset();
+                    }
+                    this.lastSortType = sortType.time;
+
+                    let type = sortType.time,
+                        order = this.sortByTimeModeAsc
+                            ? sortOrder.asc
+                            : sortOrder.desc;
+
+                    topBar.search().advanced(type, order);
+                },
+                reset: () => {
+                    this.sortByNameModeAsc = true;
+                    this.sortBySizeModeAsc = true;
+                    this.sortByTimeModeAsc = true;
+                }
+            };
         },
-        // Sort
-        sortByName: function() {
-            if (this.lastSortType == sortType.name) {
-                this.sortByNameModeAsc = !this.sortByNameModeAsc;
-            } else {
-                // Use default settings
-                this.resetSortTypes();
-            }
-            this.lastSortType = sortType.name;
-
-            let type = sortType.name,
-                order = this.sortByNameModeAsc ? sortOrder.asc : sortOrder.desc;
-
-            topBar.search().advanced(type, order);
-        },
-        sortBySize: function() {
-            if (this.lastSortType == sortType.size) {
-                this.sortBySizeModeAsc = !this.sortBySizeModeAsc;
-            } else {
-                // Use default settings
-                this.resetSortTypes();
-            }
-            this.lastSortType = sortType.size;
-
-            let type = sortType.size,
-                order = this.sortBySizeModeAsc ? sortOrder.asc : sortOrder.desc;
-
-            topBar.search().advanced(type, order);
-        },
-        sortByTime: function() {
-            if (this.lastSortType == sortType.time) {
-                this.sortByTimeModeAsc = !this.sortByTimeModeAsc;
-            } else {
-                // Use default settings
-                this.resetSortTypes();
-            }
-            this.lastSortType = sortType.time;
-
-            let type = sortType.time,
-                order = this.sortByTimeModeAsc ? sortOrder.asc : sortOrder.desc;
-
-            topBar.search().advanced(type, order);
-        },
-        resetSortTypes: function() {
-            this.sortByNameModeAsc = true;
-            this.sortBySizeModeAsc = true;
-            this.sortByTimeModeAsc = true;
-        }
     },
     template: `
 	<table :style="{'opacity': sharedState.opacity}" class="file-table" style="width:100%;">
@@ -259,20 +269,20 @@ var mainBlock = new Vue({
 			<th></th>
 			<th>
 				Filename
-				<i class="material-icons" id="sortByNameIcon" @click="sortByName" :style="[sortByNameModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="font-size: 20px; cursor: pointer;">
+				<i class="material-icons" id="sortByNameIcon" @click="sort().byName()" :style="[sortByNameModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="font-size: 20px; cursor: pointer;">
 					sort
 				</i>
 			</th>
 			<th>Tags</th>
 			<th>
 				Size (MB)
-				<i class="material-icons" id="sortByNameSize" @click="sortBySize" :style="[sortBySizeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
+				<i class="material-icons" id="sortByNameSize" @click="sort().bySize()" :style="[sortBySizeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
 					sort
 				</i>
 			</th>
 			<th>
 				Time of adding
-				<i class="material-icons" id="sortByNameTime" @click="sortByTime" :style="[sortByTimeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
+				<i class="material-icons" id="sortByNameTime" @click="sort().byTime()" :style="[sortByTimeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
 					sort
 				</i>
 			</th>
