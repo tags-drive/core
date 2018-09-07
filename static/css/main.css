@@ -126,6 +126,23 @@ body {
     border-bottom: 1px black solid;
 }
 
+#top-bar__settings {
+    cursor: pointer;
+    margin-left: 10px;
+    height: 80%;
+    width: 30px;
+    position: relative;
+}
+
+#top-bar__settings > img {
+    width: 100%;
+    position: absolute;
+    /* middle */
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+
 /* Remove arrow in input with datalist */
 input::-webkit-calendar-picker-indicator {
     display: none;
