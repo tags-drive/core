@@ -644,6 +644,13 @@ var modalWindow = new Vue({
                         });
                 }
             };
+        },
+        tagsAPI: function() {
+            return {
+                add: () => {},
+                change: () => {},
+                delete: () => {}
+            };
         }
     }
 });
