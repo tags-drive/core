@@ -203,8 +203,8 @@ var mainBlock = new Vue({
         showContextMenu: function(event, file) {
             contextMenu.setFile(file);
             contextMenu.showMenu(event.x, event.y);
-		},
-		// Sorts
+        },
+        // Sorts
         sort: function() {
             return {
                 byName: () => {
@@ -261,7 +261,7 @@ var mainBlock = new Vue({
                     this.sortByTimeModeAsc = true;
                 }
             };
-        },
+        }
     },
     template: `
 	<table :style="{'opacity': sharedState.opacity}" class="file-table" style="width:100%;">
@@ -390,6 +390,7 @@ var contextMenu = new Vue({
         setFile: function(file) {
             this.file = file;
         },
+        // UI
         showMenu: function(x, y) {
             const offset = 10;
             x += offset;
@@ -409,21 +410,22 @@ var contextMenu = new Vue({
         hideMenu: function() {
             this.show = false;
         },
+        // Options of context menu
         changeName: function() {
             this.show = false;
-            modalWindow.showRenameWindow(this.file);
+            modalWindow.showWindow().renaming(this.file);
         },
         changeTags: function() {
             this.show = false;
-            modalWindow.showTagsWindow(this.file);
+            modalWindow.showWindow().tags(this.file);
         },
         changeDescription: function() {
             this.show = false;
-            modalWindow.showDescriptionWindow(this.file);
+            modalWindow.showWindow().description(this.file);
         },
         deleteFile: function() {
             this.show = false;
-            modalWindow.showDeleteWindow(this.file);
+            modalWindow.showWindow().deleting(this.file);
         }
     }
 });
@@ -449,44 +451,47 @@ var modalWindow = new Vue({
     },
     methods: {
         // UI
-        showRenameWindow: function(file) {
-            this.file = file;
-            this.renameMode = true;
-            this.newFilename = file.filename;
+        showWindow: function() {
+            return {
+                renaming: file => {
+                    this.file = file;
+                    this.renameMode = true;
+                    this.newFilename = file.filename;
 
-            this.show = true;
-        },
-        showTagsWindow: function(file) {
-            store.state.showDropLayer = false;
-            this.unusedTags = store.state.allTags.filter(tag => {
-                for (i in file.tags) {
-                    if (file.tags[i].name == tag.name) {
-                        return false;
-                    }
+                    this.show = true;
+                },
+                tags: file => {
+                    store.state.showDropLayer = false;
+                    this.unusedTags = store.state.allTags.filter(tag => {
+                        for (i in file.tags) {
+                            if (file.tags[i].name == tag.name) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                    this.newTags = file.tags.slice();
+                    this.file = file;
+                    this.tagsMode = true;
+
+                    this.show = true;
+                },
+                description: file => {
+                    this.file = file;
+                    this.unusedTags;
+                    this.descriptionMode = true;
+
+                    this.show = true;
+                },
+                deleting: file => {
+                    this.file = file;
+                    this.deleteMode = true;
+
+                    this.show = true;
                 }
-                return true;
-            });
-            this.newTags = file.tags.slice();
-            this.file = file;
-            this.tagsMode = true;
-
-            this.show = true;
+            };
         },
-        showDescriptionWindow: function(file) {
-            this.file = file;
-            this.unusedTags;
-            this.descriptionMode = true;
-
-            this.show = true;
-        },
-        showDeleteWindow: function(file) {
-            this.file = file;
-            this.deleteMode = true;
-
-            this.show = true;
-        },
-        showManagementTagsWindow: function() {},
-        hide: function() {
+        hideWindow: function() {
             this.renameMode = false;
             this.tagsMode = false;
             this.descriptionMode = false;
@@ -494,36 +499,40 @@ var modalWindow = new Vue({
             this.show = false;
             store.state.showDropLayer = true;
         },
-        // Tags drag and drop
-        addTag: function(ev) {
-            let tagName = ev.dataTransfer.getData("tagName");
-            let index = -1;
-            for (i in this.unusedTags) {
-                if (this.unusedTags[i].name == tagName) {
-                    index = i;
-                    break;
+        // Drag and drop
+        tagsDragAndDrop: function() {
+            return {
+                addToFile: ev => {
+                    let tagName = ev.dataTransfer.getData("tagName");
+                    let index = -1;
+                    for (i in this.unusedTags) {
+                        if (this.unusedTags[i].name == tagName) {
+                            index = i;
+                            break;
+                        }
+                    }
+                    if (index == -1) {
+                        return;
+                    }
+                    this.newTags.push(this.unusedTags[index]);
+                    this.unusedTags.splice(index, 1);
+                },
+                delFromFile: ev => {
+                    let tagName = ev.dataTransfer.getData("tagName");
+                    let index = -1;
+                    for (i in this.newTags) {
+                        if (this.newTags[i].name == tagName) {
+                            index = i;
+                            break;
+                        }
+                    }
+                    if (index == -1) {
+                        return;
+                    }
+                    this.unusedTags.push(this.newTags[index]);
+                    this.newTags.splice(index, 1);
                 }
-            }
-            if (index == -1) {
-                return;
-            }
-            this.newTags.push(this.unusedTags[index]);
-            this.unusedTags.splice(index, 1);
-        },
-        deleteTag: function(ev) {
-            let tagName = ev.dataTransfer.getData("tagName");
-            let index = -1;
-            for (i in this.newTags) {
-                if (this.newTags[i].name == tagName) {
-                    index = i;
-                    break;
-                }
-            }
-            if (index == -1) {
-                return;
-            }
-            this.unusedTags.push(this.newTags[index]);
-            this.newTags.splice(index, 1);
+            };
         },
         // Requests
         rename: function() {
@@ -543,7 +552,7 @@ var modalWindow = new Vue({
                     }
                     // Refresh list of files
                     topBar.search().usual();
-                    this.hide();
+                    this.hideWindow();
                 })
                 .catch(err => {
                     this.error = err;
@@ -568,7 +577,7 @@ var modalWindow = new Vue({
                     }
                     // Refresh list of files
                     topBar.search().usual();
-                    this.hide();
+                    this.hideWindow();
                 })
                 .catch(err => {
                     this.error = err;
@@ -592,7 +601,7 @@ var modalWindow = new Vue({
                     }
                     // Refresh list of files
                     topBar.search().usual();
-                    this.hide();
+                    this.hideWindow();
                 })
                 .catch(err => {
                     this.error = err;
@@ -615,7 +624,7 @@ var modalWindow = new Vue({
 
                     // Refresh list of files
                     topBar.search().usual();
-                    this.hide();
+                    this.hideWindow();
                     return resp.json();
                 })
                 .then(resp => console.log(resp))

@@ -88,7 +88,7 @@
 	</div>
 
 	<!-- Modal window -->
-	<div id="modal-window" v-if="show" @click.self="hide">
+	<div id="modal-window" v-if="show" @click.self="hideWindow">
 		<div id="modal-window__block">
 			<!-- Rename mode -->
 			<div v-if="renameMode" class="modal-window__input">
@@ -100,14 +100,16 @@
 			<!-- Change tags mode -->
 			<div v-else-if="tagsMode" class="modal-window__input">
 				<!-- Current tags -->
-				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="addTag(event)" @dragover.prevent>
+				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="tagsDragAndDrop().addToFile(event)"
+				 @dragover.prevent>
 					<tags-input v-for="tag in newTags" :name="tag.name" :color="tag.color"></tags-input>
 				</div>
 
 				<div style="border-bottom: 1px solid black; width: 90%; margin: 20px auto 20px auto;"></div>
 
 				<!-- All tags -->
-				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="deleteTag(event)" @dragover.prevent>
+				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="tagsDragAndDrop().delFromFile(event)"
+				 @dragover.prevent>
 					<tags-input v-for="tag in unusedTags" :name="tag.name" :color="tag.color"></tags-input>
 				</div>
 				<br>
@@ -122,7 +124,7 @@
 			<!-- Delete mode -->
 			<div v-else-if="deleteMode" class="modal-window__input">
 				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="deleteFile">
-				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hide">
+				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
 			</div>
 			<!-- Error -->
 			<div v-if="error != ''" id="modal-window__error">Error: {{error}}</div>
