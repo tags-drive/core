@@ -21,11 +21,11 @@
 		<div id="top-bar__search">
 			<div id="top-bar__search__tags">
 				<search-tag v-for="tag in pickedTags" :name="tag.name" :color="tag.color"></search-tag>
-				<input id="top-bar__search__tag-input" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="addTag">
+				<input id="top-bar__search__tag-input" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="input().tags.add()">
 				<datalist id="tagsList">
 					<option v-for="tag in sharedState.allTags">{{tag.name}}</option>
 				</datalist>
-				<i @click="addTag" class="material-icons" style="cursor: pointer;">add_circle_outline</i>
+				<i @click="input().tags.add()" class="material-icons" style="cursor: pointer;">add_circle_outline</i>
 			</div>
 			<div class="vertically" style="border-right: 1px solid black; height: 90%;"></div>
 			<div id="top-bar__search__advanced">
@@ -33,13 +33,13 @@
 
 				<div class="vertically" style="margin-right: 5px;">Mode</div>
 				<select v-model="selectedMode" style="margin-right: 5px;">
-					<option>And</option>this.selectedSortType.toLowerCase()
+					<option>And</option>
 					<option>Or</option>
 					<option>Not</option>
 				</select>
 			</div>
 			<div style="height: 100%; right: 0px; position: absolute;">
-				<i @click="search" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
+				<i @click="search().usual()" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
 			</div>
 		</div>
 	</div>
