@@ -442,6 +442,7 @@ var modalWindow = new Vue({
         file: null,
         show: false,
         error: "",
+        sharedState: store.state,
         // Modes
         renameMode: false,
         tagsMode: false,
@@ -455,6 +456,8 @@ var modalWindow = new Vue({
             newTags: [],
             newDescription: ""
         },
+        // For tags API
+        newTag: {}
     },
     methods: {
         // UI
@@ -548,7 +551,7 @@ var modalWindow = new Vue({
                 }
             };
         },
-        // API
+        // Files API
         filesAPI: function() {
             return {
                 rename: () => {
@@ -651,11 +654,25 @@ var modalWindow = new Vue({
                 }
             };
         },
+        // Tags API
         tagsAPI: function() {
             return {
+                // Requests
                 add: () => {},
                 change: () => {},
-                delete: () => {}
+                del: () => {},
+                // delNewTag deletes tag from tagsNewData.newTag
+                delNewTag: () => {
+                    this.newTag = {};
+                },
+                // isTagExist checks does list of all tags have a tag with corresponding name
+                isTagExist: tagName => {
+                    for (let i in this.sharedState.allTags) {
+                        if (this.sharedState.allTags[i].name == tagName)
+                            return true;
+                    }
+                    return false;
+                }
             };
         }
     }

@@ -146,6 +146,20 @@
 				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().delete()">
 				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
 			</div>
+			<!-- Change global tags mode -->
+			<div v-else-if="globalTagsMode" id="global-tags" class="modal-window__input">
+				<!-- Existed tags -->
+				<modifying-tags v-for="tag in sharedState.allTags" :name="tag.name" :color="tag.color"></modifying-tags>
+				<p></p>
+
+				<input type="button" @click="if(newTag.name !== undefined) {return;} newTag = {'name': 'new tag', 'color': '#ffffff'};"
+				 value="Create new tag" class="btn" style="width: 150px; height: 25px;">
+				<p></p>
+
+				<!-- New tag -->
+				<modifying-tags v-if="newTag.name !== undefined" :name="newTag.name" :color="newTag.color"
+				 :is-new-tag="true"></modifying-tags>
+			</div>
 			<!-- Error -->
 			<div v-if="error != ''" id="modal-window__error">Error: {{error}}</div>
 		</div>
