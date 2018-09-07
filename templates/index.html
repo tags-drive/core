@@ -3,9 +3,7 @@
 
 <head>
 	<meta charset="utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Page Title</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Tags Drive</title>
 	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" media="screen" href="/static/css/main.css" />
 	<!-- Material icons  -->
@@ -13,11 +11,13 @@
 </head>
 
 <body onload="Init();">
-	<!-- Search bar -->
+	<!-- Top bar -->
 	<div id="top-bar">
+		<!-- Logo -->
 		<div id="top-bar__logo">
 			<span>Tags Drive</span>
 		</div>
+		<!-- Search bar -->
 		<div id="top-bar__search">
 			<div id="top-bar__search__tags">
 				<search-tag v-for="tag in pickedTags" :name="tag.name" :color="tag.color"></search-tag>
@@ -44,15 +44,9 @@
 		</div>
 	</div>
 
-	<!-- Upload block -->
-	<div id="upload-block" @drop.prevent="upload" @dragover.prevent>
-		<div v-if="counter != 0" id="upload-block__layer">
-			<div style="display: table; height: 100%; overflow: hidden; margin: auto;">
-				<div style="display: table-cell; vertical-align: middle; text-align: center;">
-					Upload new files
-				</div>
-			</div>
-		</div>
+	<!-- Main block -->
+	<div style="width: 80vw; height: 93vh; overflow: auto; float: right;">
+		<div id="main-block"></div>
 	</div>
 
 	<!-- Left bar -->
@@ -66,9 +60,15 @@
 		</div>
 	</div>
 
-	<!-- Main block -->
-	<div style="width: 80vw; height: 93vh; overflow: auto; float: right;">
-		<div id="main-block"></div>
+	<!-- Upload block -->
+	<div id="upload-block" @drop.prevent="upload" @dragover.prevent>
+		<div v-if="counter != 0" id="upload-block__layer">
+			<div style="display: table; height: 100%; overflow: hidden; margin: auto;">
+				<div style="display: table-cell; vertical-align: middle; text-align: center;">
+					Upload new files
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<!-- Context menu -->
