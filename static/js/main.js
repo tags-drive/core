@@ -182,6 +182,11 @@ var topBar = new Vue({
                     }
                 }
             };
+        },
+        settings: function() {
+            return {
+                tags: () => modalWindow.showWindow().globalTags()
+            };
         }
     }
 });
@@ -417,7 +422,7 @@ var contextMenu = new Vue({
         },
         changeTags: function() {
             this.show = false;
-            modalWindow.showWindow().tags(this.file);
+            modalWindow.showWindow().fileTags(this.file);
         },
         changeDescription: function() {
             this.show = false;
@@ -460,7 +465,7 @@ var modalWindow = new Vue({
 
                     this.show = true;
                 },
-                tags: file => {
+                fileTags: file => {
                     store.state.showDropLayer = false;
                     this.unusedTags = store.state.allTags.filter(tag => {
                         for (i in file.tags) {
@@ -488,6 +493,9 @@ var modalWindow = new Vue({
                     this.deleteMode = true;
 
                     this.show = true;
+                },
+                globalTags: () => {
+                    alert("TODO");
                 }
             };
         },
