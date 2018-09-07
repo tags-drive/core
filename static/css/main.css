@@ -48,6 +48,7 @@ body {
     background-color: rgba(221, 3, 3, 0.8);
 }
 
+/* Scrollbar */
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -63,6 +64,8 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
 }
+
+/* Main instances */
 
 /* Top bar */
 #top-bar {
@@ -128,12 +131,6 @@ input::-webkit-calendar-picker-indicator {
     display: none;
 }
 
-/* Left bar */
-#left-bar {
-    width: 250px;
-    float: left;
-}
-
 /* Main block */
 #main-block {
     overflow: hidden;
@@ -182,6 +179,14 @@ th {
     white-space: nowrap;
     width: 200px;
 }
+
+/* Left bar */
+#left-bar {
+    width: 250px;
+    float: left;
+}
+
+/* Secondary instances */
 
 /* Context menu */
 #context-menu {
