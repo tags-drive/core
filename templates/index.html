@@ -37,11 +37,11 @@
 		<div id="top-bar__search">
 			<div id="top-bar__search__tags">
 				<search-tag v-for="tag in pickedTags" :name="tag.name" :color="tag.color"></search-tag>
-				<input id="top-bar__search__tag-input" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="addTag">
+				<input id="top-bar__search__tag-input" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="input().tags.add()">
 				<datalist id="tagsList">
 					<option v-for="tag in sharedState.allTags">{{tag.name}}</option>
 				</datalist>
-				<i @click="addTag" class="material-icons" style="cursor: pointer;">add_circle_outline</i>
+				<i @click="input().tags.add()" class="material-icons" style="cursor: pointer;">add_circle_outline</i>
 			</div>
 			<div class="vertically" style="border-right: 1px solid black; height: 90%;"></div>
 			<div id="top-bar__search__advanced">
@@ -49,13 +49,13 @@
 
 				<div class="vertically" style="margin-right: 5px;">Mode</div>
 				<select v-model="selectedMode" style="margin-right: 5px;">
-					<option>And</option>this.selectedSortType.toLowerCase()
+					<option>And</option>
 					<option>Or</option>
 					<option>Not</option>
 				</select>
 			</div>
 			<div style="height: 100%; right: 0px; position: absolute;">
-				<i @click="search" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
+				<i @click="search().usual()" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
 			</div>
 		</div>
 		<!-- Settings -->
@@ -108,7 +108,7 @@
 	</div>
 
 	<!-- Modal window -->
-	<div id="modal-window" v-if="show" @click.self="hide">
+	<div id="modal-window" v-if="show" @click.self="hideWindow">
 		<div id="modal-window__block">
 			<!-- Rename mode -->
 			<div v-if="renameMode" class="modal-window__input">
@@ -120,14 +120,16 @@
 			<!-- Change tags mode -->
 			<div v-else-if="tagsMode" class="modal-window__input">
 				<!-- Current tags -->
-				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="addTag(event)" @dragover.prevent>
+				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="tagsDragAndDrop().addToFile(event)"
+				 @dragover.prevent>
 					<tags-input v-for="tag in newTags" :name="tag.name" :color="tag.color"></tags-input>
 				</div>
 
 				<div style="border-bottom: 1px solid black; width: 90%; margin: 20px auto 20px auto;"></div>
 
 				<!-- All tags -->
-				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="deleteTag(event)" @dragover.prevent>
+				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="tagsDragAndDrop().delFromFile(event)"
+				 @dragover.prevent>
 					<tags-input v-for="tag in unusedTags" :name="tag.name" :color="tag.color"></tags-input>
 				</div>
 				<br>
@@ -142,7 +144,7 @@
 			<!-- Delete mode -->
 			<div v-else-if="deleteMode" class="modal-window__input">
 				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="deleteFile">
-				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hide">
+				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
 			</div>
 			<!-- Error -->
 			<div v-if="error != ''" id="modal-window__error">Error: {{error}}</div>
