@@ -3,9 +3,7 @@
 
 <head>
 	<meta charset="utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Page Title</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Tags Drive</title>
 	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" media="screen" href="/static/css/main.css" />
 	<!-- Material icons  -->
@@ -13,11 +11,13 @@
 </head>
 
 <body onload="Init();">
-	<!-- Search bar -->
+	<!-- Top bar -->
 	<div id="top-bar">
+		<!-- Logo -->
 		<div id="top-bar__logo">
 			<span>Tags Drive</span>
 		</div>
+		<!-- Search bar -->
 		<div id="top-bar__search">
 			<div id="top-bar__search__tags">
 				<search-tag v-for="tag in pickedTags" :name="tag.name" :color="tag.color"></search-tag>
@@ -44,6 +44,22 @@
 		</div>
 	</div>
 
+	<!-- Main block -->
+	<div style="width: 80vw; height: 93vh; overflow: auto; float: right;">
+		<div id="main-block"></div>
+	</div>
+
+	<!-- Left bar -->
+	<div id="left-bar" style="float: left; width: 19vw;">
+		<div>
+			<ul>
+				<li v-for="file in recentFiles" style="overflow-wrap: break-word;">
+					{{file.filename}}
+				</li>
+			</ul>
+		</div>
+	</div>
+
 	<!-- Upload block -->
 	<div id="upload-block" @drop.prevent="upload" @dragover.prevent>
 		<div v-if="counter != 0" id="upload-block__layer">
@@ -53,22 +69,6 @@
 				</div>
 			</div>
 		</div>
-	</div>
-
-	<!-- Left bar -->
-	<div id="left-bar" style="float: left; width: 19vw;">
-		<div id="recentFiles">
-			<ul>
-				<li v-for="file in recentFiles" style="overflow-wrap: break-word;">
-					{{file.filename}}
-				</li>
-			</ul>
-		</div>
-	</div>
-
-	<!-- Main block -->
-	<div style="width: 80vw; height: 93vh; overflow: auto; float: right;">
-		<div id="main-block"></div>
 	</div>
 
 	<!-- Context menu -->
