@@ -542,104 +542,108 @@ var modalWindow = new Vue({
                 }
             };
         },
-        // Requests
-        rename: function() {
-            let params = new URLSearchParams();
-            params.append("file", this.file.filename);
-            params.append("new-name", this.newFilename);
+        // API
+        filesAPI: function() {
+            return {
+                rename: () => {
+                    let params = new URLSearchParams();
+                    params.append("file", this.file.filename);
+                    params.append("new-name", this.newFilename);
 
-            fetch("/api/files", {
-                method: "PUT",
-                body: params,
-                credentials: "same-origin"
-            })
-                .then(resp => {
-                    if (resp.status >= 400 && resp.status < 600) {
-                        // TODO: return resp.text(). How to do?
-                        throw new Error("TODO");
-                    }
-                    // Refresh list of files
-                    topBar.search().usual();
-                    this.hideWindow();
-                })
-                .catch(err => {
-                    this.error = err;
-                    console.log(err);
-                });
-        },
-        updateTags: function() {
-            let params = new URLSearchParams();
-            let tags = this.newTags.map(tag => tag.name);
-            params.append("file", this.file.filename);
-            params.append("tags", tags.join(","));
+                    fetch("/api/files", {
+                        method: "PUT",
+                        body: params,
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                // TODO: return resp.text(). How to do?
+                                throw new Error("TODO");
+                            }
+                            // Refresh list of files
+                            topBar.search().usual();
+                            this.hideWindow();
+                        })
+                        .catch(err => {
+                            this.error = err;
+                            console.log(err);
+                        });
+                },
+                updateTags: () => {
+                    let params = new URLSearchParams();
+                    let tags = this.newTags.map(tag => tag.name);
+                    params.append("file", this.file.filename);
+                    params.append("tags", tags.join(","));
 
-            fetch("/api/files", {
-                method: "PUT",
-                body: params,
-                credentials: "same-origin"
-            })
-                .then(resp => {
-                    if (resp.status >= 400 && resp.status < 600) {
-                        // TODO: return resp.text(). How to do?
-                        throw new Error("TODO");
-                    }
-                    // Refresh list of files
-                    topBar.search().usual();
-                    this.hideWindow();
-                })
-                .catch(err => {
-                    this.error = err;
-                    console.log(err);
-                });
-        },
-        updateDescription: function() {
-            let params = new URLSearchParams();
-            params.append("file", this.file.filename);
-            params.append("description", this.newDescription);
+                    fetch("/api/files", {
+                        method: "PUT",
+                        body: params,
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                // TODO: return resp.text(). How to do?
+                                throw new Error("TODO");
+                            }
+                            // Refresh list of files
+                            topBar.search().usual();
+                            this.hideWindow();
+                        })
+                        .catch(err => {
+                            this.error = err;
+                            console.log(err);
+                        });
+                },
+                updateDescription: () => {
+                    let params = new URLSearchParams();
+                    params.append("file", this.file.filename);
+                    params.append("description", this.newDescription);
 
-            fetch("/api/files", {
-                method: "PUT",
-                body: params,
-                credentials: "same-origin"
-            })
-                .then(resp => {
-                    if (resp.status >= 400 && resp.status < 600) {
-                        // TODO: return resp.text(). How to do?
-                        throw new Error("TODO");
-                    }
-                    // Refresh list of files
-                    topBar.search().usual();
-                    this.hideWindow();
-                })
-                .catch(err => {
-                    this.error = err;
-                    console.log(err);
-                });
-        },
-        deleteFile: function() {
-            let params = new URLSearchParams();
-            params.append("file", this.file.filename);
+                    fetch("/api/files", {
+                        method: "PUT",
+                        body: params,
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                // TODO: return resp.text(). How to do?
+                                throw new Error("TODO");
+                            }
+                            // Refresh list of files
+                            topBar.search().usual();
+                            this.hideWindow();
+                        })
+                        .catch(err => {
+                            this.error = err;
+                            console.log(err);
+                        });
+                },
+                delete: () => {
+                    let params = new URLSearchParams();
+                    params.append("file", this.file.filename);
 
-            fetch("/api/files?" + params, {
-                method: "DELETE",
-                credentials: "same-origin"
-            })
-                .then(resp => {
-                    if (resp.status >= 400 && resp.status < 600) {
-                        // TODO: return resp.text(). How to do?
-                        return Promise.reject("TODO");
-                    }
+                    fetch("/api/files?" + params, {
+                        method: "DELETE",
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                // TODO: return resp.text(). How to do?
+                                return Promise.reject("TODO");
+                            }
 
-                    // Refresh list of files
-                    topBar.search().usual();
-                    this.hideWindow();
-                    return resp.json();
-                })
-                .then(resp => console.log(resp))
-                .catch(err => {
-                    this.error = err;
-                    console.log(err);
-                });
+                            // Refresh list of files
+                            topBar.search().usual();
+                            this.hideWindow();
+                            return resp.json();
+                        })
+                        .then(resp => console.log(resp))
+                        .catch(err => {
+                            this.error = err;
+                            console.log(err);
+                        });
+                }
+            };
         }
     }
 });

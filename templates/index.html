@@ -115,7 +115,7 @@
 				<div style="margin-bottom: 5px;">Current filename: "{{file.filename}}"</div>
 				<input type="text" style="margin-bottom: 5px; width: 400px;" v-model="newFilename" placeholder="New filename">
 				<br>
-				<input class="btn" type="button" value="Rename" @click="rename">
+				<input class="btn" type="button" value="Rename" @click="filesAPI().rename()">
 			</div>
 			<!-- Change tags mode -->
 			<div v-else-if="tagsMode" class="modal-window__input">
@@ -133,17 +133,17 @@
 					<tags-input v-for="tag in unusedTags" :name="tag.name" :color="tag.color"></tags-input>
 				</div>
 				<br>
-				<input class="btn" type="button" value="Change tags" @click="updateTags">
+				<input class="btn" type="button" value="Change tags" @click="filesAPI().updateTags()">
 			</div>
 			<!-- Change description mode -->
 			<div v-else-if="descriptionMode" class="modal-window__input">
 				<textarea style="outline: none; margin-bottom: 5px;" placeholder="Current description: empty" readonly="readonly">{{file.description}}</textarea>
 				<textarea style="margin-bottom: 5px;" placeholder="New description" v-model="newDescription"></textarea>
-				<input class="btn" type="button" value="Update" @click="updateDescription">
+				<input class="btn" type="button" value="Update" @click="filesAPI().updateDescription()">
 			</div>
 			<!-- Delete mode -->
 			<div v-else-if="deleteMode" class="modal-window__input">
-				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="deleteFile">
+				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().delete()">
 				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
 			</div>
 			<!-- Error -->
