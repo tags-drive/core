@@ -1,3 +1,4 @@
+// Tags in Search bar
 Vue.component("search-tag", {
     props: ["name", "color", "show"],
     template: `
@@ -12,6 +13,7 @@ Vue.component("search-tag", {
     }
 });
 
+// Tags in Main block
 Vue.component("file-tag", {
     props: ["name", "color"],
     template: `
@@ -20,6 +22,7 @@ Vue.component("file-tag", {
 	</div>`
 });
 
+// For drag and drop input
 Vue.component("tags-input", {
     props: ["name", "color"],
     methods: {
@@ -44,6 +47,7 @@ Vue.component("tags-input", {
 	</div>`
 });
 
+// Files in Main block
 Vue.component("files", {
     props: ["file"],
     data: function() {

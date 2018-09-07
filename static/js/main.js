@@ -1,5 +1,6 @@
 // For every fetch request we have to use `credentials: "same-origin"` to pass Cookie
 
+/* Global */
 const sortType = {
     name: "name",
     size: "size",
@@ -63,59 +64,114 @@ function updateStore() {
     store.updateTags();
 }
 
-// Upload block
-var uploader = new Vue({
-    el: "#upload-block",
+/* Main instances */
+
+// Search bar
+var searchBar = new Vue({
+    el: "#top-bar__search",
     data: {
         sharedState: store.state,
-        counter: 0 // for definition did user drag file into div. If counter > 0, user dragged file.
-    },
-    created() {
-        // Add listeners
-        document.ondragenter = () => {
-            if (store.state.showDropLayer) {
-                this.counter++;
-            }
-        };
-        document.ondragleave = () => {
-            if (store.state.showDropLayer) {
-                this.counter--;
-            }
-        };
-        document.ondrop = () => {
-            if (store.state.showDropLayer) {
-                this.counter = 0;
-            }
-        };
-        setInterval(() => {
-            if (this.counter == 0) {
-                this.sharedState.opacity = 1;
-            } else {
-                this.sharedState.opacity = 0.3;
-            }
-        }, 20);
+        tagForAdding: "",
+        pickedTags: [],
+        text: "",
+        selectedMode: "And"
     },
     methods: {
-        upload: function(event) {
-            var formData = new FormData();
-
-            for (file of event.dataTransfer.files) {
-                formData.append("files", file, file.name);
+        search: function() {
+            let params = new URLSearchParams();
+            // tags
+            if (this.pickedTags.length != 0) {
+                let tags = [];
+                for (let tag of this.pickedTags) {
+                    tags.push(tag.name);
+                }
+                params.append("tags", tags.join(","));
             }
+            // search
+            if (this.text != "") {
+                params.append("search", this.text);
+            }
+            // sort
+            params.append("sort", sortType.name);
+            // order
+            params.append("order", sortOrder.asc);
+            // mode
+            params.append("mode", this.selectedMode.toLowerCase());
 
-            fetch("/api/files", {
-                body: formData,
-                method: "POST",
+            fetch("/api/files?" + params, {
+                method: "GET",
                 credentials: "same-origin"
             })
-                .then(res => res.json())
-                .then(log => {
-                    console.log(log);
-                    this.logs = log;
-                    // Update list of files
-                    updateStore();
-                })
-                .catch(err => console.log(err));
+                .then(data => data.json())
+                .then(files => {
+                    store.setFiles(files);
+                    // Reset sortParams
+                    mainBlock.resetSortTypes();
+                });
+        },
+        advancedSearch: function(sType, sOrder) {
+            let params = new URLSearchParams();
+            // tags
+            if (this.pickedTags.length != 0) {
+                let tags = [];
+                for (let tag of this.pickedTags) {
+                    tags.push(tag.name);
+                }
+                params.append("tags", tags.join(","));
+            }
+            // search
+            if (this.text != "") {
+                params.append("search", this.text);
+            }
+            // sort
+            params.append("sort", sType);
+            // order
+            params.append("order", sOrder);
+            // mode
+            params.append("mode", this.selectedMode.toLowerCase());
+
+            fetch("/api/files?" + params, {
+                method: "GET",
+                credentials: "same-origin"
+            })
+                .then(data => data.json())
+                .then(files => store.setFiles(files));
+        },
+        deleteTagFromSearch: function(name) {
+            let index = -1;
+            for (i in this.pickedTags) {
+                if (this.pickedTags[i].name == name) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index == -1) {
+                return;
+            }
+
+            // Remove an element
+            this.pickedTags.splice(index, 1);
+        },
+        addTag: function() {
+            // Check is there the tag
+            for (let tag of this.sharedState.allTags) {
+                if (tag.name == this.tagForAdding) {
+                    let alreadyHas = false;
+                    // Check was tag already picked
+                    for (let tag of this.pickedTags) {
+                        if (tag.name == this.tagForAdding) {
+                            alreadyHas = true;
+                            break;
+                        }
+                    }
+                    if (!alreadyHas) {
+                        this.tagForAdding = "";
+                        this.pickedTags.push(tag);
+                    }
+
+                    break;
+                }
+            }
         }
     }
 });
@@ -215,6 +271,84 @@ var mainBlock = new Vue({
 	</table>`
 });
 
+// Recent files
+var recentFiles = new Vue({
+    el: "#recentFiles",
+    data: {
+        recentFiles: []
+    },
+    methods: {
+        update: function() {
+            fetch("/api/files/recent", {
+                method: "GET",
+                credentials: "same-origin"
+            })
+                .then(data => data.json())
+                .then(files => (this.recentFiles = files));
+        }
+    }
+});
+
+/* Secondary instances */
+
+// Upload block
+var uploader = new Vue({
+    el: "#upload-block",
+    data: {
+        sharedState: store.state,
+        counter: 0 // for definition did user drag file into div. If counter > 0, user dragged file.
+    },
+    created() {
+        // Add listeners
+        document.ondragenter = () => {
+            if (store.state.showDropLayer) {
+                this.counter++;
+            }
+        };
+        document.ondragleave = () => {
+            if (store.state.showDropLayer) {
+                this.counter--;
+            }
+        };
+        document.ondrop = () => {
+            if (store.state.showDropLayer) {
+                this.counter = 0;
+            }
+        };
+        setInterval(() => {
+            if (this.counter == 0) {
+                this.sharedState.opacity = 1;
+            } else {
+                this.sharedState.opacity = 0.3;
+            }
+        }, 20);
+    },
+    methods: {
+        upload: function(event) {
+            var formData = new FormData();
+
+            for (file of event.dataTransfer.files) {
+                formData.append("files", file, file.name);
+            }
+
+            fetch("/api/files", {
+                body: formData,
+                method: "POST",
+                credentials: "same-origin"
+            })
+                .then(res => res.json())
+                .then(log => {
+                    console.log(log);
+                    this.logs = log;
+                    // Update list of files
+                    updateStore();
+                })
+                .catch(err => console.log(err));
+        }
+    }
+});
+
+// Context menu (right click on a file)
 var contextMenu = new Vue({
     el: "#context-menu",
     mixins: [VueClickaway.mixin], // from vue-clickaway
@@ -275,6 +409,7 @@ var contextMenu = new Vue({
 });
 
 // Modal window
+// It's called from a context menu
 var modalWindow = new Vue({
     el: "#modal-window",
     data: {
@@ -467,134 +602,6 @@ var modalWindow = new Vue({
                     this.error = err;
                     console.log(err);
                 });
-        }
-    }
-});
-
-// Search bar
-var searchBar = new Vue({
-    el: "#top-bar__search",
-    data: {
-        sharedState: store.state,
-        tagForAdding: "",
-        pickedTags: [],
-        text: "",
-        selectedMode: "And"
-    },
-    methods: {
-        search: function() {
-            let params = new URLSearchParams();
-            // tags
-            if (this.pickedTags.length != 0) {
-                let tags = [];
-                for (let tag of this.pickedTags) {
-                    tags.push(tag.name);
-                }
-                params.append("tags", tags.join(","));
-            }
-            // search
-            if (this.text != "") {
-                params.append("search", this.text);
-            }
-            // sort
-            params.append("sort", sortType.name);
-            // order
-            params.append("order", sortOrder.asc);
-            // mode
-            params.append("mode", this.selectedMode.toLowerCase());
-
-            fetch("/api/files?" + params, {
-                method: "GET",
-                credentials: "same-origin"
-            })
-                .then(data => data.json())
-                .then(files => {
-                    store.setFiles(files);
-                    // Reset sortParams
-                    mainBlock.resetSortTypes();
-                });
-        },
-        advancedSearch: function(sType, sOrder) {
-            let params = new URLSearchParams();
-            // tags
-            if (this.pickedTags.length != 0) {
-                let tags = [];
-                for (let tag of this.pickedTags) {
-                    tags.push(tag.name);
-                }
-                params.append("tags", tags.join(","));
-            }
-            // search
-            if (this.text != "") {
-                params.append("search", this.text);
-            }
-            // sort
-            params.append("sort", sType);
-            // order
-            params.append("order", sOrder);
-            // mode
-            params.append("mode", this.selectedMode.toLowerCase());
-
-            fetch("/api/files?" + params, {
-                method: "GET",
-                credentials: "same-origin"
-            })
-                .then(data => data.json())
-                .then(files => store.setFiles(files));
-        },
-        deleteTagFromSearch: function(name) {
-            let index = -1;
-            for (i in this.pickedTags) {
-                if (this.pickedTags[i].name == name) {
-                    index = i;
-                    break;
-                }
-            }
-            if (index == -1) {
-                return;
-            }
-
-            // Remove an element
-            this.pickedTags.splice(index, 1);
-        },
-        addTag: function() {
-            // Check is there the tag
-            for (let tag of this.sharedState.allTags) {
-                if (tag.name == this.tagForAdding) {
-                    let alreadyHas = false;
-                    // Check was tag already picked
-                    for (let tag of this.pickedTags) {
-                        if (tag.name == this.tagForAdding) {
-                            alreadyHas = true;
-                            break;
-                        }
-                    }
-                    if (!alreadyHas) {
-                        this.tagForAdding = "";
-                        this.pickedTags.push(tag);
-                    }
-
-                    break;
-                }
-            }
-        }
-    }
-});
-
-// Recent files
-var recentFiles = new Vue({
-    el: "#recentFiles",
-    data: {
-        recentFiles: []
-    },
-    methods: {
-        update: function() {
-            fetch("/api/files/recent", {
-                method: "GET",
-                credentials: "same-origin"
-            })
-                .then(data => data.json())
-                .then(files => (this.recentFiles = files));
         }
     }
 });
