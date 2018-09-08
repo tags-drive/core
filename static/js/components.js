@@ -41,14 +41,13 @@ const validColor = /^#[\dabcdef]{6}$/;
 
 Vue.component("modifying-tags", {
     props: {
-        name: String,
-        color: String,
+        tag: Object,
         isNewTag: String // only new tag
     },
     data: function() {
         return {
-            newName: this.name,
-            newColor: this.color,
+            newName: this.tag.name,
+            newColor: this.tag.color,
             isChanged: this.isNewTag !== true ? false : true, // isNewTag wasn't passed,
             isError: false,
             isDeleted: false
@@ -63,7 +62,7 @@ Vue.component("modifying-tags", {
     },
     methods: {
         check: function() {
-            if (this.name == this.newName && this.color == this.newColor && isNewTag !== true) {
+            if (this.tag.name == this.newName && this.tag.color == this.newColor && this.isNewTag !== true) {
                 // Can skip, if name and color weren't changed
                 this.isChanged = false;
                 this.isError = false;
