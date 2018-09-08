@@ -54,10 +54,11 @@ Vue.component("modifying-tags", {
         };
     },
     destroyed: function() {
+        // Called, when window is closed
         // We delete a tag only after closing the window
         // It lets us to undo the file deleting
         if (this.isDeleted) {
-            // this.$parent.tagsAPI().delete(this.name);
+            this.$parent.tagsAPI().del(this.tag.id);
         }
     },
     methods: {
@@ -97,7 +98,7 @@ Vue.component("modifying-tags", {
 
             if (this.isNewTag) {
                 // Need to create, not to change
-                // this.$parent.tagsAPI().add(this.newName, this.newColor);
+                this.$parent.tagsAPI().add(this.newName, this.newColor);
             } else {
                 // this.$parent.tagsAPI().change(this.newName, this.newColor);
             }

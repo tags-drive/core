@@ -651,9 +651,38 @@ var modalWindow = new Vue({
         tagsAPI: function() {
             return {
                 // Requests
-                add: () => {},
+                add: (name, color) => {
+                    let params = new URLSearchParams();
+                    params.append("name", name);
+                    params.append("color", color);
+
+                    fetch("/api/tags", {
+                        method: "POST",
+                        body: params,
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            this.tagsAPI().delNewTag();
+                            store.updateTags();
+                            return resp.text();
+                        })
+                        .then(err => console.log(err)); // TODO
+                },
                 change: () => {},
-                del: () => {},
+                del: tagID => {
+                    let params = new URLSearchParams();
+                    params.append("id", tagID);
+
+                    fetch("/api/tags?" + params, {
+                        method: "DELETE",
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            store.updateTags();
+                            return resp.text();
+                        })
+                        .then(err => console.log(err)); // TODO
+                },
                 // delNewTag deletes tag from tagsNewData.newTag
                 delNewTag: () => {
                     this.newTag = {};
