@@ -123,7 +123,7 @@ func (fs filesData) getFiles(m TagMode, tags []string, search string) (files []F
 		}
 	} else {
 		for _, v := range fs.info {
-			stringTags := make([]string, len(v.Tags))
+			stringTags := make([]int, len(v.Tags))
 			for i, t := range v.Tags {
 				stringTags[i] = t.Name
 			}
