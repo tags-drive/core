@@ -54,11 +54,6 @@ func changeTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !tags.Check(tagName) {
-		Error(w, tags.ErrTagIsNotExist.Error(), http.StatusBadRequest)
-		return
-	}
-
 	tags.Change(tagName, newName, newColor)
 }
 
