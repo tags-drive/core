@@ -82,7 +82,7 @@ var topBar = new Vue({
                     if (this.pickedTags.length != 0) {
                         let tags = [];
                         for (let tag of this.pickedTags) {
-                            tags.push(tag.name);
+                            tags.push(tag.id);
                         }
                         params.append("tags", tags.join(","));
                     }
@@ -143,8 +143,8 @@ var topBar = new Vue({
                 tags: {
                     add: () => {
                         // Check is there the tag
-                        for (let tag of this.sharedState.allTags) {
-                            if (tag.name == this.tagForAdding) {
+                        for (let id in this.sharedState.allTags) {
+                            if (this.sharedState.allTags[id].name == this.tagForAdding) {
                                 let alreadyHas = false;
                                 // Check was tag already picked
                                 for (let tag of this.pickedTags) {
@@ -155,7 +155,7 @@ var topBar = new Vue({
                                 }
                                 if (!alreadyHas) {
                                     this.tagForAdding = "";
-                                    this.pickedTags.push(tag);
+                                    this.pickedTags.push(this.sharedState.allTags[id]);
                                 }
 
                                 break;
