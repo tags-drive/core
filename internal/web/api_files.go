@@ -40,13 +40,19 @@ type multiplyResponse struct {
 func returnFiles(w http.ResponseWriter, r *http.Request) {
 	var (
 		order = getParam("asc", r.FormValue("order"), "asc", "desc")
-		tags  = func() []string {
+		tags  = func() []int {
 			t := r.FormValue("tags")
 			if t == "" {
-				return []string{}
+				return []int{}
 			}
+			res := []int{}
 
-			return strings.Split(t, ",")
+			for _, s := range strings.Split(t, ",") {
+				if id, err := strconv.Atoi(s); err == nil {
+					res = append(res, id)
+				}
+			}
+			return res
 		}()
 		search = r.FormValue("search")
 
@@ -193,13 +199,19 @@ func changeFile(w http.ResponseWriter, r *http.Request) {
 		filename       = r.FormValue("file")
 		newName        = r.FormValue("new-name")
 		newDescription = r.FormValue("description")
-		tags           = func() []string {
+		tags           = func() []int {
 			t := r.FormValue("tags")
 			if t == "" {
-				return []string{}
+				return []int{}
 			}
+			res := []int{}
 
-			return strings.Split(t, ",")
+			for _, s := range strings.Split(t, ",") {
+				if id, err := strconv.Atoi(s); err == nil {
+					res = append(res, id)
+				}
+			}
+			return res
 		}()
 	)
 
