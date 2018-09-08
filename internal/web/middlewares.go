@@ -68,12 +68,27 @@ func debugMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Don't log favicon.ico
 		if !strings.HasSuffix(r.URL.Path, "favicon.ico") {
-			fmt.Printf("%s ", r.Method)
-			fmt.Print(r.URL.Path)
-			if r.URL.RawQuery != "" {
-				fmt.Printf("?%s", r.URL.RawQuery)
+			fmt.Printf("%s %s\n", r.Method, r.URL.Path)
+
+			r.ParseForm()
+			if len(r.Form) > 0 {
+				prefix := strings.Repeat(" ", len(r.Method))
+
+				space := 0
+				for k := range r.Form {
+					if space < len(k) {
+						space = len(k)
+					}
+				}
+
+				for k, v := range r.Form {
+					fmt.Printf("%s %v: ", prefix, k)
+					for i := 0; i < space-len(k); i++ {
+						fmt.Print(" ")
+					}
+					fmt.Println(v)
+				}
 			}
-			fmt.Println()
 		}
 
 		h.ServeHTTP(w, r)
