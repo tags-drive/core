@@ -10,18 +10,17 @@ import (
 	"github.com/ShoshinNikita/log"
 
 	"github.com/ShoshinNikita/tags-drive/internal/params"
-	"github.com/ShoshinNikita/tags-drive/internal/storage/tags"
 )
 
 // FileInfo contains the information about a file
 type FileInfo struct {
-	Filename    string     `json:"filename"`
-	Type        string     `json:"type"`
-	Origin      string     `json:"origin"` // Origin is a path to a file (params.DataFolder/filename)
-	Description string     `json:"description"`
-	Size        int64      `json:"size"`
-	Tags        []tags.Tag `json:"tags"`
-	AddTime     time.Time  `json:"addTime"`
+	Filename    string    `json:"filename"`
+	Type        string    `json:"type"`
+	Origin      string    `json:"origin"` // Origin is a path to a file (params.DataFolder/filename)
+	Description string    `json:"description"`
+	Size        int64     `json:"size"`
+	Tags        []int     `json:"tags"`
+	AddTime     time.Time `json:"addTime"`
 
 	// Only if Type == TypeImage
 	Preview string `json:"preview,omitempty"` // Preview is a path to a resized image
@@ -83,7 +82,7 @@ func (fs *filesData) add(info FileInfo) error {
 		return ErrAlreadyExist
 	}
 
-	info.Tags = []tags.Tag{} // https://github.com/ShoshinNikita/tags-drive/issues/19
+	info.Tags = []int{} // https://github.com/ShoshinNikita/tags-drive/issues/19
 	fs.info[info.Filename] = info
 	fs.mutex.Unlock()
 
@@ -137,7 +136,7 @@ func (fs *filesData) delete(filename string) error {
 	return nil
 }
 
-func (fs *filesData) changeTags(filename string, changedTags []string) error {
+func (fs *filesData) changeTags(filename string, changedTagsID []int) error {
 	fs.mutex.Lock()
 
 	if _, ok := fs.info[filename]; !ok {
@@ -147,7 +146,7 @@ func (fs *filesData) changeTags(filename string, changedTags []string) error {
 
 	// Update map
 	f := fs.info[filename]
-	f.Tags = tags.GetTags(changedTags)
+	f.Tags = changedTagsID
 	fs.info[filename] = f
 
 	fs.mutex.Unlock()
