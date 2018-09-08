@@ -43,9 +43,7 @@ var store = {
     setFiles: function(files) {
         // Change time from "2018-08-23T22:48:59.0459184+03:00" to "23-08-2018 22:48"
         for (let i in files) {
-            files[i].addTime = new Date(files[i].addTime).format(
-                "dd-mm-yyyy HH:MM"
-            );
+            files[i].addTime = new Date(files[i].addTime).format("dd-mm-yyyy HH:MM");
         }
         this.state.allFiles = files;
     }
@@ -237,9 +235,7 @@ var mainBlock = new Vue({
                     this.lastSortType = sortType.size;
 
                     let type = sortType.size,
-                        order = this.sortBySizeModeAsc
-                            ? sortOrder.asc
-                            : sortOrder.desc;
+                        order = this.sortBySizeModeAsc ? sortOrder.asc : sortOrder.desc;
 
                     topBar.search().advanced(type, order);
                 },
@@ -253,9 +249,7 @@ var mainBlock = new Vue({
                     this.lastSortType = sortType.time;
 
                     let type = sortType.time,
-                        order = this.sortByTimeModeAsc
-                            ? sortOrder.asc
-                            : sortOrder.desc;
+                        order = this.sortByTimeModeAsc ? sortOrder.asc : sortOrder.desc;
 
                     topBar.search().advanced(type, order);
                 },
@@ -531,9 +525,7 @@ var modalWindow = new Vue({
                     if (index == -1) {
                         return;
                     }
-                    this.fileNewData.newTags.push(
-                        this.fileNewData.unusedTags[index]
-                    );
+                    this.fileNewData.newTags.push(this.fileNewData.unusedTags[index]);
                     this.fileNewData.unusedTags.splice(index, 1);
                 },
                 delFromFile: ev => {
@@ -548,9 +540,7 @@ var modalWindow = new Vue({
                     if (index == -1) {
                         return;
                     }
-                    this.fileNewData.unusedTags.push(
-                        this.fileNewData.newTags[index]
-                    );
+                    this.fileNewData.unusedTags.push(this.fileNewData.newTags[index]);
                     this.fileNewData.newTags.splice(index, 1);
                 }
             };
@@ -610,10 +600,7 @@ var modalWindow = new Vue({
                 updateDescription: () => {
                     let params = new URLSearchParams();
                     params.append("file", this.file.filename);
-                    params.append(
-                        "description",
-                        this.fileNewData.newDescription
-                    );
+                    params.append("description", this.fileNewData.newDescription);
 
                     fetch("/api/files", {
                         method: "PUT",

@@ -30,10 +30,7 @@ Vue.component("tags-input", {
             // Sometimes there's a bug, when user drag text, not div, so we need to check nodeName
             // If nodeName == "#text", user dragged text. We still can drop tag, but there's some graphic artifacts
             if (ev.target.nodeName == "DIV") {
-                ev.dataTransfer.setData(
-                    "tagName",
-                    ev.target.children[0].textContent
-                );
+                ev.dataTransfer.setData("tagName", ev.target.children[0].textContent);
             } else if (ev.target.nodeName == "#text") {
                 ev.dataTransfer.setData("tagName", ev.target.data);
             } else {
@@ -74,11 +71,7 @@ Vue.component("modifying-tags", {
     },
     methods: {
         check: function() {
-            if (
-                this.name == this.newName &&
-                this.color == this.newColor &&
-                isNewTag !== true
-            ) {
+            if (this.name == this.newName && this.color == this.newColor && isNewTag !== true) {
                 // Can skip, if name and color weren't changed
                 this.isChanged = false;
                 this.isError = false;
@@ -86,10 +79,7 @@ Vue.component("modifying-tags", {
             }
             this.isChanged = true;
 
-            if (
-                this.newName.length == 0 ||
-                validTagName.exec(this.newName) === null
-            ) {
+            if (this.newName.length == 0 || validTagName.exec(this.newName) === null) {
                 this.isError = true;
                 return;
             }
@@ -106,8 +96,7 @@ Vue.component("modifying-tags", {
             }
             this.isChanged = true;
             this.isError = false; // we can't generate an invalid color
-            this.newColor =
-                "#" + Math.floor(Math.random() * 16777215).toString(16);
+            this.newColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
         },
         // API
         save: function() {
