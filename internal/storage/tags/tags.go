@@ -21,6 +21,7 @@ var (
 )
 
 type Tag struct {
+	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Color string `json:"color"`
 }
@@ -73,6 +74,7 @@ func (t *tagsStruct) add(tag Tag) {
 		}
 	}
 	nextID++
+	tag.ID = nextID
 	t.tags[nextID] = tag
 	t.mutex.Unlock()
 
