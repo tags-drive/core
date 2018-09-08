@@ -15,10 +15,10 @@ Vue.component("search-tag", {
 
 // Tags in Main block
 Vue.component("file-tag", {
-    props: ["name", "color"],
+    props: ["tag"],
     template: `
-	<div :style="{ 'background-color': color }" class="tag">
-		<div>{{name}}</div>
+	<div :style="{ 'background-color': tag.color }" class="tag">
+		<div>{{tag.name}}</div>
 	</div>`
 });
 
@@ -187,7 +187,7 @@ Vue.component("modifying-tags", {
 
 // Files in Main block
 Vue.component("files", {
-    props: ["file"],
+    props: ["file", "allTags"],
     data: function() {
         return {
             hover: false
@@ -220,9 +220,8 @@ Vue.component("files", {
 		<td>
 			<div style="display: flex;">
 				<file-tag
-					v-for="tag in file.tags"
-					:name="tag.name"
-					:color="tag.color">
+					v-for="id in file.tags"
+					:tag="allTags[id]">
 				</file-tag>
 			</div>
 		</td>

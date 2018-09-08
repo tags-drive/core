@@ -16,7 +16,7 @@ const sortOrder = {
 var store = {
     state: {
         allFiles: [],
-        allTags: [],
+        allTags: {},
         opacity: 1,
         showDropLayer: true // when we show modal-window with tags showDropLayer is false
     },
@@ -291,7 +291,7 @@ var mainBlock = new Vue({
 				</i>
 			</th>
 		</tr>
-		<files v-for="file in sharedState.allFiles" :file="file"></files>
+		<files v-for="file in sharedState.allFiles" :file="file" :allTags="store.state.allTags"></files>
 	</table>`
 });
 
