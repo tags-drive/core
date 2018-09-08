@@ -23,19 +23,22 @@ func returnTags(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(allTags)
 }
 
-// TODO add param color
-// POST /api/tags?tag=newtag
+// POST /api/tags?name=tag-name&color=tag-color
 //
 // Response: -
 //
 func addTag(w http.ResponseWriter, r *http.Request) {
-	tagName := r.FormValue("tag")
+	tagName := r.FormValue("name")
+	tagColor := r.FormValue("color")
 	if tagName == "" {
 		Error(w, "tag is empty", http.StatusBadRequest)
 		return
 	}
+	if tagColor == "" {
+		tagColor = tags.DefaultColor
+	}
 
-	tags.AddTag(tags.Tag{Name: tagName, Color: tags.DefaultColor})
+	tags.AddTag(tags.Tag{Name: tagName, Color: tagColor})
 	w.WriteHeader(http.StatusCreated)
 }
 
