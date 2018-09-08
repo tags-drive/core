@@ -66,7 +66,7 @@ func (t *tagsStruct) add(tag Tag) {
 	t.mutex.Lock()
 
 	// Get max ID (max)
-	nextID := 1
+	nextID := 0
 	for id := range t.tags {
 		if nextID < id {
 			nextID = id
