@@ -219,9 +219,7 @@ var mainBlock = new Vue({
                     this.lastSortType = sortType.name;
 
                     let type = sortType.name,
-                        order = this.sortByNameModeAsc
-                            ? sortOrder.asc
-                            : sortOrder.desc;
+                        order = this.sortByNameModeAsc ? sortOrder.asc : sortOrder.desc;
 
                     topBar.search().advanced(type, order);
                 },
@@ -466,17 +464,18 @@ var modalWindow = new Vue({
                 },
                 fileTags: file => {
                     store.state.showDropLayer = false;
-                    this.fileNewData.unusedTags = store.state.allTags.filter(
-                        tag => {
-                            for (i in file.tags) {
-                                if (file.tags[i].name == tag.name) {
-                                    return false;
-                                }
-                            }
-                            return true;
+
+                    this.fileNewData.newTags = [];
+                    this.fileNewData.unusedTags = [];
+
+                    for (let id in this.sharedState.allTags) {
+                        if (file.tags.includes(Number(id))) {
+                            this.fileNewData.newTags.push(this.sharedState.allTags[id]);
+                        } else {
+                            this.fileNewData.unusedTags.push(this.sharedState.allTags[id]);
                         }
-                    );
-                    this.fileNewData.newTags = file.tags.slice();
+                    }
+
                     this.file = file;
                     this.tagsMode = true;
 
@@ -514,10 +513,10 @@ var modalWindow = new Vue({
         tagsDragAndDrop: function() {
             return {
                 addToFile: ev => {
-                    let tagName = ev.dataTransfer.getData("tagName");
+                    let tagID = Number(ev.dataTransfer.getData("tagName"));
                     let index = -1;
                     for (i in this.fileNewData.unusedTags) {
-                        if (this.fileNewData.unusedTags[i].name == tagName) {
+                        if (this.fileNewData.unusedTags[i].id == tagID) {
                             index = i;
                             break;
                         }
@@ -529,10 +528,10 @@ var modalWindow = new Vue({
                     this.fileNewData.unusedTags.splice(index, 1);
                 },
                 delFromFile: ev => {
-                    let tagName = ev.dataTransfer.getData("tagName");
+                    let tagID = ev.dataTransfer.getData("tagName");
                     let index = -1;
                     for (i in this.fileNewData.newTags) {
-                        if (this.fileNewData.newTags[i].name == tagName) {
+                        if (this.fileNewData.newTags[i].id == tagID) {
                             index = i;
                             break;
                         }
@@ -574,7 +573,7 @@ var modalWindow = new Vue({
                 },
                 updateTags: () => {
                     let params = new URLSearchParams();
-                    let tags = this.fileNewData.newTags.map(tag => tag.name);
+                    let tags = this.fileNewData.newTags.map(tag => tag.id);
                     params.append("file", this.file.filename);
                     params.append("tags", tags.join(","));
 

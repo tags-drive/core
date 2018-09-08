@@ -24,23 +24,15 @@ Vue.component("file-tag", {
 
 // For drag and drop input
 Vue.component("tags-input", {
-    props: ["name", "color"],
+    props: ["tag"],
     methods: {
         startDrag: function(ev) {
-            // Sometimes there's a bug, when user drag text, not div, so we need to check nodeName
-            // If nodeName == "#text", user dragged text. We still can drop tag, but there's some graphic artifacts
-            if (ev.target.nodeName == "DIV") {
-                ev.dataTransfer.setData("tagName", ev.target.children[0].textContent);
-            } else if (ev.target.nodeName == "#text") {
-                ev.dataTransfer.setData("tagName", ev.target.data);
-            } else {
-                console.error("Error: can't get the name of a tag");
-            }
+            ev.dataTransfer.setData("tagName", this.tag.id);
         }
     },
     template: `
-	<div :style="{ 'background-color': color }" class="tag vertically" style="margin-bottom: 5px; margin-top: 5px;" draggable="true" @dragstart="startDrag">
-		<div>{{name}}</div>
+	<div :style="{ 'background-color': tag.color }" class="tag vertically" style="margin-bottom: 5px; margin-top: 5px;" draggable="true" @dragstart="startDrag">
+		<div>{{tag.name}}</div>
 	</div>`
 });
 
