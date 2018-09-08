@@ -42,7 +42,7 @@ func addTag(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// PUT /api/tags?id=tagID&new-color=new-color&new-name=new-name
+// PUT /api/tags?id=tagID&name=new-name&color=new-color
 // new-color shouldn't contain '#'
 //
 // Response: -
@@ -50,8 +50,8 @@ func addTag(w http.ResponseWriter, r *http.Request) {
 func changeTag(w http.ResponseWriter, r *http.Request) {
 	var (
 		tagID    = r.FormValue("id")
-		newName  = r.FormValue("new-name")
-		newColor = r.FormValue("new-color")
+		newName  = r.FormValue("name")
+		newColor = r.FormValue("color")
 	)
 
 	var (
