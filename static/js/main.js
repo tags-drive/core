@@ -671,14 +671,6 @@ var modalWindow = new Vue({
                 // delNewTag deletes tag from tagsNewData.newTag
                 delNewTag: () => {
                     this.newTag = {};
-                },
-                // isTagExist checks does list of all tags have a tag with corresponding name
-                isTagExist: tagName => {
-                    for (let i in this.sharedState.allTags) {
-                        if (this.sharedState.allTags[i].name == tagName)
-                            return true;
-                    }
-                    return false;
                 }
             };
         }

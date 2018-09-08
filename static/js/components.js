@@ -97,11 +97,6 @@ Vue.component("modifying-tags", {
                 this.isError = true;
                 return;
             }
-            // Check least
-            if (this.$parent.tagsAPI().isTagExist(this.newName)) {
-                this.isError = true;
-                return;
-            }
 
             this.isError = false;
         },
