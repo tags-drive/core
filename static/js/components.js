@@ -36,7 +36,7 @@ Vue.component("tags-input", {
 	</div>`
 });
 
-const validTagName = /^[\w\d- ]*$/;
+const validTagName = /^[\w\d- ]{1,20}$/;
 const validColor = /^#[\dabcdef]{6}$/;
 
 Vue.component("modifying-tags", {
@@ -132,7 +132,7 @@ Vue.component("modifying-tags", {
 			</div>
 		</div>
 
-		<input @input="check" type="text" maxlength="24" :disabled="isDeleted" v-model="newName" style="width: 35%; margin-right: 10px;">
+		<input @input="check" type="text" maxlength="20" :disabled="isDeleted" v-model="newName" style="width: 35%; margin-right: 10px;">
 
 		<input @input="check" type="text" :disabled="isDeleted" v-model="newColor" style="width: 15%; margin-right: 5px;">
 
