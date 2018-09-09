@@ -696,6 +696,8 @@ var modalWindow = new Vue({
                     })
                         .then(resp => {
                             store.updateTags();
+                            // Need to update files to remove deleted tag
+                            topBar.search().usual();
                             return resp.text();
                         })
                         .then(err => console.log(err)); // TODO
