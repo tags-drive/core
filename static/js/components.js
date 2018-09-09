@@ -20,17 +20,6 @@ Vue.component("search-tag", {
     }
 });
 
-// Tags in Main block
-Vue.component("file-tag", {
-    props: {
-        tag: Object
-    },
-    template: `
-	<div :style="{ 'background-color': tag.color }" class="tag">
-		<div>{{tag.name}}</div>
-	</div>`
-});
-
 // For drag and drop input
 Vue.component("tags-input", {
     props: ["tag"],
@@ -207,10 +196,9 @@ Vue.component("files", {
 		</td>
 		<td>
 			<div style="display: flex;">
-				<file-tag
-					v-for="id in file.tags"
-					:tag="allTags[id]">
-				</file-tag>
+				<div v-for="id in file.tags" :style="{ 'background-color': allTags[id].color }" class="tag">
+					<div>{{allTags[id].name}}</div>
+				</div>
 			</div>
 		</td>
 		<td>{{(file.size / (1024 * 1024)).toFixed(1)}}</td>
