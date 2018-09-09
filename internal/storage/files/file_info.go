@@ -136,6 +136,31 @@ func (fs *filesData) delete(filename string) error {
 	return nil
 }
 
+func (fs *filesData) deleteTag(tagID int) {
+	fs.mutex.Lock()
+
+	for filename, f := range fs.info {
+		index := -1
+		for i := range f.Tags {
+			if f.Tags[i] == tagID {
+				index = i
+				break
+			}
+		}
+		if index == -1 {
+			continue
+		}
+		// Erase tag
+		f.Tags = append(f.Tags[0:index], f.Tags[index+1:]...)
+
+		fs.info[filename] = f
+	}
+
+	fs.mutex.Unlock()
+
+	fs.write()
+}
+
 func (fs *filesData) changeTags(filename string, changedTagsID []int) error {
 	fs.mutex.Lock()
 

@@ -200,6 +200,11 @@ func ChangeTags(filename string, tags []int) error {
 	return allFiles.changeTags(filename, tags)
 }
 
+// DeleteTag deletes a tag
+func DeleteTag(tagID int) {
+	allFiles.deleteTag(tagID)
+}
+
 // ChangeDescription changes the description of a file
 func ChangeDescription(filename, newDescription string) error {
 	return allFiles.changeDescription(filename, newDescription)
