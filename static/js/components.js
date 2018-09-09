@@ -100,7 +100,7 @@ Vue.component("modifying-tags", {
                 // Need to create, not to change
                 this.$parent.tagsAPI().add(this.newName, this.newColor);
             } else {
-                // this.$parent.tagsAPI().change(this.newName, this.newColor);
+                this.$parent.tagsAPI().change(this.tag.id, this.newName, this.newColor);
             }
 
             this.isChanged = false;

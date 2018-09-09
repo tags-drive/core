@@ -668,7 +668,23 @@ var modalWindow = new Vue({
                         })
                         .then(err => console.log(err)); // TODO
                 },
-                change: () => {},
+                change: (tagID, newName, newColor) => {
+                    let params = new URLSearchParams();
+                    params.append("id", tagID);
+                    params.append("name", newName);
+                    params.append("color", newColor);
+
+                    fetch("/api/tags", {
+                        method: "PUT",
+                        body: params,
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            store.updateTags();
+                            return resp.text();
+                        })
+                        .then(err => console.log(err)); // TODO
+                },
                 del: tagID => {
                     let params = new URLSearchParams();
                     params.append("id", tagID);
