@@ -8,6 +8,7 @@ import (
 
 	"github.com/ShoshinNikita/log"
 	"github.com/ShoshinNikita/tags-drive/internal/params"
+	"github.com/ShoshinNikita/tags-drive/internal/storage/files"
 	"github.com/pkg/errors"
 )
 
@@ -83,10 +84,18 @@ func (t *tagsStruct) add(tag Tag) {
 
 func (t *tagsStruct) deleteTag(id int) {
 	t.mutex.Lock()
+	// We can skip files.DeleteTag(id), if tag doesn't exist
+	if _, ok := t.tags[id]; !ok {
+		t.mutex.Unlock()
+		return
+	}
+
 	delete(t.tags, id)
 	t.mutex.Unlock()
 
 	t.write()
+
+	files.DeleteTag(id)
 }
 
 func (t *tagsStruct) change(id int, newName, newColor string) {
