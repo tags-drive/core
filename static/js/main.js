@@ -142,6 +142,7 @@ var topBar = new Vue({
             return {
                 tags: {
                     add: () => {
+                        // TODO
                         // Check is there the tag
                         for (let id in this.sharedState.allTags) {
                             if (this.sharedState.allTags[id].name == this.tagForAdding) {
@@ -162,10 +163,10 @@ var topBar = new Vue({
                             }
                         }
                     },
-                    delete: name => {
+                    delete: tagID => {
                         let index = -1;
                         for (i in this.pickedTags) {
-                            if (this.pickedTags[i].name == name) {
+                            if (this.pickedTags[i].id == tagID) {
                                 index = i;
                                 break;
                             }

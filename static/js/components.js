@@ -1,21 +1,30 @@
 // Tags in Search bar
 Vue.component("search-tag", {
-    props: ["name", "color", "show"],
+    props: {
+        tag: Object
+    },
+    data: function() {
+        return {
+            show: false
+        };
+    },
     template: `
-	<div @mouseenter="show = true;" @mouseleave="show = false;" :style="{ 'background-color': color }" class="tag">
-		<div>{{name}}</div>
-		<i v-show="show" @click="deleteTagFromSearch(name);" class="material-icons" style="cursor: pointer; font-size: 20px;">close</i>
+	<div @mouseenter="show = true;" @mouseleave="show = false;" :style="{ 'background-color': tag.color }" class="tag">
+		<div>{{tag.name}}</div>
+		<i v-show="show" @click="deleteTagFromSearch();" class="material-icons" style="cursor: pointer; font-size: 20px;">close</i>
 	</div>`,
     methods: {
-        deleteTagFromSearch: function(name) {
-            this.$parent.input().tags.delete(name);
+        deleteTagFromSearch: function() {
+            this.$parent.input().tags.delete(this.tag.id);
         }
     }
 });
 
 // Tags in Main block
 Vue.component("file-tag", {
-    props: ["tag"],
+    props: {
+        tag: Object
+    },
     template: `
 	<div :style="{ 'background-color': tag.color }" class="tag">
 		<div>{{tag.name}}</div>
@@ -163,7 +172,10 @@ Vue.component("modifying-tags", {
 
 // Files in Main block
 Vue.component("files", {
-    props: ["file", "allTags"],
+    props: {
+        file: Object,
+        allTags: Object
+    },
     data: function() {
         return {
             hover: false

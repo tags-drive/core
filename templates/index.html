@@ -20,7 +20,7 @@
 		<!-- Search bar -->
 		<div id="top-bar__search">
 			<div id="top-bar__search__tags">
-				<search-tag v-for="tag in pickedTags" :name="tag.name" :color="tag.color"></search-tag>
+				<search-tag v-for="tag in pickedTags" :tag="tag"></search-tag>
 				<input id="top-bar__search__tag-input" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="input().tags.add()">
 				<datalist id="tagsList">
 					<option v-for="tag in sharedState.allTags">{{tag.name}}</option>
