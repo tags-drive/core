@@ -66,14 +66,36 @@ function updateStore() {
 // Top bar
 var topBar = new Vue({
     el: "#top-bar",
+    mixins: [VueClickaway.mixin],
     data: {
-        sharedState: store.state,
-        tagForAdding: "",
+        // Tag search
+        tagPrefix: "",
+        showTagsList: false,
         pickedTags: [],
+        unusedTags: [],
+        // Advanced search
         text: "",
         selectedMode: "And"
     },
     methods: {
+        tagsMenu: function() {
+            return {
+                show: () => {
+                    if (this.pickedTags.length == 0) {
+                        // Need to fill unusedTags
+                        this.unusedTags = [];
+                        for (let tag in store.state.allTags) {
+                            this.unusedTags.push(store.state.allTags[tag]);
+                        }
+                    }
+
+                    this.showTagsList = true;
+                },
+                hide: () => {
+                    this.showTagsList = false;
+                }
+            };
+        },
         search: function() {
             return {
                 usual: () => {
@@ -141,27 +163,22 @@ var topBar = new Vue({
         input: function() {
             return {
                 tags: {
-                    add: () => {
-                        // TODO
-                        // Check is there the tag
-                        for (let id in this.sharedState.allTags) {
-                            if (this.sharedState.allTags[id].name == this.tagForAdding) {
-                                let alreadyHas = false;
-                                // Check was tag already picked
-                                for (let tag of this.pickedTags) {
-                                    if (tag.name == this.tagForAdding) {
-                                        alreadyHas = true;
-                                        break;
-                                    }
-                                }
-                                if (!alreadyHas) {
-                                    this.tagForAdding = "";
-                                    this.pickedTags.push(this.sharedState.allTags[id]);
-                                }
-
+                    add: tagID => {
+                        let index = -1;
+                        for (let i in this.unusedTags) {
+                            if (this.unusedTags[i].id == tagID) {
+                                index = i;
                                 break;
                             }
                         }
+                        if (index == -1) {
+                            return;
+                        }
+
+                        // Add a tag into pickedTags
+                        this.pickedTags.push(this.unusedTags[index]);
+                        // Remove a tag
+                        this.unusedTags.splice(index, 1);
                     },
                     delete: tagID => {
                         let index = -1;
@@ -175,6 +192,8 @@ var topBar = new Vue({
                             return;
                         }
 
+                        // Return a tag to unusedTags
+                        this.unusedTags.push(this.pickedTags[index]);
                         // Remove an element
                         this.pickedTags.splice(index, 1);
                     }

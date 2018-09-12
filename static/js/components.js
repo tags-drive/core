@@ -20,6 +20,23 @@ Vue.component("search-tag", {
     }
 });
 
+Vue.component("suggestion-tag", {
+    props: {
+        tag: Object
+    },
+    methods: {
+        add: function() {
+            this.$parent.input().tags.add(this.tag.id);
+        }
+    },
+    template: `
+	<div class="top-bar__search__suggestion-tag" @click="add">
+		<div :style="{ 'background-color': tag.color }" class="tag" style="margin: 0; cursor: pointer;" :title="'id - ' + tag.id">
+			{{tag.name}}
+		</div>
+	</div>`
+});
+
 // For drag and drop input
 Vue.component("tags-input", {
     props: ["tag"],

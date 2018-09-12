@@ -20,13 +20,16 @@
 		<!-- Search bar -->
 		<div id="top-bar__search">
 			<div id="top-bar__search__tags">
+				<i @click="tagsMenu().show()" class="material-icons" style="cursor: pointer; margin-right: 10px;" title="Add tags for search">add_circle_outline</i>
 				<search-tag v-for="tag in pickedTags" :tag="tag"></search-tag>
-				<input id="top-bar__search__tag-input" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="input().tags.add()">
-				<datalist id="tagsList">
-					<option v-for="tag in sharedState.allTags">{{tag.name}}</option>
-				</datalist>
-				<i @click="input().tags.add()" class="material-icons" style="cursor: pointer;">add_circle_outline</i>
+
+				<!-- List of unpicked tags-->
+				<div id="top-bar__search__tags__list" v-if="showTagsList" v-on-clickaway="() => tagsMenu().hide()">
+					<div v-if="unusedTags.length == 0" style="cursor: default; margin: auto;">Empty</div>
+					<suggestion-tag v-for="tag in unusedTags" :tag="tag"></suggestion-tag>
+				</div>
 			</div>
+
 			<div class="vertically" style="border-right: 1px solid black; height: 90%;"></div>
 			<div id="top-bar__search__advanced">
 				<input v-model="text" type="text" placeholder="Text for search" style="margin-right: 5px;">
