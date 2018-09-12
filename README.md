@@ -36,7 +36,7 @@ type multiplyResponse struct {
 
 - `GET /api/tags` - get list of all tags
 - `POST /api/tags?tag=newtag` - create a new tag
-- `PUT /api/tag?tag=tagname&color=new-color&new-name=new-name` - change name, color
+- `PUT /api/tags?tag=tagname&new-color=#ffffff&new-name=Test` - change name, color
 - `DELETE /api/tags?tag=tagname` - delete a tag
 
 ## Install

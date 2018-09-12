@@ -20,13 +20,16 @@
 		<!-- Search bar -->
 		<div id="top-bar__search">
 			<div id="top-bar__search__tags">
-				<search-tag v-for="tag in pickedTags" :name="tag.name" :color="tag.color"></search-tag>
-				<input id="top-bar__search__tag-input" type="text" list="tagsList" v-model="tagForAdding" @keyup.enter="input().tags.add()">
-				<datalist id="tagsList">
-					<option v-for="tag in sharedState.allTags">{{tag.name}}</option>
-				</datalist>
-				<i @click="input().tags.add()" class="material-icons" style="cursor: pointer;">add_circle_outline</i>
+				<i @click="tagsMenu().show()" class="material-icons" style="cursor: pointer; margin-right: 10px;" title="Add tags for search">add_circle_outline</i>
+				<search-tag v-for="tag in pickedTags" :tag="tag"></search-tag>
+
+				<!-- List of unpicked tags-->
+				<div id="top-bar__search__tags__list" v-if="showTagsList" v-on-clickaway="() => tagsMenu().hide()">
+					<div v-if="unusedTags.length == 0" style="cursor: default; margin: auto;">Empty</div>
+					<suggestion-tag v-for="tag in unusedTags" :tag="tag"></suggestion-tag>
+				</div>
 			</div>
+
 			<div class="vertically" style="border-right: 1px solid black; height: 90%;"></div>
 			<div id="top-bar__search__advanced">
 				<input v-model="text" type="text" placeholder="Text for search" style="margin-right: 5px;">
@@ -41,6 +44,10 @@
 			<div style="height: 100%; right: 0px; position: absolute;">
 				<i @click="search().usual()" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
 			</div>
+		</div>
+		<!-- Settings -->
+		<div id="top-bar__settings" class="vertically" @click="settings().tags()">
+			<img src="/static/icons/tag.png" title="Change tags">
 		</div>
 	</div>
 
@@ -93,16 +100,16 @@
 			<!-- Rename mode -->
 			<div v-if="renameMode" class="modal-window__input">
 				<div style="margin-bottom: 5px;">Current filename: "{{file.filename}}"</div>
-				<input type="text" style="margin-bottom: 5px; width: 400px;" v-model="newFilename" placeholder="New filename">
+				<input type="text" style="margin-bottom: 5px; width: 400px;" v-model="fileNewData.newFilename" placeholder="New filename">
 				<br>
-				<input class="btn" type="button" value="Rename" @click="rename">
+				<input class="btn" type="button" value="Rename" @click="filesAPI().rename()">
 			</div>
-			<!-- Change tags mode -->
+			<!-- Change file tags mode -->
 			<div v-else-if="tagsMode" class="modal-window__input">
 				<!-- Current tags -->
 				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="tagsDragAndDrop().addToFile(event)"
 				 @dragover.prevent>
-					<tags-input v-for="tag in newTags" :name="tag.name" :color="tag.color"></tags-input>
+					<tags-input v-for="tag in fileNewData.newTags" :tag="tag"></tags-input>
 				</div>
 
 				<div style="border-bottom: 1px solid black; width: 90%; margin: 20px auto 20px auto;"></div>
@@ -110,21 +117,34 @@
 				<!-- All tags -->
 				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="tagsDragAndDrop().delFromFile(event)"
 				 @dragover.prevent>
-					<tags-input v-for="tag in unusedTags" :name="tag.name" :color="tag.color"></tags-input>
+					<tags-input v-for="tag in fileNewData.unusedTags" :tag="tag"></tags-input>
 				</div>
 				<br>
-				<input class="btn" type="button" value="Change tags" @click="updateTags">
+				<input class="btn" type="button" value="Change tags" @click="filesAPI().updateTags()">
 			</div>
 			<!-- Change description mode -->
 			<div v-else-if="descriptionMode" class="modal-window__input">
 				<textarea style="outline: none; margin-bottom: 5px;" placeholder="Current description: empty" readonly="readonly">{{file.description}}</textarea>
-				<textarea style="margin-bottom: 5px;" placeholder="New description" v-model="newDescription"></textarea>
-				<input class="btn" type="button" value="Update" @click="updateDescription">
+				<textarea style="margin-bottom: 5px;" placeholder="New description" v-model="fileNewData.newDescription"></textarea>
+				<input class="btn" type="button" value="Update" @click="filesAPI().updateDescription()">
 			</div>
 			<!-- Delete mode -->
 			<div v-else-if="deleteMode" class="modal-window__input">
-				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="deleteFile">
+				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().delete()">
 				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
+			</div>
+			<!-- Change global tags mode -->
+			<div v-else-if="globalTagsMode" id="global-tags" class="modal-window__input">
+				<!-- Existed tags -->
+				<modifying-tags v-for="tag in sharedState.allTags" :tag="tag"></modifying-tags>
+				<p></p>
+
+				<input type="button" @click="if(newTag.name !== undefined) {return;} newTag = {'name': 'new tag', 'color': '#ffffff'};"
+				 value="Create new tag" class="btn" style="width: 150px; height: 25px;">
+				<p></p>
+
+				<!-- New tag -->
+				<modifying-tags v-if="newTag.name !== undefined" :tag="newTag" :is-new-tag="true"></modifying-tags>
 			</div>
 			<!-- Error -->
 			<div v-if="error != ''" id="modal-window__error">Error: {{error}}</div>

@@ -15,9 +15,8 @@ const sortOrder = {
 // store contains global data
 var store = {
     state: {
-        msg: "Test",
         allFiles: [],
-        allTags: [],
+        allTags: {},
         opacity: 1,
         showDropLayer: true // when we show modal-window with tags showDropLayer is false
     },
@@ -44,9 +43,7 @@ var store = {
     setFiles: function(files) {
         // Change time from "2018-08-23T22:48:59.0459184+03:00" to "23-08-2018 22:48"
         for (let i in files) {
-            files[i].addTime = new Date(files[i].addTime).format(
-                "dd-mm-yyyy HH:MM"
-            );
+            files[i].addTime = new Date(files[i].addTime).format("dd-mm-yyyy HH:MM");
         }
         this.state.allFiles = files;
     }
@@ -69,14 +66,36 @@ function updateStore() {
 // Top bar
 var topBar = new Vue({
     el: "#top-bar",
+    mixins: [VueClickaway.mixin],
     data: {
-        sharedState: store.state,
-        tagForAdding: "",
+        // Tag search
+        tagPrefix: "",
+        showTagsList: false,
         pickedTags: [],
+        unusedTags: [],
+        // Advanced search
         text: "",
         selectedMode: "And"
     },
     methods: {
+        tagsMenu: function() {
+            return {
+                show: () => {
+                    if (this.pickedTags.length == 0) {
+                        // Need to fill unusedTags
+                        this.unusedTags = [];
+                        for (let tag in store.state.allTags) {
+                            this.unusedTags.push(store.state.allTags[tag]);
+                        }
+                    }
+
+                    this.showTagsList = true;
+                },
+                hide: () => {
+                    this.showTagsList = false;
+                }
+            };
+        },
         search: function() {
             return {
                 usual: () => {
@@ -85,7 +104,7 @@ var topBar = new Vue({
                     if (this.pickedTags.length != 0) {
                         let tags = [];
                         for (let tag of this.pickedTags) {
-                            tags.push(tag.name);
+                            tags.push(tag.id);
                         }
                         params.append("tags", tags.join(","));
                     }
@@ -144,31 +163,10 @@ var topBar = new Vue({
         input: function() {
             return {
                 tags: {
-                    add: () => {
-                        // Check is there the tag
-                        for (let tag of this.sharedState.allTags) {
-                            if (tag.name == this.tagForAdding) {
-                                let alreadyHas = false;
-                                // Check was tag already picked
-                                for (let tag of this.pickedTags) {
-                                    if (tag.name == this.tagForAdding) {
-                                        alreadyHas = true;
-                                        break;
-                                    }
-                                }
-                                if (!alreadyHas) {
-                                    this.tagForAdding = "";
-                                    this.pickedTags.push(tag);
-                                }
-
-                                break;
-                            }
-                        }
-                    },
-                    delete: name => {
+                    add: tagID => {
                         let index = -1;
-                        for (i in this.pickedTags) {
-                            if (this.pickedTags[i].name == name) {
+                        for (let i in this.unusedTags) {
+                            if (this.unusedTags[i].id == tagID) {
                                 index = i;
                                 break;
                             }
@@ -177,10 +175,34 @@ var topBar = new Vue({
                             return;
                         }
 
+                        // Add a tag into pickedTags
+                        this.pickedTags.push(this.unusedTags[index]);
+                        // Remove a tag
+                        this.unusedTags.splice(index, 1);
+                    },
+                    delete: tagID => {
+                        let index = -1;
+                        for (i in this.pickedTags) {
+                            if (this.pickedTags[i].id == tagID) {
+                                index = i;
+                                break;
+                            }
+                        }
+                        if (index == -1) {
+                            return;
+                        }
+
+                        // Return a tag to unusedTags
+                        this.unusedTags.push(this.pickedTags[index]);
                         // Remove an element
                         this.pickedTags.splice(index, 1);
                     }
                 }
+            };
+        },
+        settings: function() {
+            return {
+                tags: () => modalWindow.showWindow().globalTags()
             };
         }
     }
@@ -217,9 +239,7 @@ var mainBlock = new Vue({
                     this.lastSortType = sortType.name;
 
                     let type = sortType.name,
-                        order = this.sortByNameModeAsc
-                            ? sortOrder.asc
-                            : sortOrder.desc;
+                        order = this.sortByNameModeAsc ? sortOrder.asc : sortOrder.desc;
 
                     topBar.search().advanced(type, order);
                 },
@@ -233,9 +253,7 @@ var mainBlock = new Vue({
                     this.lastSortType = sortType.size;
 
                     let type = sortType.size,
-                        order = this.sortBySizeModeAsc
-                            ? sortOrder.asc
-                            : sortOrder.desc;
+                        order = this.sortBySizeModeAsc ? sortOrder.asc : sortOrder.desc;
 
                     topBar.search().advanced(type, order);
                 },
@@ -249,9 +267,7 @@ var mainBlock = new Vue({
                     this.lastSortType = sortType.time;
 
                     let type = sortType.time,
-                        order = this.sortByTimeModeAsc
-                            ? sortOrder.asc
-                            : sortOrder.desc;
+                        order = this.sortByTimeModeAsc ? sortOrder.asc : sortOrder.desc;
 
                     topBar.search().advanced(type, order);
                 },
@@ -287,7 +303,7 @@ var mainBlock = new Vue({
 				</i>
 			</th>
 		</tr>
-		<files v-for="file in sharedState.allFiles" :file="file"></files>
+		<files v-for="file in sharedState.allFiles" :file="file" :allTags="store.state.allTags"></files>
 	</table>`
 });
 
@@ -417,7 +433,7 @@ var contextMenu = new Vue({
         },
         changeTags: function() {
             this.show = false;
-            modalWindow.showWindow().tags(this.file);
+            modalWindow.showWindow().fileTags(this.file);
         },
         changeDescription: function() {
             this.show = false;
@@ -438,16 +454,22 @@ var modalWindow = new Vue({
         file: null,
         show: false,
         error: "",
+        sharedState: store.state,
         // Modes
         renameMode: false,
         tagsMode: false,
         descriptionMode: false,
         deleteMode: false,
-        //
-        newFilename: "",
-        unusedTags: [],
-        newTags: [],
-        newDescription: ""
+        globalTagsMode: false,
+        // For files API
+        fileNewData: {
+            newFilename: "",
+            unusedTags: [],
+            newTags: [],
+            newDescription: ""
+        },
+        // For tags API
+        newTag: {}
     },
     methods: {
         // UI
@@ -456,21 +478,24 @@ var modalWindow = new Vue({
                 renaming: file => {
                     this.file = file;
                     this.renameMode = true;
-                    this.newFilename = file.filename;
+                    this.fileNewData.newFilename = file.filename;
 
                     this.show = true;
                 },
-                tags: file => {
+                fileTags: file => {
                     store.state.showDropLayer = false;
-                    this.unusedTags = store.state.allTags.filter(tag => {
-                        for (i in file.tags) {
-                            if (file.tags[i].name == tag.name) {
-                                return false;
-                            }
+
+                    this.fileNewData.newTags = [];
+                    this.fileNewData.unusedTags = [];
+
+                    for (let id in this.sharedState.allTags) {
+                        if (file.tags.includes(Number(id))) {
+                            this.fileNewData.newTags.push(this.sharedState.allTags[id]);
+                        } else {
+                            this.fileNewData.unusedTags.push(this.sharedState.allTags[id]);
                         }
-                        return true;
-                    });
-                    this.newTags = file.tags.slice();
+                    }
+
                     this.file = file;
                     this.tagsMode = true;
 
@@ -478,7 +503,7 @@ var modalWindow = new Vue({
                 },
                 description: file => {
                     this.file = file;
-                    this.unusedTags;
+                    this.fileNewData.unusedTags;
                     this.descriptionMode = true;
 
                     this.show = true;
@@ -486,6 +511,11 @@ var modalWindow = new Vue({
                 deleting: file => {
                     this.file = file;
                     this.deleteMode = true;
+
+                    this.show = true;
+                },
+                globalTags: () => {
+                    this.globalTagsMode = true;
 
                     this.show = true;
                 }
@@ -503,10 +533,10 @@ var modalWindow = new Vue({
         tagsDragAndDrop: function() {
             return {
                 addToFile: ev => {
-                    let tagName = ev.dataTransfer.getData("tagName");
+                    let tagID = Number(ev.dataTransfer.getData("tagName"));
                     let index = -1;
-                    for (i in this.unusedTags) {
-                        if (this.unusedTags[i].name == tagName) {
+                    for (i in this.fileNewData.unusedTags) {
+                        if (this.fileNewData.unusedTags[i].id == tagID) {
                             index = i;
                             break;
                         }
@@ -514,14 +544,14 @@ var modalWindow = new Vue({
                     if (index == -1) {
                         return;
                     }
-                    this.newTags.push(this.unusedTags[index]);
-                    this.unusedTags.splice(index, 1);
+                    this.fileNewData.newTags.push(this.fileNewData.unusedTags[index]);
+                    this.fileNewData.unusedTags.splice(index, 1);
                 },
                 delFromFile: ev => {
-                    let tagName = ev.dataTransfer.getData("tagName");
+                    let tagID = ev.dataTransfer.getData("tagName");
                     let index = -1;
-                    for (i in this.newTags) {
-                        if (this.newTags[i].name == tagName) {
+                    for (i in this.fileNewData.newTags) {
+                        if (this.fileNewData.newTags[i].id == tagID) {
                             index = i;
                             break;
                         }
@@ -529,109 +559,173 @@ var modalWindow = new Vue({
                     if (index == -1) {
                         return;
                     }
-                    this.unusedTags.push(this.newTags[index]);
-                    this.newTags.splice(index, 1);
+                    this.fileNewData.unusedTags.push(this.fileNewData.newTags[index]);
+                    this.fileNewData.newTags.splice(index, 1);
                 }
             };
         },
-        // Requests
-        rename: function() {
-            let params = new URLSearchParams();
-            params.append("file", this.file.filename);
-            params.append("new-name", this.newFilename);
+        // Files API
+        filesAPI: function() {
+            return {
+                rename: () => {
+                    let params = new URLSearchParams();
+                    params.append("file", this.file.filename);
+                    params.append("new-name", this.fileNewData.newFilename);
 
-            fetch("/api/files", {
-                method: "PUT",
-                body: params,
-                credentials: "same-origin"
-            })
-                .then(resp => {
-                    if (resp.status >= 400 && resp.status < 600) {
-                        // TODO: return resp.text(). How to do?
-                        throw new Error("TODO");
-                    }
-                    // Refresh list of files
-                    topBar.search().usual();
-                    this.hideWindow();
-                })
-                .catch(err => {
-                    this.error = err;
-                    console.log(err);
-                });
+                    fetch("/api/files", {
+                        method: "PUT",
+                        body: params,
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                // TODO: return resp.text(). How to do?
+                                throw new Error("TODO");
+                            }
+                            // Refresh list of files
+                            topBar.search().usual();
+                            this.hideWindow();
+                        })
+                        .catch(err => {
+                            this.error = err;
+                            console.log(err);
+                        });
+                },
+                updateTags: () => {
+                    let params = new URLSearchParams();
+                    let tags = this.fileNewData.newTags.map(tag => tag.id);
+                    params.append("file", this.file.filename);
+                    params.append("tags", tags.join(","));
+
+                    fetch("/api/files", {
+                        method: "PUT",
+                        body: params,
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                // TODO: return resp.text(). How to do?
+                                throw new Error("TODO");
+                            }
+                            // Refresh list of files
+                            topBar.search().usual();
+                            this.hideWindow();
+                        })
+                        .catch(err => {
+                            this.error = err;
+                            console.log(err);
+                        });
+                },
+                updateDescription: () => {
+                    let params = new URLSearchParams();
+                    params.append("file", this.file.filename);
+                    params.append("description", this.fileNewData.newDescription);
+
+                    fetch("/api/files", {
+                        method: "PUT",
+                        body: params,
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                // TODO: return resp.text(). How to do?
+                                throw new Error("TODO");
+                            }
+                            // Refresh list of files
+                            topBar.search().usual();
+                            this.hideWindow();
+                        })
+                        .catch(err => {
+                            this.error = err;
+                            console.log(err);
+                        });
+                },
+                delete: () => {
+                    let params = new URLSearchParams();
+                    params.append("file", this.file.filename);
+
+                    fetch("/api/files?" + params, {
+                        method: "DELETE",
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                // TODO: return resp.text(). How to do?
+                                return Promise.reject("TODO");
+                            }
+
+                            // Refresh list of files
+                            topBar.search().usual();
+                            this.hideWindow();
+                            return resp.json();
+                        })
+                        .then(resp => console.log(resp))
+                        .catch(err => {
+                            this.error = err;
+                            console.log(err);
+                        });
+                }
+            };
         },
-        updateTags: function() {
-            let params = new URLSearchParams();
-            let tags = this.newTags.map(tag => tag.name);
-            params.append("file", this.file.filename);
-            params.append("tags", tags.join(","));
+        // Tags API
+        tagsAPI: function() {
+            return {
+                // Requests
+                add: (name, color) => {
+                    let params = new URLSearchParams();
+                    params.append("name", name);
+                    params.append("color", color);
 
-            fetch("/api/files", {
-                method: "PUT",
-                body: params,
-                credentials: "same-origin"
-            })
-                .then(resp => {
-                    if (resp.status >= 400 && resp.status < 600) {
-                        // TODO: return resp.text(). How to do?
-                        throw new Error("TODO");
-                    }
-                    // Refresh list of files
-                    topBar.search().usual();
-                    this.hideWindow();
-                })
-                .catch(err => {
-                    this.error = err;
-                    console.log(err);
-                });
-        },
-        updateDescription: function() {
-            let params = new URLSearchParams();
-            params.append("file", this.file.filename);
-            params.append("description", this.newDescription);
+                    fetch("/api/tags", {
+                        method: "POST",
+                        body: params,
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            this.tagsAPI().delNewTag();
+                            store.updateTags();
+                            return resp.text();
+                        })
+                        .then(err => console.log(err)); // TODO
+                },
+                change: (tagID, newName, newColor) => {
+                    let params = new URLSearchParams();
+                    params.append("id", tagID);
+                    params.append("name", newName);
+                    params.append("color", newColor);
 
-            fetch("/api/files", {
-                method: "PUT",
-                body: params,
-                credentials: "same-origin"
-            })
-                .then(resp => {
-                    if (resp.status >= 400 && resp.status < 600) {
-                        // TODO: return resp.text(). How to do?
-                        throw new Error("TODO");
-                    }
-                    // Refresh list of files
-                    topBar.search().usual();
-                    this.hideWindow();
-                })
-                .catch(err => {
-                    this.error = err;
-                    console.log(err);
-                });
-        },
-        deleteFile: function() {
-            let params = new URLSearchParams();
-            params.append("file", this.file.filename);
+                    fetch("/api/tags", {
+                        method: "PUT",
+                        body: params,
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            store.updateTags();
+                            return resp.text();
+                        })
+                        .then(err => console.log(err)); // TODO
+                },
+                del: tagID => {
+                    let params = new URLSearchParams();
+                    params.append("id", tagID);
 
-            fetch("/api/files?" + params, {
-                method: "DELETE",
-                credentials: "same-origin"
-            })
-                .then(resp => {
-                    if (resp.status >= 400 && resp.status < 600) {
-                        // TODO: return resp.text(). How to do?
-                        return Promise.reject("TODO");
-                    }
-
-                    // Refresh list of files
-                    topBar.search().usual();
-                    this.hideWindow();
-                    return resp.json();
-                })
-                .then(resp => console.log(resp))
-                .catch(err => {
-                    this.error = err;
-                    console.log(err);
-                });
+                    fetch("/api/tags?" + params, {
+                        method: "DELETE",
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            store.updateTags();
+                            // Need to update files to remove deleted tag
+                            topBar.search().usual();
+                            return resp.text();
+                        })
+                        .then(err => console.log(err)); // TODO
+                },
+                // delNewTag deletes tag from tagsNewData.newTag
+                delNewTag: () => {
+                    this.newTag = {};
+                }
+            };
         }
     }
 });

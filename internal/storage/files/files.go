@@ -196,8 +196,13 @@ func RenameFile(oldName, newName string) error {
 }
 
 // ChangeTags changes the tags
-func ChangeTags(filename string, tags []string) error {
+func ChangeTags(filename string, tags []int) error {
 	return allFiles.changeTags(filename, tags)
+}
+
+// DeleteTag deletes a tag
+func DeleteTag(tagID int) {
+	allFiles.deleteTag(tagID)
 }
 
 // ChangeDescription changes the description of a file

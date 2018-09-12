@@ -80,6 +80,7 @@ body {
 }
 
 #top-bar__logo {
+    cursor: default;
     height: 50px;
     line-height: 50px;
     font-size: 25px;
@@ -107,6 +108,30 @@ body {
     width: 50%;
     padding: 5px;
     margin-right: 5px;
+    position: relative;
+}
+
+#top-bar__search__tags__list {
+    min-height: 20px;
+    position: absolute;
+    flex-wrap: wrap;
+    top: 35px;
+    display: flex;
+    width: 95%;
+    background-color: rgb(247, 247, 247);
+    padding: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+}
+
+.top-bar__search__suggestion-tag {
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 5px;
+}
+
+.top-bar__search__suggestion-tag:hover {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 #top-bar__search__advanced {
@@ -124,6 +149,23 @@ body {
     padding-right: 2px;
     width: 100px;
     border-bottom: 1px black solid;
+}
+
+#top-bar__settings {
+    cursor: pointer;
+    margin-left: 10px;
+    height: 80%;
+    width: 30px;
+    position: relative;
+}
+
+#top-bar__settings > img {
+    width: 100%;
+    position: absolute;
+    /* middle */
+    top: 0;
+    bottom: 0;
+    margin: auto;
 }
 
 /* Remove arrow in input with datalist */

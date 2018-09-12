@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 	"github.com/ShoshinNikita/tags-drive/internal/storage/tags"
@@ -22,55 +23,62 @@ func returnTags(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(allTags)
 }
 
-// POST /api/tags?tag=newtag
+// POST /api/tags?name=tag-name&color=tag-color
 //
 // Response: -
 //
 func addTag(w http.ResponseWriter, r *http.Request) {
-	tagName := r.FormValue("tag")
+	tagName := r.FormValue("name")
+	tagColor := r.FormValue("color")
 	if tagName == "" {
 		Error(w, "tag is empty", http.StatusBadRequest)
 		return
 	}
+	if tagColor == "" {
+		tagColor = tags.DefaultColor
+	}
 
-	tags.AddTag(tags.Tag{Name: tagName, Color: tags.DefaultColor})
+	tags.AddTag(tags.Tag{Name: tagName, Color: tagColor})
 	w.WriteHeader(http.StatusCreated)
 }
 
-// PUT /api/tag?tag=tagname&color=new-color&new-name=new-name
+// PUT /api/tags?id=tagID&name=new-name&color=new-color
 // new-color shouldn't contain '#'
 //
 // Response: -
 //
 func changeTag(w http.ResponseWriter, r *http.Request) {
 	var (
-		tagName  = r.FormValue("tag")
-		newName  = r.FormValue("new-name")
-		newColor = r.FormValue("new-color")
+		tagID    = r.FormValue("id")
+		newName  = r.FormValue("name")
+		newColor = r.FormValue("color")
 	)
 
-	if tagName == "" {
-		Error(w, "tag is empty", http.StatusBadRequest)
+	var (
+		id  int
+		err error
+	)
+	if id, err = strconv.Atoi(tagID); err != nil {
+		Error(w, "tag id isn't valid", http.StatusBadRequest)
 		return
 	}
 
-	if !tags.Check(tagName) {
-		Error(w, tags.ErrTagIsNotExist.Error(), http.StatusBadRequest)
-		return
-	}
-
-	tags.Change(tagName, newName, newColor)
+	tags.Change(id, newName, newColor)
 }
 
-// DELETE /api/tags?tag=tagname
+// DELETE /api/tags?id=tadID
 //
 // Response: -
 //
 func deleteTag(w http.ResponseWriter, r *http.Request) {
-	tagName := r.FormValue("tag")
-	if tagName == "" {
-		Error(w, "tag is empty", http.StatusBadRequest)
+	tagID := r.FormValue("id")
+	var (
+		id  int
+		err error
+	)
+	if id, err = strconv.Atoi(tagID); err != nil {
+		Error(w, "tag id isn't valid", http.StatusBadRequest)
 		return
 	}
-	tags.DeleteTag(tagName)
+	tags.DeleteTag(id)
 }
