@@ -1,0 +1,1 @@
+Fork from https://github.com/silverspectro/vue-clickaway. If fixed https://github.com/simplesmiler/vue-clickaway/pull/29
