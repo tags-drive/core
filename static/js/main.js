@@ -27,7 +27,7 @@ var store = {
         })
             .then(data => data.json())
             .then(files => this.setFiles(files))
-            .catch(err => console.log(err));
+            .catch(err => console.error(err));
     },
     updateTags: function() {
         fetch("/api/tags", {
@@ -38,7 +38,7 @@ var store = {
             .then(tags => {
                 this.state.allTags = tags;
             })
-            .catch(err => console.log(err));
+            .catch(err => console.error(err));
     },
     setFiles: function(files) {
         // Change time from "2018-08-23T22:48:59.0459184+03:00" to "23-08-2018 22:48"
@@ -379,7 +379,7 @@ var uploader = new Vue({
                 .then(resp => {
                     if (isErrorStatusCode(resp.status)) {
                         resp.text().then(text => {
-                            console.log(text);
+                            console.error(text);
                             eventWindow.add(true, text);
                         });
                         return;
@@ -618,7 +618,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.log(text);
+                                    console.error(text);
                                     this.error = text;
                                 });
                                 return;
@@ -629,7 +629,7 @@ var modalWindow = new Vue({
                         })
                         .catch(err => {
                             this.error = err;
-                            console.log(err);
+                            console.error(err);
                         });
                 },
                 updateTags: () => {
@@ -646,7 +646,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.log(text);
+                                    console.error(text);
                                     this.error = text;
                                 });
                                 return;
@@ -657,7 +657,7 @@ var modalWindow = new Vue({
                         })
                         .catch(err => {
                             this.error = err;
-                            console.log(err);
+                            console.error(err);
                         });
                 },
                 updateDescription: () => {
@@ -673,7 +673,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.log(text);
+                                    console.error(text);
                                     this.error = text;
                                 });
                                 return;
@@ -684,7 +684,7 @@ var modalWindow = new Vue({
                         })
                         .catch(err => {
                             this.error = err;
-                            console.log(err);
+                            console.error(err);
                         });
                 },
                 delete: () => {
@@ -698,7 +698,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.log(text);
+                                    console.error(text);
                                     this.error = text;
                                 });
                                 return;
@@ -755,7 +755,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.log(text);
+                                    console.error(text);
                                     this.error = text;
                                 });
                                 return;
@@ -765,7 +765,7 @@ var modalWindow = new Vue({
                             store.updateTags();
                         })
                         .catch(err => {
-                            console.log(err);
+                            console.error(err);
                             this.error = err;
                         });
                 },
@@ -783,7 +783,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.log(text);
+                                    console.error(text);
                                     this.error = text;
                                 });
                                 return;
@@ -792,7 +792,7 @@ var modalWindow = new Vue({
                             store.updateTags();
                         })
                         .catch(err => {
-                            console.log(err);
+                            console.error(err);
                             this.error = err;
                         });
                 },
@@ -807,7 +807,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.log(text);
+                                    console.error(text);
                                     this.error = text;
                                 });
                                 return;
@@ -819,7 +819,7 @@ var modalWindow = new Vue({
                             return resp.text();
                         })
                         .catch(err => {
-                            console.log(err);
+                            console.error(err);
                             this.error = err;
                         });
                 },
