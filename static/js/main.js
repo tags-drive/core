@@ -61,6 +61,13 @@ function updateStore() {
     store.updateTags();
 }
 
+function isErrorStatusCode(statusCode) {
+    if (400 <= statusCode && statusCode < 600) {
+        return true;
+    }
+    return false;
+}
+
 /* Main instances */
 
 // Top bar
@@ -582,7 +589,7 @@ var modalWindow = new Vue({
                         credentials: "same-origin"
                     })
                         .then(resp => {
-                            if (resp.status >= 400 && resp.status < 600) {
+                            if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
                                     console.log(text);
                                     this.error = text;
@@ -610,7 +617,7 @@ var modalWindow = new Vue({
                         credentials: "same-origin"
                     })
                         .then(resp => {
-                            if (resp.status >= 400 && resp.status < 600) {
+                            if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
                                     console.log(text);
                                     this.error = text;
@@ -637,7 +644,7 @@ var modalWindow = new Vue({
                         credentials: "same-origin"
                     })
                         .then(resp => {
-                            if (resp.status >= 400 && resp.status < 600) {
+                            if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
                                     console.log(text);
                                     this.error = text;
@@ -662,7 +669,7 @@ var modalWindow = new Vue({
                         credentials: "same-origin"
                     })
                         .then(resp => {
-                            if (resp.status >= 400 && resp.status < 600) {
+                            if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
                                     console.log(text);
                                     this.error = text;
@@ -698,7 +705,7 @@ var modalWindow = new Vue({
                         credentials: "same-origin"
                     })
                         .then(resp => {
-                            if (resp.status >= 400 && resp.status < 600) {
+                            if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
                                     console.log(text);
                                     this.error = text;
@@ -726,7 +733,7 @@ var modalWindow = new Vue({
                         credentials: "same-origin"
                     })
                         .then(resp => {
-                            if (resp.status >= 400 && resp.status < 600) {
+                            if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
                                     console.log(text);
                                     this.error = text;
@@ -750,7 +757,7 @@ var modalWindow = new Vue({
                         credentials: "same-origin"
                     })
                         .then(resp => {
-                            if (resp.status >= 400 && resp.status < 600) {
+                            if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
                                     console.log(text);
                                     this.error = text;
