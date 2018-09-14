@@ -379,14 +379,44 @@ var uploader = new Vue({
                 method: "POST",
                 credentials: "same-origin"
             })
-                .then(res => res.json())
-                .then(log => {
-                    console.log(log);
-                    this.logs = log;
+                .then(resp => {
+                    if (isErrorStatusCode(resp.status)) {
+                        resp.text().then(text => {
+                            console.log(text);
+                            eventWindow.add(true, text);
+                        });
+                        return;
+                    }
                     // Update list of files
                     updateStore();
+                    return resp.json();
                 })
-                .catch(err => console.log(err));
+                .then(log => {
+                    if (log === undefined) {
+                        return;
+                    }
+                    console.log(log);
+                    /* Schema:
+					[
+						{
+							filename: string,
+							isError: boolean,
+							error: string (when isError == true),
+							status: string (when isError == false)
+						}
+					]
+					*/
+                    for (let i in log) {
+                        let msg = log[i].filename;
+                        if (log[i].isError) {
+                            msg += " " + log[i].error;
+                        } else {
+                            msg += " " + log[i].status;
+                        }
+                        eventWindow.add(log[i].isError, msg);
+                    }
+                })
+                .catch(err => eventWindow.add(true, err));
         }
     }
 });
@@ -678,15 +708,36 @@ var modalWindow = new Vue({
                             }
 
                             // Refresh list of files
-                            topBar.search().usual();
+                            updateStore();
                             this.hideWindow();
                             return resp.json();
                         })
-                        .then(resp => console.log(resp))
-                        .catch(err => {
-                            this.error = err;
-                            console.log(err);
-                        });
+                        .then(log => {
+                            if (log === undefined) {
+                                return;
+                            }
+                            console.log(log);
+                            /* Schema:
+							[
+								{
+									filename: string,
+									isError: boolean,
+									error: string (when isError == true),
+									status: string (when isError == false)
+								}
+							]
+							*/
+                            for (let i in log) {
+                                let msg = log[i].filename;
+                                if (log[i].isError) {
+                                    msg += " " + log[i].error;
+                                } else {
+                                    msg += " " + log[i].status;
+                                }
+                                eventWindow.add(log[i].isError, msg);
+                            }
+                        })
+                        .catch(err => eventWindow.add(true, err));
                 }
             };
         },
