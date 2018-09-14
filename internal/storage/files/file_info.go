@@ -99,6 +99,12 @@ func (fs *filesData) rename(oldName string, newName string) error {
 		return ErrFileIsNotExist
 	}
 
+	// Check does file with new name exist
+	if _, ok := fs.info[newName]; ok {
+		fs.mutex.Unlock()
+		return ErrAlreadyExist
+	}
+
 	// Update map
 	f := fs.info[oldName]
 	delete(fs.info, oldName)
