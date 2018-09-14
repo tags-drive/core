@@ -119,12 +119,9 @@ var topBar = new Vue({
                     if (this.text != "") {
                         params.append("search", this.text);
                     }
-                    // sort
-                    params.append("sort", sortType.name);
-                    // order
-                    params.append("order", sortOrder.asc);
                     // mode
                     params.append("mode", this.selectedMode.toLowerCase());
+                    // Can skip sort and order, because server will use default values
 
                     fetch("/api/files?" + params, {
                         method: "GET",
@@ -397,15 +394,15 @@ var uploader = new Vue({
                     }
                     console.log(log);
                     /* Schema:
-					[
-						{
-							filename: string,
-							isError: boolean,
-							error: string (when isError == true),
-							status: string (when isError == false)
-						}
-					]
-					*/
+                    [
+                        {
+                            filename: string,
+                            isError: boolean,
+                            error: string (when isError == true),
+                            status: string (when isError == false)
+                        }
+                    ]
+                    */
                     for (let i in log) {
                         let msg = log[i].filename;
                         if (log[i].isError) {
@@ -718,15 +715,15 @@ var modalWindow = new Vue({
                             }
                             console.log(log);
                             /* Schema:
-							[
-								{
-									filename: string,
-									isError: boolean,
-									error: string (when isError == true),
-									status: string (when isError == false)
-								}
-							]
-							*/
+                            [
+                                {
+                                    filename: string,
+                                    isError: boolean,
+                                    error: string (when isError == true),
+                                    status: string (when isError == false)
+                                }
+                            ]
+                            */
                             for (let i in log) {
                                 let msg = log[i].filename;
                                 if (log[i].isError) {
