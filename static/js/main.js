@@ -527,6 +527,10 @@ var modalWindow = new Vue({
             this.descriptionMode = false;
             this.deleteMode = false;
             this.show = false;
+            this.globalTagsMode = false;
+
+            this.error = "";
+
             store.state.showDropLayer = true;
         },
         // Drag and drop
@@ -579,8 +583,11 @@ var modalWindow = new Vue({
                     })
                         .then(resp => {
                             if (resp.status >= 400 && resp.status < 600) {
-                                // TODO: return resp.text(). How to do?
-                                throw new Error("TODO");
+                                resp.text().then(text => {
+                                    console.log(text);
+                                    this.error = text;
+                                });
+                                return;
                             }
                             // Refresh list of files
                             topBar.search().usual();
@@ -604,8 +611,11 @@ var modalWindow = new Vue({
                     })
                         .then(resp => {
                             if (resp.status >= 400 && resp.status < 600) {
-                                // TODO: return resp.text(). How to do?
-                                throw new Error("TODO");
+                                resp.text().then(text => {
+                                    console.log(text);
+                                    this.error = text;
+                                });
+                                return;
                             }
                             // Refresh list of files
                             topBar.search().usual();
@@ -628,8 +638,11 @@ var modalWindow = new Vue({
                     })
                         .then(resp => {
                             if (resp.status >= 400 && resp.status < 600) {
-                                // TODO: return resp.text(). How to do?
-                                throw new Error("TODO");
+                                resp.text().then(text => {
+                                    console.log(text);
+                                    this.error = text;
+                                });
+                                return;
                             }
                             // Refresh list of files
                             topBar.search().usual();
@@ -650,8 +663,11 @@ var modalWindow = new Vue({
                     })
                         .then(resp => {
                             if (resp.status >= 400 && resp.status < 600) {
-                                // TODO: return resp.text(). How to do?
-                                return Promise.reject("TODO");
+                                resp.text().then(text => {
+                                    console.log(text);
+                                    this.error = text;
+                                });
+                                return;
                             }
 
                             // Refresh list of files
@@ -682,11 +698,21 @@ var modalWindow = new Vue({
                         credentials: "same-origin"
                     })
                         .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                resp.text().then(text => {
+                                    console.log(text);
+                                    this.error = text;
+                                });
+                                return;
+                            }
+
                             this.tagsAPI().delNewTag();
                             store.updateTags();
-                            return resp.text();
                         })
-                        .then(err => console.log(err)); // TODO
+                        .catch(err => {
+                            console.log(err);
+                            this.error = err;
+                        });
                 },
                 change: (tagID, newName, newColor) => {
                     let params = new URLSearchParams();
@@ -700,10 +726,20 @@ var modalWindow = new Vue({
                         credentials: "same-origin"
                     })
                         .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                resp.text().then(text => {
+                                    console.log(text);
+                                    this.error = text;
+                                });
+                                return;
+                            }
+
                             store.updateTags();
-                            return resp.text();
                         })
-                        .then(err => console.log(err)); // TODO
+                        .catch(err => {
+                            console.log(err);
+                            this.error = err;
+                        });
                 },
                 del: tagID => {
                     let params = new URLSearchParams();
@@ -714,12 +750,23 @@ var modalWindow = new Vue({
                         credentials: "same-origin"
                     })
                         .then(resp => {
+                            if (resp.status >= 400 && resp.status < 600) {
+                                resp.text().then(text => {
+                                    console.log(text);
+                                    this.error = text;
+                                });
+                                return;
+                            }
+
                             store.updateTags();
                             // Need to update files to remove deleted tag
                             topBar.search().usual();
                             return resp.text();
                         })
-                        .then(err => console.log(err)); // TODO
+                        .catch(err => {
+                            console.log(err);
+                            this.error = err;
+                        });
                 },
                 // delNewTag deletes tag from tagsNewData.newTag
                 delNewTag: () => {
