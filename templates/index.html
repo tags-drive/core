@@ -68,12 +68,12 @@
 	</div>
 
 	<!-- Events block -->
-	<div id="events-window" v-if="show" @mouseenter="window().mouseEnter()" @mouseleave="window().mouseLeave()"
-	 :style="{'opacity': opacity}">
+	<div id="events-window" v-if="show" @mouseenter="window().mouseEnter()" @mouseleave="window().mouseLeave()" :style="{'opacity': opacity}">
 		<div style="float: right;">
 			<i class="material-icons btn" @click="window().hide()">close</i>
 		</div>
 		<div v-for="event in events" class="events-window__msg">
+			{{event.time}}
 			<span v-if="event.isError" style="color: red;">Error:</span>
 			<span v-else="event.isError" style="color: green;">Ok:</span>
 			{{event.msg}}

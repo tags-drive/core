@@ -798,7 +798,8 @@ var eventWindow = new Vue({
         /* events - array of objects:
            {
              isError: boolean,
-             msg: string
+             msg: string,
+             time: string
            }
         */
         events: []
@@ -845,7 +846,8 @@ var eventWindow = new Vue({
         },
         // Data
         add: function(isError, msg) {
-            let obj = { isError: isError, msg: msg };
+            let time = new Date().format("HH:MM");
+            let obj = { isError: isError, msg: msg, time: time };
             console.log(obj); // We should log obj, because there's rotation of messages
             this.events.push(obj);
 
