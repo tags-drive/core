@@ -1,4 +1,12 @@
 /* Common */
+:root {
+    --primary-color: white;
+    --secondary-color: #f7f7f7;
+    --primary-border-color: rgba(0, 0, 0, 0.3);
+    --secondary-border-color: rgba(0, 0, 0, 0.1);
+    --primary-element-color: rgba(0, 0, 0, 0.3);
+    --secondary-element-color: rgba(0, 0, 0, 0.1);
+}
 
 body {
     margin: 0;
@@ -20,7 +28,7 @@ body {
 .tag {
     cursor: default;
     display: flex;
-    border: 1px rgba(66, 64, 64, 0.226) solid;
+    border: 1px rgba(66, 64, 64, 0.2) solid;
     padding: 2px;
     border-radius: 7px;
     height: 20px;
@@ -32,12 +40,12 @@ body {
 .btn {
     cursor: pointer;
     background-color: white;
-    border: 1px solid rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--primary-border-color);
     border-radius: 2px;
 }
 
 .btn:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: var(--secondary-element-color);
 }
 
 .deleteBtn {
@@ -75,8 +83,8 @@ body {
     height: 50px;
     width: 100%;
     position: sticky;
-    background-color: white;
-    border-bottom: 1px rgba(0, 0, 0, 0.1) solid;
+    background-color: var(--primary-color);
+    border-bottom: 1px var(--primary-border-color) solid;
 }
 
 #top-bar__logo {
@@ -95,9 +103,9 @@ body {
     width: 80%;
     height: 80%;
     display: flex;
-    border: 1px rgba(0, 0, 0, 0.3) solid;
+    border: 1px var(--secondary-border-color) solid;
     border-radius: 5px;
-    background-color: white;
+    background-color: var(--primary-color);
 }
 
 #top-bar__search__tags {
@@ -118,9 +126,9 @@ body {
     top: 35px;
     display: flex;
     width: 95%;
-    background-color: rgb(247, 247, 247);
+    background-color: var(--secondary-color);
     padding: 5px;
-    border: 1px solid rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--primary-border-color);
     border-radius: 5px;
 }
 
@@ -131,7 +139,7 @@ body {
 }
 
 .top-bar__search__suggestion-tag:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: var(--secondary-element-color);
 }
 
 #top-bar__search__advanced {
@@ -235,9 +243,9 @@ th {
     position: fixed;
     padding: 5px;
     text-align: center;
-    background-color: white;
+    background-color: var(--primary-color);
     border-radius: 5px;
-    border: 1px solid rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--primary-border-color);
 }
 
 .context-menu__input {
@@ -245,13 +253,13 @@ th {
     cursor: pointer;
     margin-bottom: 3px;
     background-color: white;
-    border: 1px solid rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--primary-border-color);
     border-radius: 2px;
     outline: none;
 }
 
 .context-menu__input:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: var(--secondary-element-color);
 }
 
 .context-menu__input--href {
@@ -292,7 +300,7 @@ th {
     width: 600px;
     border-radius: 5px;
     padding: 10px;
-    background-color: white;
+    background-color: var(--primary-color);
 }
 
 .modal-window__input {
@@ -309,7 +317,7 @@ th {
 }
 
 .modal-window__tags-field {
-    border: 1px dashed rgba(0, 0, 0, 0.3);
+    border: 1px dashed var(--primary-border-color);
     border-radius: 5px;
     padding: 10px;
     flex-wrap: wrap;
