@@ -337,3 +337,22 @@ th {
     width: 80%;
     background-color: rgba(255, 161, 161, 0.883);
 }
+
+/* Events window */
+#events-window {
+    padding: 10px;
+    position: fixed;
+    word-wrap: break-word;
+    left: 10px;
+    bottom: 10px;
+    width: 350px;
+    height: 200px;
+    border: 1px var(--primary-border-color) solid;
+    background-color: var(--secondary-color);
+    border-radius: 5px;
+    overflow: auto;
+}
+
+.events-window__msg {
+    margin-bottom: 5px;
+}

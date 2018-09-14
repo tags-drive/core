@@ -783,3 +783,77 @@ var modalWindow = new Vue({
         }
     }
 });
+
+var eventWindow = new Vue({
+    el: "#events-window",
+    data: {
+        // States
+        show: false,
+        isMouseInside: false, // if isMouseInside, hideAfter isn't changed
+        hideAfter: 1000 * 2, // time in milliseconds
+        // UI
+        opacity: 1,
+        lastScrollHeight: 0,
+        // Data
+        /* events - array of objects:
+           {
+             isError: boolean,
+             msg: string
+           }
+        */
+        events: []
+    },
+    created: function() {
+        const msTimeout = 50;
+        setInterval(() => {
+            if (this.isMouseInside) {
+                return;
+            }
+            if (this.hideAfter < 0) {
+                this.show = false;
+            }
+            this.hideAfter -= msTimeout;
+            if (this.hideAfter < 1000) {
+                this.opacity = this.hideAfter / 1000;
+            }
+        }, msTimeout); // 50 is good enough. When 100, FPS too low.
+    },
+    methods: {
+        // UI
+        window: function() {
+            return {
+                show: () => {
+                    this.opacity = 1;
+                    this.hideAfter = 2 * 1000; // 2s
+                    this.show = true;
+                },
+                hide: () => {
+                    this.show = false;
+                    this.isMouseInside = false;
+                },
+                mouseEnter: () => {
+                    this.isMouseInside = true;
+                    this.window().show(); // update opacity and hideAfter
+                },
+                mouseLeave: () => {
+                    this.isMouseInside = false;
+                },
+                scrollToEnd: () => {
+                    this.$el.scrollTop = this.$el.scrollHeight;
+                }
+            };
+        },
+        // Data
+        add: function(isError, msg) {
+            let obj = { isError: isError, msg: msg };
+            console.log(obj); // We should log obj, because there's rotation of messages
+            this.events.push(obj);
+
+            if (this.events.length > 5) {
+                this.events.splice(0, 1); // remove first message
+            }
+            this.window().show();
+            this.window().scrollToEnd();
+        }
+    }
+});
