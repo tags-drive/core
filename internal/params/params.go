@@ -14,11 +14,11 @@ const (
 	// ResizedImagesFolder is a folder, in which all resized images are kept
 	ResizedImagesFolder = "data/resized"
 	// Files is a json file with info about the files
-	Files = "files.json"
+	Files = "configs/files.json"
 	// TokensFile is a json file with list of tokens
-	TokensFile = "tokens.json"
+	TokensFile = "configs/tokens.json"
 	// TagsFile is a json file with list of tags (with name and color)
-	TagsFile = "tags.json"
+	TagsFile = "configs/tags.json"
 	// MaxTokenLife define the max lifetime of token (2 months)
 	MaxTokenLife = time.Hour * 24 * 60
 	// AuthCookieName defines name of cookie, which contains token
