@@ -1,9 +1,12 @@
 # folders
 .vscode
+build/*
+!build/Dockerfile
+configs
 data
 vendor
 # files
 TODO.md
-run.sh
+*.sh
 *.bat
 *.json

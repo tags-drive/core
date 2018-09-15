@@ -43,6 +43,7 @@ var (
 )
 
 func init() {
+	// Default - :80
 	Port = func() string {
 		p := os.Getenv("PORT")
 		if p == "" {
@@ -55,6 +56,7 @@ func init() {
 		return p
 	}()
 
+	// Default - true
 	IsTLS = func() bool {
 		value := os.Getenv("TLS")
 		if strings.ToLower(value) == "false" {
@@ -63,6 +65,7 @@ func init() {
 		return true
 	}()
 
+	// Default - user
 	Login = func() (login string) {
 		login = os.Getenv("LOGIN")
 		if login == "" {
@@ -71,6 +74,7 @@ func init() {
 		return
 	}()
 
+	// Default - "qwerty"
 	Password = func() (pswrd string) {
 		pswrd = os.Getenv("PSWRD")
 		if pswrd == "" {
@@ -79,6 +83,7 @@ func init() {
 		return
 	}()
 
+	// Default - false
 	Debug = func() bool {
 		value := os.Getenv("DBG")
 		if strings.ToLower(value) == "true" {
@@ -87,12 +92,12 @@ func init() {
 		return false
 	}()
 
+	// Default - false
 	Encrypt = func() bool {
 		enc := os.Getenv("ENCRYPT")
 		if enc == "true" {
 			return true
 		}
-
 		return false
 	}()
 

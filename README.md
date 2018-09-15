@@ -53,7 +53,7 @@ type multiplyResponse struct {
 | Environment | Default | Description                                      |
 | ----------- | ------- | -------------------------------                  |
 | PORT        | 80      | Port for website                                 |
-| TLS         | false   | Should **Tags Drive** use https                  |
+| TLS         | true   | Should **Tags Drive** use https                  |
 | LOGIN       | user    | Login for login                                  |
 | PSWRD       | qwerty  | Password for login                               |
 | ENCRYPT     | false   | Should the **Tags Drive** encrypt uploaded files |
