@@ -286,6 +286,7 @@ var mainBlock = new Vue({
 	<table :style="{'opacity': sharedState.opacity}" class="file-table" style="width:100%;">
 		<tr style="position: sticky; top: 100px;">
 			<th></th>
+			<th></th>
 			<th>
 				Filename
 				<i class="material-icons" id="sortByNameIcon" @click="sort().byName()" :style="[sortByNameModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="font-size: 20px; cursor: pointer;">

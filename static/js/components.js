@@ -200,6 +200,7 @@ Vue.component("files", {
 		@click.right.prevent="showContextMenu(event, file);"
 		:title="file.description"
 	>
+		<td></td>
 		<td v-if="file.type == 'image'" style="width: 30px;">
 			<img :src="file.preview" style="width: 30px;">
 		</td>
