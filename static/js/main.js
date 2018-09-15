@@ -53,7 +53,6 @@ var store = {
 function Init() {
     store.updateTags();
     store.updateFiles();
-    leftBar.update();
 }
 
 function updateStore() {
@@ -309,24 +308,6 @@ var mainBlock = new Vue({
 		</tr>
 		<files v-for="file in sharedState.allFiles" :file="file" :allTags="store.state.allTags"></files>
 	</table>`
-});
-
-// Left bar
-var leftBar = new Vue({
-    el: "#left-bar",
-    data: {
-        recentFiles: []
-    },
-    methods: {
-        update: function() {
-            fetch("/api/files/recent", {
-                method: "GET",
-                credentials: "same-origin"
-            })
-                .then(data => data.json())
-                .then(files => (this.recentFiles = files));
-        }
-    }
 });
 
 /* Secondary instances */

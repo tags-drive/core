@@ -56,17 +56,6 @@
 		<div id="main-block"></div>
 	</div>
 
-	<!-- Left bar -->
-	<div id="left-bar" style="float: left; width: 19vw;">
-		<div>
-			<ul>
-				<li v-for="file in recentFiles" style="overflow-wrap: break-word;">
-					{{file.filename}}
-				</li>
-			</ul>
-		</div>
-	</div>
-
 	<!-- Events block -->
 	<div id="events-window" v-if="show" @mouseenter="window().mouseEnter()" @mouseleave="window().mouseLeave()" :style="{'opacity': opacity}">
 		<div style="float: right;">
