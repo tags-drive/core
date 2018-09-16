@@ -1,12 +1,14 @@
 # folders
 .vscode
-build/*
-!build/Dockerfile
+app/*
+!app/Dockerfile
+!app/tags-drive.env
+!app/run.sh
 configs
 data
+scripts
 vendor
 # files
 TODO.md
-*.sh
 *.bat
 *.json
