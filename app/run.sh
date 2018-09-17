@@ -5,5 +5,6 @@ docker run --rm -d \
 -p 80:80 \
 -v /home/username/configs:/app/configs \
 -v /home/username/data:/app/data \
+-v /home/username/ssl:/app/ssl \
 --env-file /home/username/tags-drive.env \
 kirtis/tags-drive
