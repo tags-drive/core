@@ -39,7 +39,9 @@ type multiplyResponse struct {
 - `PUT /api/tags?tag=tagname&new-color=#ffffff&new-name=Test` - change name, color
 - `DELETE /api/tags?tag=tagname` - delete a tag
 
-## Install
+## Installing
+
+Run `docker pull kirtis/tags-drive`. Create `run.sh` to run docker container (example of script you can find in app folder).
 
 ### Backend
 
