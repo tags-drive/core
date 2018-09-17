@@ -19,7 +19,7 @@ All API methods require auth.
 - `GET /api/files?sort=(name|size|time)&order(asc|desc)&tags=first,second,third&mode=(or|and|not)&search=abc` - get list of files.
 - `GET /api/files/recent?number=5` - get list of the last uploaded files (5 is a default number of returned files)
 - `POST /api/files` - upload files (`Content-Type: multipart/form-data`)
-- `PUT /api/files?file=123&new-name=567&tags=tag1,tag2,tag3&description=some-new-cool-description` - rename file, change file tags, change description
+- `PUT /api/files?file=123&new-name=567&tags=tag1,tag2,tag3&description=some-new-cool-description` - rename file, change file tags, change description. To clear all tags, client should send `tags=empty` (for example`...&tags=empty&...`)
 - `DELETE /api/files?file=file1&file=file2` - delete file.
 
 ```go

@@ -618,7 +618,11 @@ var modalWindow = new Vue({
                     let params = new URLSearchParams();
                     let tags = this.fileNewData.newTags.map(tag => tag.id);
                     params.append("file", this.file.filename);
-                    params.append("tags", tags.join(","));
+                    let tagsParam = "empty";
+                    if (tags.length != 0) {
+                        tagsParam = tags.join(",");
+                    }
+                    params.append("tags", tagsParam);
 
                     fetch("/api/files", {
                         method: "PUT",

@@ -190,7 +190,8 @@ func upload(w http.ResponseWriter, r *http.Request) {
 }
 
 // PUT /api/files?file=123&new-name=567&tags=tag1,tag2,tag3&description=some-new-cool-description
-// newname or tags can be skipped
+// newname, tags and description can be skipped
+// To clear all tags, client should send "empty" (...&tags=empty&...)
 //
 // Response: -
 //
@@ -201,7 +202,7 @@ func changeFile(w http.ResponseWriter, r *http.Request) {
 		newDescription = r.FormValue("description")
 		tags           = func() []int {
 			t := r.FormValue("tags")
-			if t == "" {
+			if t == "" || t == "empty" {
 				return []int{}
 			}
 			res := []int{}
@@ -221,7 +222,8 @@ func changeFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Change tags, at first
-	if len(tags) != 0 {
+	if r.FormValue("tags") == "empty" || len(tags) != 0 {
+		// If r.FormValue("tags") == "empty", tags == []int{}. So, we can use it to remove all tags
 		err := files.ChangeTags(filename, tags)
 		if err != nil {
 			Error(w, err.Error(), http.StatusInternalServerError)
