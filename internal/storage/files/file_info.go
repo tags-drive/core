@@ -1,4 +1,4 @@
-package storage
+package files
 
 import (
 	"encoding/json"
@@ -14,10 +14,16 @@ import (
 
 // FileInfo contains the information about a file
 type FileInfo struct {
-	Filename string    `json:"filename"`
-	Size     int64     `json:"size"`
-	Tags     []string  `json:"tags"`
-	AddTime  time.Time `json:"add_time"`
+	Filename    string    `json:"filename"`
+	Type        string    `json:"type"`
+	Origin      string    `json:"origin"` // Origin is a path to a file (params.DataFolder/filename)
+	Description string    `json:"description"`
+	Size        int64     `json:"size"`
+	Tags        []int     `json:"tags"`
+	AddTime     time.Time `json:"addTime"`
+
+	// Only if Type == TypeImage
+	Preview string `json:"preview,omitempty"` // Preview is a path to a resized image
 }
 
 // filesData is a map (filename: FileInfo) with RWMutex
@@ -34,9 +40,9 @@ func (fs filesData) write() {
 	fs.mutex.RLock()
 	defer fs.mutex.RUnlock()
 
-	f, err := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0600)
+	f, err := os.OpenFile(params.Files, os.O_TRUNC|os.O_RDWR, 0600)
 	if err != nil {
-		log.Errorf("Can't open file %s: %s\n", params.TagsFile, err)
+		log.Errorf("Can't open file %s: %s\n", params.Files, err)
 		return
 	}
 
@@ -56,6 +62,17 @@ func (fs *filesData) decode(r io.Reader) error {
 
 /* Files */
 
+func (fs filesData) get(filename string) (FileInfo, error) {
+	fs.mutex.RLock()
+	defer fs.mutex.RUnlock()
+
+	f, ok := fs.info[filename]
+	if !ok {
+		return FileInfo{}, ErrFileIsNotExist
+	}
+	return f, nil
+}
+
 // add adds an element into fs.info and call fs.write()
 func (fs *filesData) add(info FileInfo) error {
 	fs.mutex.Lock()
@@ -65,6 +82,7 @@ func (fs *filesData) add(info FileInfo) error {
 		return ErrAlreadyExist
 	}
 
+	info.Tags = []int{} // https://github.com/ShoshinNikita/tags-drive/issues/19
 	fs.info[info.Filename] = info
 	fs.mutex.Unlock()
 
@@ -79,6 +97,12 @@ func (fs *filesData) rename(oldName string, newName string) error {
 	if _, ok := fs.info[oldName]; !ok {
 		fs.mutex.Unlock()
 		return ErrFileIsNotExist
+	}
+
+	// Check does file with new name exist
+	if _, ok := fs.info[newName]; ok {
+		fs.mutex.Unlock()
+		return ErrAlreadyExist
 	}
 
 	// Update map
@@ -118,9 +142,32 @@ func (fs *filesData) delete(filename string) error {
 	return nil
 }
 
-/* Tags */
+func (fs *filesData) deleteTag(tagID int) {
+	fs.mutex.Lock()
 
-func (fs *filesData) changeTags(filename string, tags []string) error {
+	for filename, f := range fs.info {
+		index := -1
+		for i := range f.Tags {
+			if f.Tags[i] == tagID {
+				index = i
+				break
+			}
+		}
+		if index == -1 {
+			continue
+		}
+		// Erase tag
+		f.Tags = append(f.Tags[0:index], f.Tags[index+1:]...)
+
+		fs.info[filename] = f
+	}
+
+	fs.mutex.Unlock()
+
+	fs.write()
+}
+
+func (fs *filesData) changeTags(filename string, changedTagsID []int) error {
 	fs.mutex.Lock()
 
 	if _, ok := fs.info[filename]; !ok {
@@ -130,7 +177,27 @@ func (fs *filesData) changeTags(filename string, tags []string) error {
 
 	// Update map
 	f := fs.info[filename]
-	f.Tags = tags
+	f.Tags = changedTagsID
+	fs.info[filename] = f
+
+	fs.mutex.Unlock()
+
+	fs.write()
+
+	return nil
+}
+
+func (fs *filesData) changeDescription(filename string, newDesc string) error {
+	fs.mutex.Lock()
+
+	if _, ok := fs.info[filename]; !ok {
+		fs.mutex.Unlock()
+		return ErrFileIsNotExist
+	}
+
+	// Update map
+	f := fs.info[filename]
+	f.Description = newDesc
 	fs.info[filename] = f
 
 	fs.mutex.Unlock()

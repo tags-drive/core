@@ -1,5 +1,5 @@
 new Vue({
-    el: "#loginForm",
+    el: "#login-form",
     data: {
         login: "",
         password: "",

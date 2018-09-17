@@ -1,4 +1,4 @@
-package storage
+package files
 
 import (
 	"sort"
@@ -27,10 +27,10 @@ const (
 	SortBySizeDecs
 )
 
-// isGoodFile checks if file has (or hasn't) passed tags
+// isGoodFile checks if file has passed tags
 //
 // We can use nested loop, because number of tags is small
-func isGoodFile(m TagMode, fileTags, passedTags []string) (res bool) {
+func isGoodFile(m TagMode, fileTags, passedTags []int) (res bool) {
 	if len(passedTags) == 0 {
 		return true
 	}
@@ -112,7 +112,7 @@ func sortFiles(s SortMode, files []FileInfo) {
 }
 
 // getFiles returns slice of FileInfo with passed tags. If tags is an empty slice, function will return all files
-func (fs filesData) getFiles(m TagMode, tags []string, search string) (files []FileInfo) {
+func (fs filesData) getFiles(m TagMode, tags []int, search string) (files []FileInfo) {
 	fs.mutex.RLock()
 	if len(tags) == 0 {
 		files = make([]FileInfo, len(fs.info))
@@ -148,7 +148,7 @@ func (fs filesData) getFiles(m TagMode, tags []string, search string) (files []F
 
 // Get returns all files with (or without) passed tags
 // For more information, see AndMode, OrMode, NotMode
-func Get(m TagMode, s SortMode, tags []string, search string) []FileInfo {
+func Get(m TagMode, s SortMode, tags []int, search string) []FileInfo {
 	files := allFiles.getFiles(m, tags, search)
 	sortFiles(s, files)
 	return files
@@ -158,7 +158,7 @@ func Get(m TagMode, s SortMode, tags []string, search string) []FileInfo {
 //
 // Func uses GetAll(TimeDescMode)
 func GetRecent(number int) []FileInfo {
-	files := Get(ModeAnd, SortByTimeDesc, []string{}, "")
+	files := Get(ModeAnd, SortByTimeDesc, []int{}, "")
 	if len(files) > number {
 		files = files[:number]
 	}

@@ -2,6 +2,7 @@
 package params
 
 import (
+	"crypto/sha256"
 	"os"
 	"strings"
 	"time"
@@ -10,10 +11,14 @@ import (
 const (
 	// DataFolder is a folder, in which all files are kept
 	DataFolder = "data"
-	// TagsFile is a json file with info about the files
-	TagsFile = "files.json"
+	// ResizedImagesFolder is a folder, in which all resized images are kept
+	ResizedImagesFolder = "data/resized"
+	// Files is a json file with info about the files
+	Files = "configs/files.json"
 	// TokensFile is a json file with list of tokens
-	TokensFile = "tokens.json"
+	TokensFile = "configs/tokens.json"
+	// TagsFile is a json file with list of tags (with name and color)
+	TagsFile = "configs/tags.json"
 	// MaxTokenLife define the max lifetime of token (2 months)
 	MaxTokenLife = time.Hour * 24 * 60
 	// AuthCookieName defines name of cookie, which contains token
@@ -31,9 +36,14 @@ var (
 	Password string
 	// Debug defines is debug mode
 	Debug bool
+	// Encrypt defines, should the program encrypt files. False by default
+	Encrypt bool
+	// Key is used for encrypting of files. Key is a sha256 sum of Password
+	Key [32]byte
 )
 
 func init() {
+	// Default - :80
 	Port = func() string {
 		p := os.Getenv("PORT")
 		if p == "" {
@@ -46,6 +56,7 @@ func init() {
 		return p
 	}()
 
+	// Default - true
 	IsTLS = func() bool {
 		value := os.Getenv("TLS")
 		if strings.ToLower(value) == "false" {
@@ -54,6 +65,7 @@ func init() {
 		return true
 	}()
 
+	// Default - user
 	Login = func() (login string) {
 		login = os.Getenv("LOGIN")
 		if login == "" {
@@ -62,6 +74,7 @@ func init() {
 		return
 	}()
 
+	// Default - "qwerty"
 	Password = func() (pswrd string) {
 		pswrd = os.Getenv("PSWRD")
 		if pswrd == "" {
@@ -70,6 +83,7 @@ func init() {
 		return
 	}()
 
+	// Default - false
 	Debug = func() bool {
 		value := os.Getenv("DBG")
 		if strings.ToLower(value) == "true" {
@@ -77,4 +91,15 @@ func init() {
 		}
 		return false
 	}()
+
+	// Default - false
+	Encrypt = func() bool {
+		enc := os.Getenv("ENCRYPT")
+		if enc == "true" {
+			return true
+		}
+		return false
+	}()
+
+	Key = sha256.Sum256([]byte(Password))
 }

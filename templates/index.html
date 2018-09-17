@@ -1,19 +1,167 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<meta charset="utf-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Page Title</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Tags Drive</title>
+	<!-- CSS -->
 	<link rel="stylesheet" type="text/css" media="screen" href="/static/css/main.css" />
-	<script src="/static/js/main.js"></script>
+	<!-- Material icons  -->
+	<link href="/static/fonts/material-icons/material-icons.css" rel="stylesheet">
 </head>
-<body>
-	<form method="POST" action="/api/upload" enctype="multipart/form-data">
-		<input type="file" name="files" multiple>
-		<br>
-		<br>
-		<input type="submit">
-	</form>	
+
+<body onload="Init();">
+	<!-- Top bar -->
+	<div id="top-bar">
+		<!-- Logo -->
+		<div id="top-bar__logo">
+			<span>Tags Drive</span>
+		</div>
+		<!-- Search bar -->
+		<div id="top-bar__search">
+			<div id="top-bar__search__tags">
+				<i @click="tagsMenu().show()" class="material-icons" style="cursor: pointer; margin-right: 10px;" title="Add tags for search">add_circle_outline</i>
+				<search-tag v-for="tag in pickedTags" :tag="tag"></search-tag>
+
+				<!-- List of unpicked tags-->
+				<div id="top-bar__search__tags__list" v-if="showTagsList" v-on-clickaway="() => tagsMenu().hide()">
+					<div v-if="unusedTags.length == 0" style="cursor: default; margin: auto;">Empty</div>
+					<suggestion-tag v-for="tag in unusedTags" :tag="tag"></suggestion-tag>
+				</div>
+			</div>
+
+			<div class="vertically" style="border-right: 1px solid black; height: 90%;"></div>
+			<div id="top-bar__search__advanced">
+				<input v-model="text" type="text" placeholder="Text for search" style="margin-right: 5px;">
+
+				<div class="vertically" style="margin-right: 5px;">Mode</div>
+				<select v-model="selectedMode" style="margin-right: 5px;">
+					<option>And</option>
+					<option>Or</option>
+					<option>Not</option>
+				</select>
+			</div>
+			<div style="height: 100%; right: 0px; position: absolute;">
+				<i @click="search().usual()" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
+			</div>
+		</div>
+		<!-- Settings -->
+		<div id="top-bar__settings" class="vertically" @click="settings().tags()">
+			<img src="/static/icons/tag.png" title="Change tags">
+		</div>
+	</div>
+
+	<!-- Main block -->
+	<div style="width: 100%; height: 93vh; overflow: auto; float: right;">
+		<div id="main-block"></div>
+	</div>
+
+	<!-- Events block -->
+	<div id="events-window" v-if="show" @mouseenter="window().mouseEnter()" @mouseleave="window().mouseLeave()" :style="{'opacity': opacity}">
+		<div style="float: right;">
+			<i class="material-icons btn" @click="window().hide()">close</i>
+		</div>
+		<div v-for="event in events" class="events-window__msg">
+			{{event.time}}
+			<span v-if="event.isError" style="color: red;">Error:</span>
+			<span v-else="event.isError" style="color: green;">Ok:</span>
+			{{event.msg}}
+		</div>
+	</div>
+
+	<!-- Upload block -->
+	<div id="upload-block" @drop.prevent="upload" @dragover.prevent>
+		<div v-if="counter != 0" id="upload-block__layer">
+			<div style="display: table; height: 100%; overflow: hidden; margin: auto;">
+				<div style="display: table-cell; vertical-align: middle; text-align: center;">
+					Upload new files
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Context menu -->
+	<div id="context-menu" v-if="show" :style="{'top': top, 'left': left}">
+		<div v-on-clickaway="hideMenu">
+			<input type="button" class="context-menu__input" @click="changeName" value="Rename">
+			<br>
+			<input type="button" class="context-menu__input" @click="changeTags" value="Update tags">
+			<br>
+			<input type="button" class="context-menu__input" @click="changeDescription" value="Update description">
+			<br>
+			<div class="context-menu__input" style="box-sizing : border-box;" @click="hideMenu">
+				<a :href="file.origin" class="context-menu__input--href" download>Download</a>
+			</div>
+			<input type="button" class="context-menu__input" @click="deleteFile" value="Delete" style="margin-bottom: 0px;">
+		</div>
+	</div>
+
+	<!-- Modal window -->
+	<div id="modal-window" v-if="show" @click.self="hideWindow">
+		<div id="modal-window__block">
+			<!-- Rename mode -->
+			<div v-if="renameMode" class="modal-window__input">
+				<div style="margin-bottom: 5px;">Current filename: "{{file.filename}}"</div>
+				<input type="text" style="margin-bottom: 5px; width: 400px;" v-model="fileNewData.newFilename" placeholder="New filename">
+				<br>
+				<input class="btn" type="button" value="Rename" @click="filesAPI().rename()">
+			</div>
+			<!-- Change file tags mode -->
+			<div v-else-if="tagsMode" class="modal-window__input">
+				<!-- Current tags -->
+				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="tagsDragAndDrop().addToFile(event)"
+				 @dragover.prevent>
+					<tags-input v-for="tag in fileNewData.newTags" :tag="tag"></tags-input>
+				</div>
+
+				<div style="border-bottom: 1px solid black; width: 90%; margin: 20px auto 20px auto;"></div>
+
+				<!-- All tags -->
+				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="tagsDragAndDrop().delFromFile(event)"
+				 @dragover.prevent>
+					<tags-input v-for="tag in fileNewData.unusedTags" :tag="tag"></tags-input>
+				</div>
+				<br>
+				<input class="btn" type="button" value="Change tags" @click="filesAPI().updateTags()">
+			</div>
+			<!-- Change description mode -->
+			<div v-else-if="descriptionMode" class="modal-window__input">
+				<textarea style="outline: none; margin-bottom: 5px;" placeholder="Current description: empty" readonly="readonly">{{file.description}}</textarea>
+				<textarea style="margin-bottom: 5px;" placeholder="New description" v-model="fileNewData.newDescription"></textarea>
+				<input class="btn" type="button" value="Update" @click="filesAPI().updateDescription()">
+			</div>
+			<!-- Delete mode -->
+			<div v-else-if="deleteMode" class="modal-window__input">
+				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().delete()">
+				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
+			</div>
+			<!-- Change global tags mode -->
+			<div v-else-if="globalTagsMode" id="global-tags" class="modal-window__input">
+				<!-- Existed tags -->
+				<modifying-tags v-for="tag in sharedState.allTags" :tag="tag"></modifying-tags>
+				<p></p>
+
+				<input type="button" @click="if(newTag.name !== undefined) {return;} newTag = {'name': 'new tag', 'color': '#ffffff'};"
+				 value="Create new tag" class="btn" style="width: 150px; height: 25px;">
+				<p></p>
+
+				<!-- New tag -->
+				<modifying-tags v-if="newTag.name !== undefined" :tag="newTag" :is-new-tag="true"></modifying-tags>
+			</div>
+			<!-- Error -->
+			<div v-if="error != ''" id="modal-window__error">Error: {{error}}</div>
+		</div>
+	</div>
+
+	<!-- Vue -->
+	<script src="/static/js/vuejs/vue.min.js"></script>
+	<!-- vue-clickaway (https://github.com/simplesmiler/vue-clickaway) -->
+	<script src="/static/js/simplesmiler/vue-clickaway.min.js"></script>
+	<!-- date.format.js (http://blog.stevenlevithan.com/archives/date-time-format) -->
+	<script src="/static/js/stevenlevithan/date.format.js "></script>
+	<!-- Custom -->
+	<script src="/static/js/components.js "></script>
+	<script src="/static/js/main.js "></script>
 </body>
+
 </html>

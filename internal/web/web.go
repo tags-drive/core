@@ -22,7 +22,9 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	// For static files
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
 	// For uploaded files
-	router.PathPrefix("/data/").Handler(http.StripPrefix("/data/", http.FileServer(http.Dir("data/"))))
+	router.PathPrefix("/data/").Handler(http.StripPrefix("/data/", decryptMiddleware(http.Dir(params.DataFolder+"/"))))
+	// For exitensions
+	router.PathPrefix("/ext/").Handler(http.StripPrefix("/ext/", extensionHandler(http.Dir("static/ext/48px/"))))
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {
@@ -31,7 +33,12 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 		router.Path(r.path).Methods(r.methods).Handler(handler)
 	}
 
-	server := &http.Server{Addr: params.Port, Handler: router}
+	var handler http.Handler = router
+	if params.Debug {
+		handler = debugMiddleware(router)
+	}
+
+	server := &http.Server{Addr: params.Port, Handler: handler}
 
 	go func() {
 		log.Infoln("Start web server")
@@ -55,4 +62,12 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	} else {
 		errChan <- http.ErrServerClosed
 	}
+}
+
+func Error(w http.ResponseWriter, err string, code int) {
+	if params.Debug {
+		log.Errorf("Request error: %s (code: %d)\n", err, code)
+	}
+
+	http.Error(w, err, code)
 }

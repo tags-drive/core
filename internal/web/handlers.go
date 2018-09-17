@@ -15,7 +15,7 @@ import (
 func index(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open("templates/index.html")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	io.Copy(w, f)
@@ -31,7 +31,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	f, err := os.Open("templates/login.html")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	io.Copy(w, f)
@@ -63,9 +63,9 @@ func authentication(w http.ResponseWriter, r *http.Request) {
 
 	if password != encrypt(params.Password) || login != params.Login {
 		if login != params.Login {
-			http.Error(w, "invalid login", http.StatusBadRequest)
+			Error(w, "invalid login", http.StatusBadRequest)
 		} else {
-			http.Error(w, "invalid password", http.StatusBadRequest)
+			Error(w, "invalid password", http.StatusBadRequest)
 		}
 		return
 	}
@@ -75,33 +75,23 @@ func authentication(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{Name: params.AuthCookieName, Value: token, HttpOnly: true, Expires: time.Now().Add(params.MaxTokenLife)})
 }
 
-func authMiddleware(h http.Handler) http.Handler {
+func extensionHandler(dir http.Dir) http.Handler {
+	const blankFilename = "_blank.png"
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		validToken := func() bool {
-			c, err := r.Cookie(params.AuthCookieName)
+		ext := r.URL.Path
+		f, err := dir.Open(ext + ".png")
+		if err != nil {
+			// return blank icon
+			f, err = dir.Open(blankFilename)
 			if err != nil {
-				return false
-			}
-
-			token := c.Value
-			if !auth.CheckToken(token) {
-				return false
-			}
-
-			return true
-		}()
-
-		if !validToken {
-			// Redirect won't help
-			if r.Method != "GET" {
-				http.Error(w, "need auth", http.StatusForbidden)
 				return
 			}
-
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			io.Copy(w, f)
+			f.Close()
 			return
 		}
 
-		h.ServeHTTP(w, r)
+		io.Copy(w, f)
+		f.Close()
 	})
 }
