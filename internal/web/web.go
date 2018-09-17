@@ -3,7 +3,6 @@ package web
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"time"
 
@@ -47,7 +46,9 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 				errChan <- err
 			}
 		} else {
-			errChan <- errors.New("TLS isn't available")
+			if err := server.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key"); err != nil && err != http.ErrServerClosed {
+				errChan <- err
+			}
 		}
 	}()
 
