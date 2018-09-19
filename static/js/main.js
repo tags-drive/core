@@ -49,7 +49,8 @@ var GlobalStore = {
 
 var GlobalState = {
     mainBlockOpacity: 1,
-    showDropLayer: true // when we show modal-window with tags showDropLayer is false
+    showDropLayer: true, // when we show modal-window with tags showDropLayer is false
+    selectMode: false
 };
 
 // Init should be called onload
@@ -224,7 +225,10 @@ var mainBlock = new Vue({
         sortByNameModeAsc: true,
         sortBySizeModeAsc: true,
         sortByTimeModeAsc: true,
-        lastSortType: sortType.name
+        lastSortType: sortType.name,
+
+        allSelected: false,
+        selectCount: 0
     },
     methods: {
         // Sorts
@@ -278,13 +282,66 @@ var mainBlock = new Vue({
                     this.sortByTimeModeAsc = true;
                 }
             };
+        },
+        // Select mode
+        toggleAllFiles: function() {
+            if (!this.allSelected) {
+                this.selectCount = this.sharedData.allFiles.length;
+                this.allSelected = true;
+                GlobalState.selectMode = true;
+
+                for (i in this.$children) {
+                    this.$children[i].select();
+                }
+            } else {
+                this.selectCount = 0;
+                this.allSelected = false;
+                GlobalState.selectMode = false;
+
+                for (i in this.$children) {
+                    this.$children[i].unselect();
+                }
+            }
+        },
+        selectFile: function() {
+            this.selectCount++;
+            GlobalState.selectMode = true;
+            if (this.selectCount == this.sharedData.allFiles.length) {
+                this.allSelected = true;
+            }
+        },
+        unselectFile: function() {
+            this.selectCount--;
+            this.allSelected = false;
+            if (this.selectCount == 0) {
+                GlobalState.selectMode = false;
+            }
+        },
+        getSelectedFiles: function() {
+            let files = [];
+            for (i in this.$children) {
+                if (this.$children[i].selected) {
+                    files.push(this.$children[i].file);
+                }
+            }
+            console.log(files);
         }
     },
     template: `
 	<table :style="{'opacity': sharedState.mainBlockOpacity}" class="file-table" style="width:100%;">
 		<tr style="position: sticky; top: 100px;">
-			<th></th>
-			<th></th>
+			<th style="text-align: center; width: 30px;">
+				<input
+				type="checkbox"
+				:indeterminate.prop="selectCount > 0 && selectCount != sharedData.allFiles.length"
+				v-model="allSelected"
+				@click="toggleAllFiles"
+				style="height: 15px; width: 15px;"
+				title="Select all"
+			>
+			</th>
+			<!-- Preview image -->
+			<th></th> 
 			<th>
 				Filename
 				<i class="material-icons" id="sortByNameIcon" @click="sort().byName()" :style="[sortByNameModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="font-size: 20px; cursor: pointer;">

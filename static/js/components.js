@@ -193,18 +193,34 @@ Vue.component("files", {
             contextMenu.setFile(this.file);
             contextMenu.showMenu(event.x, event.y);
         },
-        toggleSelected: function() {}
+        toggleSelect: function() {
+			// We can skip changing this.selected, because a checkbox is bound to this.selected
+
+			// The function is called after changing this.selected
+            if (this.selected) {
+				this.$parent.selectFile();
+            } else {
+                this.$parent.unselectFile();
+            }
+        },
+        /* For the parent */
+        select: function() {
+            this.selected = true;
+        },
+        unselect: function() {
+            this.selected = false;
+        }
     },
     template: `
 	<tr
 		:style="[hover || selected ? {'background-color': 'rgba(0, 0, 0, 0.1)'} : {'background-color': 'white'} ]"
-		@mouseover="if (!selected) hover = true;"
-		@mouseleave="if (!selected) hover = false;"
+		@mouseover="hover = true;"
+		@mouseleave="hover = false;"
 		@click.right.prevent="showContextMenu(event);"
 		:title="file.description"
 	>
 		<td style="text-align: center; width: 30px;">
-			<input type="checkbox" @check="toggleSelected" v-model="selected" style="height: 15px; width: 15px;">
+			<input type="checkbox" @change="toggleSelect" v-model="selected" style="height: 15px; width: 15px;">
 		</td>
 		<td v-if="file.type == 'image'" style="width: 30px;">
 			<img :src="file.preview" style="width: 30px;">
