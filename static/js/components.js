@@ -189,8 +189,9 @@ Vue.component("files", {
         };
     },
     methods: {
-        showContextMenu: function(event, fileData) {
-            this.$parent.showContextMenu(event, fileData);
+        showContextMenu: function(event) {
+            contextMenu.setFile(this.file);
+            contextMenu.showMenu(event.x, event.y);
         },
         toggleSelected: function() {}
     },
@@ -199,7 +200,7 @@ Vue.component("files", {
 		:style="[hover || selected ? {'background-color': 'rgba(0, 0, 0, 0.1)'} : {'background-color': 'white'} ]"
 		@mouseover="if (!selected) hover = true;"
 		@mouseleave="if (!selected) hover = false;"
-		@click.right.prevent="showContextMenu(event, file);"
+		@click.right.prevent="showContextMenu(event);"
 		:title="file.description"
 	>
 		<td style="text-align: center; width: 30px;">

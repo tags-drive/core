@@ -227,11 +227,6 @@ var mainBlock = new Vue({
         lastSortType: sortType.name
     },
     methods: {
-        // Context menu
-        showContextMenu: function(event, file) {
-            contextMenu.setFile(file);
-            contextMenu.showMenu(event.x, event.y);
-        },
         // Sorts
         sort: function() {
             return {
