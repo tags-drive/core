@@ -343,7 +343,7 @@ var uploader = new Vue({
             } else {
                 this.sharedState.opacity = 0.3;
             }
-        }, 20);
+        }, 10);
     },
     methods: {
         upload: function(event) {

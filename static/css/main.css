@@ -186,23 +186,29 @@ input::-webkit-calendar-picker-indicator {
     overflow: hidden;
 }
 
+#main-block__wrapper {
+    width: 100%;
+    height: 93vh;
+    overflow: auto;
+}
+
 #upload-block {
     text-align: center;
 }
 
 #upload-block__layer {
     position: fixed;
-    right: 5vw;
-    width: 70vw;
-    top: 8vh;
+    margin: auto;
+    width: 90vw;
+    left: 5vw;
     height: 90vh;
-    position: absolute;
+    top: 8vh;
     border: 2px #888888 dotted;
+    border-radius: 15px;
     display: inline-block;
     color: #888888;
     font-size: 50px;
     z-index: 1;
-    border-radius: 15px;
 }
 
 .file-table {
