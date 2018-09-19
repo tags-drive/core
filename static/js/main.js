@@ -495,6 +495,8 @@ var modalWindow = new Vue({
         showWindow: function() {
             return {
                 renaming: file => {
+                    GlobalState.showDropLayer = false;
+
                     this.file = file;
                     this.renameMode = true;
                     this.fileNewData.newFilename = file.filename;
@@ -521,6 +523,8 @@ var modalWindow = new Vue({
                     this.show = true;
                 },
                 description: file => {
+                    GlobalState.showDropLayer = false;
+
                     this.file = file;
                     this.fileNewData.unusedTags;
                     this.descriptionMode = true;
@@ -528,12 +532,16 @@ var modalWindow = new Vue({
                     this.show = true;
                 },
                 deleting: file => {
+                    GlobalState.showDropLayer = false;
+
                     this.file = file;
                     this.deleteMode = true;
 
                     this.show = true;
                 },
                 globalTags: () => {
+                    GlobalState.showDropLayer = false;
+
                     this.globalTagsMode = true;
 
                     this.show = true;
