@@ -138,7 +138,7 @@
 			<!-- Change global tags mode -->
 			<div v-else-if="globalTagsMode" id="global-tags" class="modal-window__input">
 				<!-- Existed tags -->
-				<modifying-tags v-for="tag in sharedState.allTags" :tag="tag"></modifying-tags>
+				<modifying-tags v-for="tag in sharedData.allTags" :tag="tag"></modifying-tags>
 				<p></p>
 
 				<input type="button" @click="if(newTag.name !== undefined) {return;} newTag = {'name': 'new tag', 'color': '#ffffff'};"

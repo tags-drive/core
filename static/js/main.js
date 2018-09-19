@@ -12,13 +12,11 @@ const sortOrder = {
     desc: "desc"
 };
 
-// store contains global data
-var store = {
-    state: {
+// GlobalStore contains global data
+var GlobalStore = {
+    data: {
         allFiles: [],
-        allTags: {},
-        opacity: 1,
-        showDropLayer: true // when we show modal-window with tags showDropLayer is false
+        allTags: {}
     },
     updateFiles: function() {
         fetch("/api/files", {
@@ -36,7 +34,7 @@ var store = {
         })
             .then(data => data.json())
             .then(tags => {
-                this.state.allTags = tags;
+                this.data.allTags = tags;
             })
             .catch(err => console.error(err));
     },
@@ -45,19 +43,24 @@ var store = {
         for (let i in files) {
             files[i].addTime = new Date(files[i].addTime).format("dd-mm-yyyy HH:MM");
         }
-        this.state.allFiles = files;
+        this.data.allFiles = files;
     }
+};
+
+var GlobalState = {
+    mainBlockOpacity: 1,
+    showDropLayer: true // when we show modal-window with tags showDropLayer is false
 };
 
 // Init should be called onload
 function Init() {
-    store.updateTags();
-    store.updateFiles();
+    GlobalStore.updateTags();
+    GlobalStore.updateFiles();
 }
 
 function updateStore() {
-    store.updateFiles();
-    store.updateTags();
+    GlobalStore.updateFiles();
+    GlobalStore.updateTags();
 }
 
 function isErrorStatusCode(statusCode) {
@@ -90,8 +93,8 @@ var topBar = new Vue({
                     if (this.pickedTags.length == 0) {
                         // Need to fill unusedTags
                         this.unusedTags = [];
-                        for (let tag in store.state.allTags) {
-                            this.unusedTags.push(store.state.allTags[tag]);
+                        for (let tag in GlobalStore.data.allTags) {
+                            this.unusedTags.push(GlobalStore.data.allTags[tag]);
                         }
                     }
 
@@ -128,7 +131,7 @@ var topBar = new Vue({
                     })
                         .then(data => data.json())
                         .then(files => {
-                            store.setFiles(files);
+                            GlobalStore.setFiles(files);
                             // Reset sortParams
                             mainBlock.sort().reset();
                         });
@@ -159,7 +162,7 @@ var topBar = new Vue({
                         credentials: "same-origin"
                     })
                         .then(data => data.json())
-                        .then(files => store.setFiles(files));
+                        .then(files => GlobalStore.setFiles(files));
                 }
             };
         },
@@ -215,8 +218,8 @@ var topBar = new Vue({
 var mainBlock = new Vue({
     el: "#main-block",
     data: {
-        sharedState: store.state,
-        opacity: 1,
+        sharedData: GlobalStore.data,
+        sharedState: GlobalState,
 
         sortByNameModeAsc: true,
         sortBySizeModeAsc: true,
@@ -283,7 +286,7 @@ var mainBlock = new Vue({
         }
     },
     template: `
-	<table :style="{'opacity': sharedState.opacity}" class="file-table" style="width:100%;">
+	<table :style="{'opacity': sharedState.mainBlockOpacity}" class="file-table" style="width:100%;">
 		<tr style="position: sticky; top: 100px;">
 			<th></th>
 			<th></th>
@@ -307,7 +310,7 @@ var mainBlock = new Vue({
 				</i>
 			</th>
 		</tr>
-		<files v-for="file in sharedState.allFiles" :file="file" :allTags="store.state.allTags"></files>
+		<files v-for="file in sharedData.allFiles" :file="file" :allTags="sharedData.allTags"></files>
 	</table>`
 });
 
@@ -317,31 +320,31 @@ var mainBlock = new Vue({
 var uploader = new Vue({
     el: "#upload-block",
     data: {
-        sharedState: store.state,
+        sharedData: GlobalStore.data,
         counter: 0 // for definition did user drag file into div. If counter > 0, user dragged file.
     },
     created() {
         // Add listeners
         document.ondragenter = () => {
-            if (store.state.showDropLayer) {
+            if (GlobalState.showDropLayer) {
                 this.counter++;
             }
         };
         document.ondragleave = () => {
-            if (store.state.showDropLayer) {
+            if (GlobalState.showDropLayer) {
                 this.counter--;
             }
         };
         document.ondrop = () => {
-            if (store.state.showDropLayer) {
+            if (GlobalState.showDropLayer) {
                 this.counter = 0;
             }
         };
         setInterval(() => {
             if (this.counter == 0) {
-                this.sharedState.opacity = 1;
+                GlobalState.mainBlockOpacity = 1;
             } else {
-                this.sharedState.opacity = 0.3;
+                GlobalState.mainBlockOpacity = 0.3;
             }
         }, 10);
     },
@@ -470,7 +473,7 @@ var modalWindow = new Vue({
         file: null,
         show: false,
         error: "",
-        sharedState: store.state,
+        sharedData: GlobalStore.data,
         // Modes
         renameMode: false,
         tagsMode: false,
@@ -499,16 +502,16 @@ var modalWindow = new Vue({
                     this.show = true;
                 },
                 fileTags: file => {
-                    store.state.showDropLayer = false;
+                    GlobalState.showDropLayer = false;
 
                     this.fileNewData.newTags = [];
                     this.fileNewData.unusedTags = [];
 
-                    for (let id in this.sharedState.allTags) {
+                    for (let id in this.sharedData.allTags) {
                         if (file.tags.includes(Number(id))) {
-                            this.fileNewData.newTags.push(this.sharedState.allTags[id]);
+                            this.fileNewData.newTags.push(this.sharedData.allTags[id]);
                         } else {
-                            this.fileNewData.unusedTags.push(this.sharedState.allTags[id]);
+                            this.fileNewData.unusedTags.push(this.sharedData.allTags[id]);
                         }
                     }
 
@@ -547,7 +550,7 @@ var modalWindow = new Vue({
 
             this.error = "";
 
-            store.state.showDropLayer = true;
+            GlobalState.showDropLayer = true;
         },
         // Drag and drop
         tagsDragAndDrop: function() {
@@ -748,7 +751,7 @@ var modalWindow = new Vue({
                             }
 
                             this.tagsAPI().delNewTag();
-                            store.updateTags();
+                            GlobalStore.updateTags();
                         })
                         .catch(err => {
                             console.error(err);
@@ -775,7 +778,7 @@ var modalWindow = new Vue({
                                 return;
                             }
 
-                            store.updateTags();
+                            GlobalStore.updateTags();
                         })
                         .catch(err => {
                             console.error(err);
@@ -799,7 +802,7 @@ var modalWindow = new Vue({
                                 return;
                             }
 
-                            store.updateTags();
+                            GlobalStore.updateTags();
                             // Need to update files to remove deleted tag
                             topBar.search().usual();
                             return resp.text();
