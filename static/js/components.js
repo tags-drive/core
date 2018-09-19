@@ -184,23 +184,29 @@ Vue.component("files", {
     },
     data: function() {
         return {
-            hover: false
+            hover: false,
+            picked: false
         };
     },
     methods: {
         showContextMenu: function(event, fileData) {
             this.$parent.showContextMenu(event, fileData);
+        },
+        togglePicked: function() {
+            this.picked = !this.picked;
         }
     },
     template: `
 	<tr
-		:style="[hover ? {'background-color': 'rgba(0, 0, 0, 0.1)'} : {'background-color': 'white'} ]"
-		@mouseover="hover = true;"
-		@mouseleave="hover = false;"
+		:style="[hover || picked ? {'background-color': 'rgba(0, 0, 0, 0.1)'} : {'background-color': 'white'} ]"
+		@mouseover="if (!picked) hover = true;"
+		@mouseleave="if (!picked) hover = false;"
 		@click.right.prevent="showContextMenu(event, file);"
 		:title="file.description"
 	>
-		<td></td>
+		<td style="text-align: center; width: 30px;">
+			<input type="checkbox" @change="togglePicked" style="height: 15px; width: 15px;">
+		</td>
 		<td v-if="file.type == 'image'" style="width: 30px;">
 			<img :src="file.preview" style="width: 30px;">
 		</td>
