@@ -109,7 +109,7 @@ func (fs *filesData) rename(oldName string, newName string) error {
 	f := fs.info[oldName]
 	delete(fs.info, oldName)
 	f.Filename = newName
-	f.AddTime = time.Now()
+	f.Origin = params.DataFolder + "/" + newName
 	fs.info[newName] = f
 
 	// We have to unlock mutex after renaming, in order to user can't get invalid file
