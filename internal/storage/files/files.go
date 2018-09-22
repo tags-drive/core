@@ -1,6 +1,8 @@
 package files
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"io"
 	"mime/multipart"
@@ -208,4 +210,41 @@ func DeleteTag(tagID int) {
 // ChangeDescription changes the description of a file
 func ChangeDescription(filename, newDescription string) error {
 	return allFiles.changeDescription(filename, newDescription)
+}
+
+// ArchiveFiles archives passed files and returns io.Reader
+func ArchiveFiles(files []string) (body io.Reader, err error) {
+	buff := bytes.NewBuffer([]byte(""))
+
+	zipWriter := zip.NewWriter(buff)
+	defer zipWriter.Close()
+
+	for _, filename := range files {
+		f, err := os.Open(filename)
+		if err != nil {
+			log.Errorf("Can't load file %s\n", filename)
+			continue
+		}
+		stat, err := f.Stat()
+		if err != nil {
+			log.Errorf("Can't load file %s\n", filename)
+			continue
+		}
+
+		header, err := zip.FileInfoHeader(stat)
+		header.Method = zip.Deflate
+
+		wr, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			log.Errorf("Can't load file %s\n", filename)
+			continue
+		}
+
+		if _, err := io.Copy(wr, f); err != nil {
+			log.Errorf("Can't load file %s\n", filename)
+			continue
+		}
+	}
+
+	return buff, nil
 }

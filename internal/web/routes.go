@@ -15,6 +15,7 @@ var routes = []struct {
 	{"/logout", "POST", logout, true},
 	// files
 	{"/api/files", "GET", returnFiles, true},
+	{"/api/files/download", "GET", downloadFiles, true},
 	{"/api/files", "POST", upload, true},
 	{"/api/files", "PUT", changeFile, true},
 	{"/api/files", "DELETE", deleteFile, true},
