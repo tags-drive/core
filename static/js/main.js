@@ -209,7 +209,7 @@ var topBar = new Vue({
         },
         settings: function() {
             return {
-                tags: () => modalWindow.showWindow().globalTags()
+                tags: () => modalWindow.showWindow().globalTagsUpdating()
             };
         }
     }
@@ -503,19 +503,19 @@ var contextMenu = new Vue({
             return {
                 changeName: () => {
                     this.show = false;
-                    modalWindow.showWindow().renaming(this.file);
+                    modalWindow.showWindow().regularRenaming(this.file);
                 },
                 changeTags: () => {
                     this.show = false;
-                    modalWindow.showWindow().fileTags(this.file);
+                    modalWindow.showWindow().regularFileTagsUpdating(this.file);
                 },
                 changeDescription: () => {
                     this.show = false;
-                    modalWindow.showWindow().description(this.file);
+                    modalWindow.showWindow().regularDescriptionChanging(this.file);
                 },
                 deleteFile: () => {
                     this.show = false;
-                    modalWindow.showWindow().deleting(this.file);
+                    modalWindow.showWindow().regularDeleting(this.file);
                 }
             };
         },
@@ -567,13 +567,18 @@ var modalWindow = new Vue({
         file: null,
         show: false,
         error: "",
+        selectedFiles: [],
         sharedData: GlobalStore.data,
         // Modes
-        renameMode: false,
-        tagsMode: false,
-        descriptionMode: false,
-        deleteMode: false,
         globalTagsMode: false,
+        //
+        regularRenameMode: false,
+        regularFileTagsMode: false,
+        regularDescriptionMode: false,
+        regularDeleteMode: false,
+        //
+        selectFilesTagsMode: false,
+        selectDeleteMode: false,
         // For files API
         fileNewData: {
             newFilename: "",
@@ -588,16 +593,24 @@ var modalWindow = new Vue({
         // UI
         showWindow: function() {
             return {
-                renaming: file => {
+                globalTagsUpdating: () => {
+                    GlobalState.showDropLayer = false;
+
+                    this.globalTagsMode = true;
+
+                    this.show = true;
+                },
+                // Regular mode
+                regularRenaming: file => {
                     GlobalState.showDropLayer = false;
 
                     this.file = file;
-                    this.renameMode = true;
+                    this.regularRenameMode = true;
                     this.fileNewData.newFilename = file.filename;
 
                     this.show = true;
                 },
-                fileTags: file => {
+                regularFileTagsUpdating: file => {
                     GlobalState.showDropLayer = false;
 
                     this.fileNewData.newTags = [];
@@ -612,43 +625,43 @@ var modalWindow = new Vue({
                     }
 
                     this.file = file;
-                    this.tagsMode = true;
+                    this.regularFileTagsMode = true;
 
                     this.show = true;
                 },
-                description: file => {
+                regularDescriptionChanging: file => {
                     GlobalState.showDropLayer = false;
 
                     this.file = file;
                     this.fileNewData.unusedTags;
-                    this.descriptionMode = true;
+                    this.regularDescriptionMode = true;
 
                     this.show = true;
                 },
-                deleting: file => {
+                regularDeleting: file => {
                     GlobalState.showDropLayer = false;
 
                     this.file = file;
-                    this.deleteMode = true;
+                    this.regularDeleteMode = true;
 
                     this.show = true;
                 },
-                globalTags: () => {
-                    GlobalState.showDropLayer = false;
-
-                    this.globalTagsMode = true;
-
-                    this.show = true;
-                }
+				// Select mode
+				// TODO
+                selectFilesTagsUpdating: files => {},
+                selectDeleting: files => {}
             };
         },
         hideWindow: function() {
-            this.renameMode = false;
-            this.tagsMode = false;
-            this.descriptionMode = false;
-            this.deleteMode = false;
-            this.show = false;
             this.globalTagsMode = false;
+            this.regularRenameMode = false;
+            this.regularFileTagsMode = false;
+            this.regularDescriptionMode = false;
+            this.regularDeleteMode = false;
+            this.selectFilesTagsMode = false;
+            this.selectDeleteMode = false;
+
+            this.show = false;
 
             this.error = "";
 
@@ -657,7 +670,7 @@ var modalWindow = new Vue({
         // Drag and drop
         tagsDragAndDrop: function() {
             return {
-                addToFile: ev => {
+                add: ev => {
                     let tagID = Number(ev.dataTransfer.getData("tagName"));
                     let index = -1;
                     for (i in this.fileNewData.unusedTags) {
@@ -672,7 +685,7 @@ var modalWindow = new Vue({
                     this.fileNewData.newTags.push(this.fileNewData.unusedTags[index]);
                     this.fileNewData.unusedTags.splice(index, 1);
                 },
-                delFromFile: ev => {
+                del: ev => {
                     let tagID = ev.dataTransfer.getData("tagName");
                     let index = -1;
                     for (i in this.fileNewData.newTags) {
@@ -692,6 +705,7 @@ var modalWindow = new Vue({
         // Files API
         filesAPI: function() {
             return {
+                // Regular mode
                 rename: () => {
                     let params = new URLSearchParams();
                     params.append("file", this.file.filename);
@@ -778,7 +792,7 @@ var modalWindow = new Vue({
                             console.error(err);
                         });
                 },
-                delete: () => {
+                deleteFile: () => {
                     let params = new URLSearchParams();
                     params.append("file", this.file.filename);
 
@@ -826,7 +840,11 @@ var modalWindow = new Vue({
                             }
                         })
                         .catch(err => eventWindow.add(true, err));
-                }
+                },
+                // Select mode
+                // TODO
+                updateSelectedFilesTags: () => {},
+                deleteSelectedFiles: () => {}
             };
         },
         // Tags API
