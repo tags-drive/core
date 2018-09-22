@@ -498,21 +498,39 @@ var contextMenu = new Vue({
             this.show = false;
         },
         // Options of context menu
-        changeName: function() {
-            this.show = false;
-            modalWindow.showWindow().renaming(this.file);
+        regularMode: function() {
+            return {
+                changeName: () => {
+                    this.show = false;
+                    modalWindow.showWindow().renaming(this.file);
+                },
+                changeTags: () => {
+                    this.show = false;
+                    modalWindow.showWindow().fileTags(this.file);
+                },
+                changeDescription: () => {
+                    this.show = false;
+                    modalWindow.showWindow().description(this.file);
+                },
+                deleteFile: () => {
+                    this.show = false;
+                    modalWindow.showWindow().deleting(this.file);
+                }
+            };
         },
-        changeTags: function() {
-            this.show = false;
-            modalWindow.showWindow().fileTags(this.file);
-        },
-        changeDescription: function() {
-            this.show = false;
-            modalWindow.showWindow().description(this.file);
-        },
-        deleteFile: function() {
-            this.show = false;
-            modalWindow.showWindow().deleting(this.file);
+        // Options of context menu (select mode)
+        selectMode: function() {
+            return {
+                changeTags: () => {
+                    console.log("changeTags");
+                },
+                downloadFiles: () => {
+                    console.log("downloadFiles");
+                },
+                deleteFiles: () => {
+                    console.log("deleteFiles");
+                }
+            };
         }
     }
 });

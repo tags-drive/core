@@ -83,16 +83,35 @@
 	<!-- Context menu -->
 	<div id="context-menu" v-if="show" :style="{'top': top, 'left': left}">
 		<div v-on-clickaway="hideMenu">
-			<input type="button" class="context-menu__input" @click="changeName" value="Rename">
-			<br>
-			<input type="button" class="context-menu__input" @click="changeTags" value="Update tags">
-			<br>
-			<input type="button" class="context-menu__input" @click="changeDescription" value="Update description">
-			<br>
-			<div class="context-menu__input" style="box-sizing : border-box;" @click="hideMenu">
+			<!-- Rename -->
+			<div v-if="!sharedState.selectMode">
+				<input type="button" class="context-menu__input" @click="regularMode().changeName()" value="Rename">
+			</div>
+			<!-- Tags -->
+			<div v-if="!sharedState.selectMode">
+				<input type="button" class="context-menu__input" @click="regularMode().changeTags()" value="Update tags">
+			</div>
+			<div v-else>
+				<input type="button" class="context-menu__input" @click="selectMode().changeTags()" value="Update tags">
+			</div>
+			<!-- Description -->
+			<div v-if="!sharedState.selectMode">
+				<input type="button" class="context-menu__input" @click="regularMode().changeDescription()" value="Update description">
+			</div>
+			<!-- Download -->
+			<div v-if="!sharedState.selectMode" class="context-menu__input" style="box-sizing : border-box;" @click="hideMenu">
 				<a :href="file.origin" class="context-menu__input--href" download>Download</a>
 			</div>
-			<input type="button" class="context-menu__input" @click="deleteFile" value="Delete" style="margin-bottom: 0px;">
+			<div v-else>
+				<input type="button" class="context-menu__input" @click="selectMode().downloadFiles()" value="Download selected files">
+			</div>
+			<!-- Delete -->
+			<div v-if="!sharedState.selectMode">
+				<input type="button" class="context-menu__input" @click="regularMode().deleteFile()" value="Delete" style="margin-bottom: 0px;">
+			</div>
+			<div v-else>
+				<input type="button" class="context-menu__input" @click="selectMode().deleteFiles()" value="Delete" style="margin-bottom: 0px;">
+			</div>
 		</div>
 	</div>
 
