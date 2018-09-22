@@ -303,6 +303,23 @@ var mainBlock = new Vue({
                 }
             }
         },
+        unselectAllFile: function() {
+            for (i in this.$children) {
+                this.$children[i].unselect();
+            }
+            this.allSelected = false;
+            this.selectCount = 0;
+        },
+        getSelectedFiles: function() {
+            let files = [];
+            for (i in this.$children) {
+                if (this.$children[i].selected) {
+                    files.push(this.$children[i].file);
+                }
+            }
+            return files;
+        },
+        // For children
         selectFile: function() {
             this.selectCount++;
             GlobalState.selectMode = true;
@@ -316,15 +333,6 @@ var mainBlock = new Vue({
             if (this.selectCount == 0) {
                 GlobalState.selectMode = false;
             }
-        },
-        getSelectedFiles: function() {
-            let files = [];
-            for (i in this.$children) {
-                if (this.$children[i].selected) {
-                    files.push(this.$children[i].file);
-                }
-            }
-            return files;
         }
     },
     template: `
@@ -523,7 +531,8 @@ var contextMenu = new Vue({
         selectMode: function() {
             return {
                 changeTags: () => {
-                    console.log("changeTags");
+                    this.show = false;
+                    modalWindow.showWindow().selectFilesTagsUpdating(mainBlock.getSelectedFiles());
                 },
                 downloadFiles: () => {
                     let params = new URLSearchParams();
@@ -552,7 +561,8 @@ var contextMenu = new Vue({
                     });
                 },
                 deleteFiles: () => {
-                    console.log("deleteFiles");
+                    this.show = false;
+                    modalWindow.showWindow().selectDeleting(mainBlock.getSelectedFiles());
                 }
             };
         }
@@ -646,10 +656,23 @@ var modalWindow = new Vue({
 
                     this.show = true;
                 },
-				// Select mode
-				// TODO
-                selectFilesTagsUpdating: files => {},
-                selectDeleting: files => {}
+                // Select mode
+                selectFilesTagsUpdating: files => {
+                    GlobalState.showDropLayer = false;
+
+                    this.selectedFiles = files;
+                    this.selectFilesTagsMode = true;
+
+                    this.show = true;
+                },
+                selectDeleting: files => {
+                    GlobalState.showDropLayer = false;
+
+                    this.selectedFiles = files;
+                    this.selectDeleteMode = true;
+
+                    this.show = true;
+                }
             };
         },
         hideWindow: function() {
@@ -842,9 +865,63 @@ var modalWindow = new Vue({
                         .catch(err => eventWindow.add(true, err));
                 },
                 // Select mode
-                // TODO
-                updateSelectedFilesTags: () => {},
-                deleteSelectedFiles: () => {}
+                updateSelectedFilesTags: () => {
+                    // TODO
+                },
+                deleteSelectedFiles: () => {
+                    let params = new URLSearchParams();
+                    for (f of this.selectedFiles) {
+                        params.append("file", f.filename);
+                    }
+
+                    fetch("/api/files?" + params, {
+                        method: "DELETE",
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (isErrorStatusCode(resp.status)) {
+                                resp.text().then(text => {
+                                    console.error(text);
+                                    this.error = text;
+                                });
+                                return;
+                            }
+
+                            // Refresh list of files
+                            updateStore();
+                            this.hideWindow();
+                            return resp.json();
+                        })
+                        .then(log => {
+                            if (log === undefined) {
+                                return;
+                            }
+                            console.log(log);
+                            /* Schema:
+                            [
+                                {
+                                    filename: string,
+                                    isError: boolean,
+                                    error: string (when isError == true),
+                                    status: string (when isError == false)
+                                }
+                            ]
+                            */
+                            for (let i in log) {
+                                let msg = log[i].filename;
+                                if (log[i].isError) {
+                                    msg += " " + log[i].error;
+                                } else {
+                                    msg += " " + log[i].status;
+                                }
+                                eventWindow.add(log[i].isError, msg);
+                            }
+                        })
+                        .catch(err => eventWindow.add(true, err));
+
+                    // If we don't call this function, next files will become selected.
+                    mainBlock.unselectAllFile();
+                }
             };
         },
         // Tags API

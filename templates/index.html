@@ -167,13 +167,25 @@
 				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().deleteFile()">
 				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
 			</div>
-
-			<!-- TODO -->
 			<!-- Select tags updating -->
 			<div v-else-if="selectFilesTagsMode" class="modal-window__input">
+				<!-- TODO -->
+				TODO selectFilesTagsMode
 			</div>
 			<!-- Select delete mode -->
 			<div v-else-if="selectDeleteMode" class="modal-window__input">
+				<div style="font-size: 20px;">Selected files:</div>
+				<br>
+				<div style="text-align: left; max-height: 160px; overflow-y: auto;">
+					<ul>
+						<li v-for="file in selectedFiles"> {{file.filename}}</li>
+					</ul>
+				</div>
+
+				<div style="border-bottom: 1px solid black; width: 90%; margin: 20px auto 20px auto;"></div>
+
+				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().deleteSelectedFiles()">
+				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
 			</div>
 
 			<!-- Error -->
