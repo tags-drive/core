@@ -324,7 +324,7 @@ var mainBlock = new Vue({
                     files.push(this.$children[i].file);
                 }
             }
-            console.log(files);
+            return files;
         }
     },
     template: `
@@ -460,6 +460,7 @@ var contextMenu = new Vue({
     el: "#context-menu",
     mixins: [VueClickaway.mixin], // from vue-clickaway
     data: {
+        sharedState: GlobalState,
         file: null,
         // Style
         top: "0px",
@@ -525,7 +526,30 @@ var contextMenu = new Vue({
                     console.log("changeTags");
                 },
                 downloadFiles: () => {
-                    console.log("downloadFiles");
+                    let params = new URLSearchParams();
+                    let files = mainBlock.getSelectedFiles();
+                    for (let file of files) {
+                        // need to use link to a file, not filename
+                        params.append("file", file.origin);
+                    }
+
+                    fetch("/api/files/download?" + params, {
+                        method: "GET",
+                        credentials: "same-origin"
+                    }).then(resp => {
+                        resp.blob().then(file => {
+                            let a = document.createElement("a"),
+                                url = URL.createObjectURL(file);
+
+                            a.href = url;
+                            a.download = "files.zip";
+                            document.body.appendChild(a);
+                            a.click();
+
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                        });
+                    });
                 },
                 deleteFiles: () => {
                     console.log("deleteFiles");
