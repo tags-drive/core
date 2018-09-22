@@ -237,13 +237,15 @@ func ArchiveFiles(files []string) (body io.Reader, err error) {
 		wr, err := zipWriter.CreateHeader(header)
 		if err != nil {
 			log.Errorf("Can't load file %s\n", filename)
+			f.Close()
 			continue
 		}
 
 		if _, err := io.Copy(wr, f); err != nil {
 			log.Errorf("Can't load file %s\n", filename)
-			continue
 		}
+
+		f.Close()
 	}
 
 	return buff, nil
