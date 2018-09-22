@@ -109,6 +109,7 @@ func (fs *filesData) rename(oldName string, newName string) error {
 	f := fs.info[oldName]
 	delete(fs.info, oldName)
 	f.Filename = newName
+	f.Origin = params.DataFolder + "/" + newName
 	f.AddTime = time.Now()
 	fs.info[newName] = f
 
