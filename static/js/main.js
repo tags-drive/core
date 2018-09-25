@@ -284,7 +284,7 @@ var mainBlock = new Vue({
     },
     template: `
 	<table :style="{'opacity': sharedState.opacity}" class="file-table" style="width:100%;">
-		<tr style="position: sticky; top: 100px;">
+		<tr style="top: 100px;">
 			<th></th>
 			<th></th>
 			<th>

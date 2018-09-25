@@ -197,7 +197,7 @@ Vue.component("files", {
 		:style="[hover ? {'background-color': 'rgba(0, 0, 0, 0.1)'} : {'background-color': 'white'} ]"
 		@mouseover="hover = true;"
 		@mouseleave="hover = false;"
-		@click.right.prevent="showContextMenu(event, file);"
+		@click.right.prevent="showContextMenu($event, file);"
 		:title="file.description"
 	>
 		<td></td>

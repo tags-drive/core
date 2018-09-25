@@ -109,7 +109,7 @@
 			<!-- Change file tags mode -->
 			<div v-else-if="tagsMode" class="modal-window__input">
 				<!-- Current tags -->
-				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="tagsDragAndDrop().addToFile(event)"
+				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="tagsDragAndDrop().addToFile($event)"
 				 @dragover.prevent>
 					<tags-input v-for="tag in fileNewData.newTags" :tag="tag"></tags-input>
 				</div>
@@ -117,7 +117,7 @@
 				<div style="border-bottom: 1px solid black; width: 90%; margin: 20px auto 20px auto;"></div>
 
 				<!-- All tags -->
-				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="tagsDragAndDrop().delFromFile(event)"
+				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="tagsDragAndDrop().delFromFile($event)"
 				 @dragover.prevent>
 					<tags-input v-for="tag in fileNewData.unusedTags" :tag="tag"></tags-input>
 				</div>
