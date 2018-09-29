@@ -216,7 +216,7 @@ Vue.component("files", {
 		:style="[hover || selected ? {'background-color': 'rgba(0, 0, 0, 0.1)'} : {'background-color': 'white'} ]"
 		@mouseover="hover = true;"
 		@mouseleave="hover = false;"
-		@click.right.prevent="showContextMenu(event);"
+		@click.right.prevent="showContextMenu($event, file);"
 		:title="file.description"
 	>
 		<td style="text-align: center; width: 30px;">

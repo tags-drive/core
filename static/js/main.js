@@ -337,7 +337,7 @@ var mainBlock = new Vue({
     },
     template: `
 	<table :style="{'opacity': sharedState.mainBlockOpacity}" class="file-table" style="width:100%;">
-		<tr style="position: sticky; top: 100px;">
+		<tr style="top: 100px;">
 			<th style="text-align: center; width: 30px;">
 				<input
 				type="checkbox"
