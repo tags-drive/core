@@ -54,6 +54,7 @@ Vue.component("tags-input", {
 const validTagName = /^[\w\d- ]{1,20}$/;
 const validColor = /^#[\dabcdef]{6}$/;
 
+// For tags editing
 Vue.component("modifying-tags", {
     props: {
         tag: Object,
@@ -176,6 +177,61 @@ Vue.component("modifying-tags", {
 	</div>`
 });
 
+// For selected mod
+Vue.component("selected-add-tag", {
+    props: {
+        tag: Object
+    },
+    data: function() {
+        return {
+            shouldAdd: false
+        };
+    },
+    destroyed: function() {
+        if (this.shouldAdd) {
+            this.$parent.filesAPI().addSelectedFilesTag(this.tag.id);
+        }
+    },
+    template: `
+	<div style="display: flex; margin-right: auto; margin-left: auto; margin-bottom: 5px; position: relative;">
+		<div style="width: 200px; display: flex">
+			<div :style="{ 'background-color': tag.color }" class="tag" style="margin: 0;">
+				<div>{{tag.name}}</div>
+			</div>
+		</div>
+		<div style="position: absolute; right: 0;">
+			<input v-model="shouldAdd" type="checkbox" style="width: 20px; height: 20px; right: 0;" title="Add tag">
+		</div>
+	</div>`
+});
+
+Vue.component("selected-delete-tag", {
+    props: {
+        tag: Object
+    },
+    data: function() {
+        return {
+            shouldDelete: false
+        };
+    },
+    destroyed: function() {
+        if (this.shouldDelete) {
+            this.$parent.filesAPI().deleteSelectedFilesTag(this.tag.id);
+        }
+    },
+    template: `
+	<div style="display: flex; margin-right: auto; margin-left: auto; margin-bottom: 5px; position: relative;">
+		<div style="width: 200px; display: flex">
+			<div :style="{ 'background-color': tag.color }" class="tag" style="margin: 0;">
+				<div>{{tag.name}}</div>
+			</div>
+		</div>
+		<div style="position: absolute; right: 0;">
+			<input v-model="shouldDelete" type="checkbox" style="width: 20px; height: 20px; right: 0;" title="Add tag">
+		</div>
+	</div>`
+});
+
 // Files in Main block
 Vue.component("files", {
     props: {
@@ -194,11 +250,11 @@ Vue.component("files", {
             contextMenu.showMenu(event.x, event.y);
         },
         toggleSelect: function() {
-			// We can skip changing this.selected, because a checkbox is bound to this.selected
+            // We can skip changing this.selected, because a checkbox is bound to this.selected
 
-			// The function is called after changing this.selected
+            // The function is called after changing this.selected
             if (this.selected) {
-				this.$parent.selectFile();
+                this.$parent.selectFile();
             } else {
                 this.$parent.unselectFile();
             }

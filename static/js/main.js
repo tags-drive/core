@@ -880,15 +880,11 @@ var modalWindow = new Vue({
                         .catch(err => eventWindow.add(true, err));
                 },
                 // Select mode
-                addSelectedFilesTags: () => {
-                    for (f of this.selectedFiles) {
-                        console.log(f);
-                    }
+                addSelectedFilesTag: tagID => {
+                    console.log(tagID);
                 },
-                deleteSelectedFilesTags: () => {
-                    for (f of this.selectedFiles) {
-                        console.log(f);
-                    }
+                deleteSelectedFilesTag: tagID => {
+                    console.log(tagID);
                 },
                 deleteSelectedFiles: () => {
                     let params = new URLSearchParams();
