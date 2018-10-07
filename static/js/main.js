@@ -308,6 +308,7 @@ var mainBlock = new Vue({
                 this.$children[i].unselect();
             }
             this.allSelected = false;
+            GlobalState.selectMode = false;
             this.selectCount = 0;
         },
         getSelectedFiles: function() {
@@ -663,7 +664,6 @@ var modalWindow = new Vue({
                 },
                 // Select mode
                 selectFilesTagsAdding: files => {
-                    console.log(this.sharedData.allTags);
                     GlobalState.showDropLayer = false;
 
                     this.selectedFiles = files;
@@ -672,7 +672,6 @@ var modalWindow = new Vue({
                     this.show = true;
                 },
                 selectFilesTagsDeleting: files => {
-                    console.log(this.sharedData.allTags);
                     GlobalState.showDropLayer = false;
 
                     this.selectedFiles = files;
@@ -881,10 +880,87 @@ var modalWindow = new Vue({
                 },
                 // Select mode
                 addSelectedFilesTags: tagIDs => {
-                    console.log("Add:", tagIDs);
+                    if (tagIDs.length == 0) {
+                        return;
+                    }
+
+                    // Update tags and refresh list of files after all changes
+                    (async () => {
+                        for (file of this.selectedFiles) {
+                            let tags = new Set(file.tags);
+                            for (tag of tagIDs) {
+                                tags.add(tag);
+                            }
+
+                            let params = new URLSearchParams();
+                            params.append("file", file.filename);
+                            params.append("tags", Array.from(tags).join(","));
+
+                            await fetch("/api/files", {
+                                method: "PUT",
+                                body: params
+                            })
+                                .then(resp => {
+                                    if (isErrorStatusCode(resp.status)) {
+                                        resp.text().then(text => {
+                                            console.error(text);
+                                        });
+                                        return;
+                                    }
+                                })
+                                .catch(err => console.error(err));
+                        }
+                    })()
+                        .then(() => {
+                            // Refresh list of files
+                            mainBlock.unselectAllFile();
+                            topBar.search().usual();
+                            this.hideWindow();
+                        })
+                        .catch(err => console.error(err));
                 },
                 deleteSelectedFilesTags: tagIDs => {
-                    console.log("Delete:", tagIDs);
+                    if (tagIDs.length == 0) {
+                        return;
+                    }
+
+                    // Update tags and refresh list of files after all changes
+                    (async () => {
+                        for (file of this.selectedFiles) {
+                            let tags = new Set(file.tags);
+                            for (tag of tagIDs) {
+                                tags.delete(tag);
+                            }
+
+                            let params = new URLSearchParams();
+                            let tagsList = "empty";
+                            if (tags.size != 0) {
+                                tagsList = Array.from(tags).join(",");
+                            }
+                            params.append("file", file.filename);
+                            params.append("tags", tagsList);
+
+                            await fetch("/api/files", {
+                                method: "PUT",
+                                body: params
+                            })
+                                .then(resp => {
+                                    if (isErrorStatusCode(resp.status)) {
+                                        resp.text().then(text => {
+                                            console.error(text);
+                                        });
+                                    }
+                                })
+                                .catch(err => console.error(err));
+                        }
+                    })()
+                        .then(() => {
+                            // Refresh list of files
+                            mainBlock.unselectAllFile();
+                            topBar.search().usual();
+                            this.hideWindow();
+                        })
+                        .catch(err => console.error(err));
                 },
                 deleteSelectedFiles: () => {
                     let params = new URLSearchParams();
