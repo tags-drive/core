@@ -173,7 +173,7 @@
 				<div style="font-size: 20px;">Add tags</div>
 				<p></p>
 				<div style="margin-right: auto; margin-left: auto; width: 40%;">
-					<selected-add-tag v-for="tag in sharedData.allTags" :tag="tag"></selected-add-tag>
+					<selected-add-tag-wrapper :tags="sharedData.allTags"></selected-add-tag-wrapper>
 				</div>
 			</div>
 			<!-- Select tags deleting -->
@@ -181,7 +181,7 @@
 				<div style="font-size: 20px;">Delete tags</div>
 				<p></p>
 				<div style="margin-right: auto; margin-left: auto; width: 40%;">
-					<selected-delete-tag v-for="tag in sharedData.allTags" :tag="tag"></selected-delete-tag>
+					<selected-delete-tag-wrapper :tags="sharedData.allTags"></selected-delete-tag-wrapper>
 				</div>
 			</div>
 			<!-- Select delete mode -->

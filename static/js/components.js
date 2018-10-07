@@ -189,7 +189,7 @@ Vue.component("selected-add-tag", {
     },
     destroyed: function() {
         if (this.shouldAdd) {
-            this.$parent.filesAPI().addSelectedFilesTag(this.tag.id);
+            this.$parent.addTag(this.tag.id);
         }
     },
     template: `
@@ -205,6 +205,29 @@ Vue.component("selected-add-tag", {
 	</div>`
 });
 
+Vue.component("selected-add-tag-wrapper", {
+    props: {
+        tags: Object
+    },
+    data: function() {
+        return {
+            tagsForAdding: [] // id of tags
+        };
+    },
+    destroyed: function() {
+        this.$parent.filesAPI().addSelectedFilesTags(this.tagsForAdding);
+    },
+    methods: {
+        addTag: function(tagID) {
+            this.tagsForAdding.push(tagID);
+        }
+    },
+    template: `
+	<div>
+		<selected-add-tag v-for="tag in tags" :tag="tag"></selected-add-tag>
+	</div>`
+});
+
 Vue.component("selected-delete-tag", {
     props: {
         tag: Object
@@ -216,7 +239,7 @@ Vue.component("selected-delete-tag", {
     },
     destroyed: function() {
         if (this.shouldDelete) {
-            this.$parent.filesAPI().deleteSelectedFilesTag(this.tag.id);
+            this.$parent.deleteTag(this.tag.id);
         }
     },
     template: `
@@ -229,6 +252,29 @@ Vue.component("selected-delete-tag", {
 		<div style="position: absolute; right: 0;">
 			<input v-model="shouldDelete" type="checkbox" style="width: 20px; height: 20px; right: 0;" title="Add tag">
 		</div>
+	</div>`
+});
+
+Vue.component("selected-delete-tag-wrapper", {
+    props: {
+        tags: Object
+    },
+    data: function() {
+        return {
+            tagsForDeleting: [] // id of tags
+        };
+    },
+    destroyed: function() {
+        this.$parent.filesAPI().deleteSelectedFilesTags(this.tagsForDeleting);
+    },
+    methods: {
+        deleteTag: function(tagID) {
+            this.tagsForDeleting.push(tagID);
+        }
+    },
+    template: `
+	<div>
+		<selected-delete-tag v-for="tag in tags" :tag="tag"></selected-delete-tag>
 	</div>`
 });
 
