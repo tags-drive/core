@@ -92,7 +92,8 @@
 				<input type="button" class="context-menu__input" @click="regularMode().changeTags()" value="Update tags">
 			</div>
 			<div v-else>
-				<input type="button" class="context-menu__input" @click="selectMode().changeTags()" value="Update tags">
+				<input type="button" class="context-menu__input" @click="selectMode().addTags()" value="Add tags">
+				<input type="button" class="context-menu__input" @click="selectMode().deleteTags()" value="Delete tags">
 			</div>
 			<!-- Description -->
 			<div v-if="!sharedState.selectMode">
@@ -167,8 +168,16 @@
 				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().deleteFile()">
 				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
 			</div>
+			<!-- Select tags adding -->
+			<div v-else-if="selectFilesTagsAddMode" class="modal-window__input">
+
+				<!-- TODO -->
 			<!-- Select tags updating -->
 			<div v-else-if="selectFilesTagsMode" class="modal-window__input">
+			</div>
+			<!-- Select tags deleting -->
+			<div v-else-if="selectFilesTagsDeleteMode" class="modal-window__input" style="display: flex; justify-content: space-between;">
+
 				<!-- TODO -->
 				TODO selectFilesTagsMode
 			</div>

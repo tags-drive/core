@@ -16,7 +16,7 @@ const sortOrder = {
 var GlobalStore = {
     data: {
         allFiles: [],
-        allTags: {}
+        allTags: []
     },
     updateFiles: function() {
         fetch("/api/files", {
@@ -530,9 +530,13 @@ var contextMenu = new Vue({
         // Options of context menu (select mode)
         selectMode: function() {
             return {
-                changeTags: () => {
+                addTags: () => {
                     this.show = false;
-                    modalWindow.showWindow().selectFilesTagsUpdating(mainBlock.getSelectedFiles());
+                    modalWindow.showWindow().selectFilesTagsAdding(mainBlock.getSelectedFiles());
+                },
+                deleteTags: () => {
+                    this.show = false;
+                    modalWindow.showWindow().selectFilesTagsDeleting(mainBlock.getSelectedFiles());
                 },
                 downloadFiles: () => {
                     let params = new URLSearchParams();
@@ -587,7 +591,8 @@ var modalWindow = new Vue({
         regularDescriptionMode: false,
         regularDeleteMode: false,
         //
-        selectFilesTagsMode: false,
+        selectFilesTagsAddMode: false,
+        selectFilesTagsDeleteMode: false,
         selectDeleteMode: false,
         // For files API
         fileNewData: {
@@ -657,11 +662,21 @@ var modalWindow = new Vue({
                     this.show = true;
                 },
                 // Select mode
-                selectFilesTagsUpdating: files => {
+                selectFilesTagsAdding: files => {
+                    console.log(this.sharedData.allTags);
                     GlobalState.showDropLayer = false;
 
                     this.selectedFiles = files;
-                    this.selectFilesTagsMode = true;
+                    this.selectFilesTagsAddMode = true;
+
+                    this.show = true;
+                },
+                selectFilesTagsDeleting: files => {
+                    console.log(this.sharedData.allTags);
+                    GlobalState.showDropLayer = false;
+
+                    this.selectedFiles = files;
+                    this.selectFilesTagsDeleteMode = true;
 
                     this.show = true;
                 },
@@ -681,9 +696,9 @@ var modalWindow = new Vue({
             this.regularFileTagsMode = false;
             this.regularDescriptionMode = false;
             this.regularDeleteMode = false;
-            this.selectFilesTagsMode = false;
+            this.selectFilesTagsAddMode = false;
+            this.selectFilesTagsDeleteMode = false;
             this.selectDeleteMode = false;
-
             this.show = false;
 
             this.error = "";
@@ -865,8 +880,15 @@ var modalWindow = new Vue({
                         .catch(err => eventWindow.add(true, err));
                 },
                 // Select mode
-                updateSelectedFilesTags: () => {
-                    // TODO
+                addSelectedFilesTags: () => {
+                    for (f of this.selectedFiles) {
+                        console.log(f);
+                    }
+                },
+                deleteSelectedFilesTags: () => {
+                    for (f of this.selectedFiles) {
+                        console.log(f);
+                    }
                 },
                 deleteSelectedFiles: () => {
                     let params = new URLSearchParams();
