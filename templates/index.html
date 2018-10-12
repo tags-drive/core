@@ -83,62 +83,46 @@
 	<!-- Context menu -->
 	<div id="context-menu" v-if="show" :style="{'top': top, 'left': left}">
 		<div v-on-clickaway="hideMenu">
-			<input type="button" class="context-menu__input" @click="changeName" value="Rename">
-			<br>
-			<input type="button" class="context-menu__input" @click="changeTags" value="Update tags">
-			<br>
-			<input type="button" class="context-menu__input" @click="changeDescription" value="Update description">
-			<br>
-			<div class="context-menu__input" style="box-sizing : border-box;" @click="hideMenu">
+			<!-- Rename -->
+			<div v-if="!sharedState.selectMode">
+				<input type="button" class="context-menu__input" @click="regularMode().changeName()" value="Rename">
+			</div>
+			<!-- Tags -->
+			<div v-if="!sharedState.selectMode">
+				<input type="button" class="context-menu__input" @click="regularMode().changeTags()" value="Update tags">
+			</div>
+			<div v-else>
+				<input type="button" class="context-menu__input" @click="selectMode().addTags()" value="Add tags">
+				<input type="button" class="context-menu__input" @click="selectMode().deleteTags()" value="Delete tags">
+			</div>
+			<!-- Description -->
+			<div v-if="!sharedState.selectMode">
+				<input type="button" class="context-menu__input" @click="regularMode().changeDescription()" value="Update description">
+			</div>
+			<!-- Download -->
+			<div v-if="!sharedState.selectMode" class="context-menu__input" style="box-sizing : border-box;" @click="hideMenu">
 				<a :href="file.origin" class="context-menu__input--href" download>Download</a>
 			</div>
-			<input type="button" class="context-menu__input" @click="deleteFile" value="Delete" style="margin-bottom: 0px;">
+			<div v-else>
+				<input type="button" class="context-menu__input" @click="selectMode().downloadFiles()" value="Download selected files">
+			</div>
+			<!-- Delete -->
+			<div v-if="!sharedState.selectMode">
+				<input type="button" class="context-menu__input" @click="regularMode().deleteFile()" value="Delete" style="margin-bottom: 0px;">
+			</div>
+			<div v-else>
+				<input type="button" class="context-menu__input" @click="selectMode().deleteFiles()" value="Delete" style="margin-bottom: 0px;">
+			</div>
 		</div>
 	</div>
 
 	<!-- Modal window -->
 	<div id="modal-window" v-if="show" @click.self="hideWindow">
 		<div id="modal-window__block">
-			<!-- Rename mode -->
-			<div v-if="renameMode" class="modal-window__input">
-				<div style="margin-bottom: 5px;">Current filename: "{{file.filename}}"</div>
-				<input type="text" style="margin-bottom: 5px; width: 400px;" v-model="fileNewData.newFilename" placeholder="New filename">
-				<br>
-				<input class="btn" type="button" value="Rename" @click="filesAPI().rename()">
-			</div>
-			<!-- Change file tags mode -->
-			<div v-else-if="tagsMode" class="modal-window__input">
-				<!-- Current tags -->
-				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="tagsDragAndDrop().addToFile($event)"
-				 @dragover.prevent>
-					<tags-input v-for="tag in fileNewData.newTags" :tag="tag"></tags-input>
-				</div>
-
-				<div style="border-bottom: 1px solid black; width: 90%; margin: 20px auto 20px auto;"></div>
-
-				<!-- All tags -->
-				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="tagsDragAndDrop().delFromFile($event)"
-				 @dragover.prevent>
-					<tags-input v-for="tag in fileNewData.unusedTags" :tag="tag"></tags-input>
-				</div>
-				<br>
-				<input class="btn" type="button" value="Change tags" @click="filesAPI().updateTags()">
-			</div>
-			<!-- Change description mode -->
-			<div v-else-if="descriptionMode" class="modal-window__input">
-				<textarea style="outline: none; margin-bottom: 5px;" placeholder="Current description: empty" readonly="readonly">{{file.description}}</textarea>
-				<textarea style="margin-bottom: 5px;" placeholder="New description" v-model="fileNewData.newDescription"></textarea>
-				<input class="btn" type="button" value="Update" @click="filesAPI().updateDescription()">
-			</div>
-			<!-- Delete mode -->
-			<div v-else-if="deleteMode" class="modal-window__input">
-				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().delete()">
-				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
-			</div>
-			<!-- Change global tags mode -->
-			<div v-else-if="globalTagsMode" id="global-tags" class="modal-window__input">
+			<!-- Global tags mode -->
+			<div v-if="globalTagsMode" id="global-tags" class="modal-window__input">
 				<!-- Existed tags -->
-				<modifying-tags v-for="tag in sharedState.allTags" :tag="tag"></modifying-tags>
+				<modifying-tags v-for="tag in sharedData.allTags" :tag="tag"></modifying-tags>
 				<p></p>
 
 				<input type="button" @click="if(newTag.name !== undefined) {return;} newTag = {'name': 'new tag', 'color': '#ffffff'};"
@@ -148,6 +132,74 @@
 				<!-- New tag -->
 				<modifying-tags v-if="newTag.name !== undefined" :tag="newTag" :is-new-tag="true"></modifying-tags>
 			</div>
+			<!-- Regular rename mode -->
+			<div v-else-if="regularRenameMode" class="modal-window__input">
+				<div style="margin-bottom: 5px;">Current filename: "{{file.filename}}"</div>
+				<input type="text" style="margin-bottom: 5px; width: 400px;" v-model="fileNewData.newFilename" placeholder="New filename">
+				<br>
+				<input class="btn" type="button" value="Rename" @click="filesAPI().rename()">
+			</div>
+			<!-- Regular tags updating -->
+			<div v-else-if="regularFileTagsMode" class="modal-window__input">
+				<!-- Current tags -->
+				<div class="modal-window__tags-field" title="Tags of a file" @drop.prevent="tagsDragAndDrop().add($event)"
+				 @dragover.prevent>
+					<tags-input v-for="tag in fileNewData.newTags" :tag="tag"></tags-input>
+				</div>
+
+				<div style="border-bottom: 1px solid black; width: 90%; margin: 20px auto 20px auto;"></div>
+
+				<!-- All tags -->
+				<div class="modal-window__tags-field" title="Unused tags" @drop.prevent="tagsDragAndDrop().del($event)"
+				 @dragover.prevent>
+					<tags-input v-for="tag in fileNewData.unusedTags" :tag="tag"></tags-input>
+				</div>
+				<br>
+				<input class="btn" type="button" value="Change tags" @click="filesAPI().updateTags()">
+			</div>
+			<!-- Regular description changing -->
+			<div v-else-if="regularDescriptionMode" class="modal-window__input">
+				<textarea style="outline: none; margin-bottom: 5px;" placeholder="Current description: empty" readonly="readonly">{{file.description}}</textarea>
+				<textarea style="margin-bottom: 5px;" placeholder="New description" v-model="fileNewData.newDescription"></textarea>
+				<input class="btn" type="button" value="Update" @click="filesAPI().updateDescription()">
+			</div>
+			<!-- Regular delete mode -->
+			<div v-else-if="regularDeleteMode" class="modal-window__input">
+				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().deleteFile()">
+				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
+			</div>
+			<!-- Select tags adding -->
+			<div v-else-if="selectFilesTagsAddMode" class="modal-window__input">
+				<div style="font-size: 20px;">Add tags</div>
+				<p></p>
+				<div style="margin-right: auto; margin-left: auto; width: 40%;">
+					<selected-add-tag-wrapper :tags="sharedData.allTags"></selected-add-tag-wrapper>
+				</div>
+			</div>
+			<!-- Select tags deleting -->
+			<div v-else-if="selectFilesTagsDeleteMode" class="modal-window__input">
+				<div style="font-size: 20px;">Delete tags</div>
+				<p></p>
+				<div style="margin-right: auto; margin-left: auto; width: 40%;">
+					<selected-delete-tag-wrapper :tags="sharedData.allTags"></selected-delete-tag-wrapper>
+				</div>
+			</div>
+			<!-- Select delete mode -->
+			<div v-else-if="selectDeleteMode" class="modal-window__input">
+				<div style="font-size: 20px;">Selected files:</div>
+				<br>
+				<div style="text-align: left; max-height: 160px; overflow-y: auto;">
+					<ul>
+						<li v-for="file in selectedFiles"> {{file.filename}}</li>
+					</ul>
+				</div>
+
+				<div style="border-bottom: 1px solid black; width: 90%; margin: 20px auto 20px auto;"></div>
+
+				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().deleteSelectedFiles()">
+				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
+			</div>
+
 			<!-- Error -->
 			<div v-if="error != ''" id="modal-window__error">Error: {{error}}</div>
 		</div>

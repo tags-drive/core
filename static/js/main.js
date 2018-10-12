@@ -12,13 +12,11 @@ const sortOrder = {
     desc: "desc"
 };
 
-// store contains global data
-var store = {
-    state: {
+// GlobalStore contains global data
+var GlobalStore = {
+    data: {
         allFiles: [],
-        allTags: {},
-        opacity: 1,
-        showDropLayer: true // when we show modal-window with tags showDropLayer is false
+        allTags: []
     },
     updateFiles: function() {
         fetch("/api/files", {
@@ -36,7 +34,7 @@ var store = {
         })
             .then(data => data.json())
             .then(tags => {
-                this.state.allTags = tags;
+                this.data.allTags = tags;
             })
             .catch(err => console.error(err));
     },
@@ -45,19 +43,25 @@ var store = {
         for (let i in files) {
             files[i].addTime = new Date(files[i].addTime).format("dd-mm-yyyy HH:MM");
         }
-        this.state.allFiles = files;
+        this.data.allFiles = files;
     }
+};
+
+var GlobalState = {
+    mainBlockOpacity: 1,
+    showDropLayer: true, // when we show modal-window with tags showDropLayer is false
+    selectMode: false
 };
 
 // Init should be called onload
 function Init() {
-    store.updateTags();
-    store.updateFiles();
+    GlobalStore.updateTags();
+    GlobalStore.updateFiles();
 }
 
 function updateStore() {
-    store.updateFiles();
-    store.updateTags();
+    GlobalStore.updateFiles();
+    GlobalStore.updateTags();
 }
 
 function isErrorStatusCode(statusCode) {
@@ -90,8 +94,8 @@ var topBar = new Vue({
                     if (this.pickedTags.length == 0) {
                         // Need to fill unusedTags
                         this.unusedTags = [];
-                        for (let tag in store.state.allTags) {
-                            this.unusedTags.push(store.state.allTags[tag]);
+                        for (let tag in GlobalStore.data.allTags) {
+                            this.unusedTags.push(GlobalStore.data.allTags[tag]);
                         }
                     }
 
@@ -128,7 +132,7 @@ var topBar = new Vue({
                     })
                         .then(data => data.json())
                         .then(files => {
-                            store.setFiles(files);
+                            GlobalStore.setFiles(files);
                             // Reset sortParams
                             mainBlock.sort().reset();
                         });
@@ -159,7 +163,7 @@ var topBar = new Vue({
                         credentials: "same-origin"
                     })
                         .then(data => data.json())
-                        .then(files => store.setFiles(files));
+                        .then(files => GlobalStore.setFiles(files));
                 }
             };
         },
@@ -205,7 +209,7 @@ var topBar = new Vue({
         },
         settings: function() {
             return {
-                tags: () => modalWindow.showWindow().globalTags()
+                tags: () => modalWindow.showWindow().globalTagsUpdating()
             };
         }
     }
@@ -215,20 +219,18 @@ var topBar = new Vue({
 var mainBlock = new Vue({
     el: "#main-block",
     data: {
-        sharedState: store.state,
-        opacity: 1,
+        sharedData: GlobalStore.data,
+        sharedState: GlobalState,
 
         sortByNameModeAsc: true,
         sortBySizeModeAsc: true,
         sortByTimeModeAsc: true,
-        lastSortType: sortType.name
+        lastSortType: sortType.name,
+
+        allSelected: false,
+        selectCount: 0
     },
     methods: {
-        // Context menu
-        showContextMenu: function(event, file) {
-            contextMenu.setFile(file);
-            contextMenu.showMenu(event.x, event.y);
-        },
         // Sorts
         sort: function() {
             return {
@@ -280,13 +282,75 @@ var mainBlock = new Vue({
                     this.sortByTimeModeAsc = true;
                 }
             };
+        },
+        // Select mode
+        toggleAllFiles: function() {
+            if (!this.allSelected) {
+                this.selectCount = this.sharedData.allFiles.length;
+                this.allSelected = true;
+                GlobalState.selectMode = true;
+
+                for (i in this.$children) {
+                    this.$children[i].select();
+                }
+            } else {
+                this.selectCount = 0;
+                this.allSelected = false;
+                GlobalState.selectMode = false;
+
+                for (i in this.$children) {
+                    this.$children[i].unselect();
+                }
+            }
+        },
+        unselectAllFile: function() {
+            for (i in this.$children) {
+                this.$children[i].unselect();
+            }
+            this.allSelected = false;
+            GlobalState.selectMode = false;
+            this.selectCount = 0;
+        },
+        getSelectedFiles: function() {
+            let files = [];
+            for (i in this.$children) {
+                if (this.$children[i].selected) {
+                    files.push(this.$children[i].file);
+                }
+            }
+            return files;
+        },
+        // For children
+        selectFile: function() {
+            this.selectCount++;
+            GlobalState.selectMode = true;
+            if (this.selectCount == this.sharedData.allFiles.length) {
+                this.allSelected = true;
+            }
+        },
+        unselectFile: function() {
+            this.selectCount--;
+            this.allSelected = false;
+            if (this.selectCount == 0) {
+                GlobalState.selectMode = false;
+            }
         }
     },
     template: `
-	<table :style="{'opacity': sharedState.opacity}" class="file-table" style="width:100%;">
+	<table :style="{'opacity': sharedState.mainBlockOpacity}" class="file-table" style="width:100%;">
 		<tr style="top: 100px;">
-			<th></th>
-			<th></th>
+			<th style="text-align: center; width: 30px;">
+				<input
+				type="checkbox"
+				:indeterminate.prop="selectCount > 0 && selectCount != sharedData.allFiles.length"
+				v-model="allSelected"
+				@click="toggleAllFiles"
+				style="height: 15px; width: 15px;"
+				title="Select all"
+			>
+			</th>
+			<!-- Preview image -->
+			<th></th> 
 			<th>
 				Filename
 				<i class="material-icons" id="sortByNameIcon" @click="sort().byName()" :style="[sortByNameModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="font-size: 20px; cursor: pointer;">
@@ -307,7 +371,7 @@ var mainBlock = new Vue({
 				</i>
 			</th>
 		</tr>
-		<files v-for="file in sharedState.allFiles" :file="file" :allTags="store.state.allTags"></files>
+		<files v-for="file in sharedData.allFiles" :file="file" :allTags="sharedData.allTags"></files>
 	</table>`
 });
 
@@ -317,31 +381,31 @@ var mainBlock = new Vue({
 var uploader = new Vue({
     el: "#upload-block",
     data: {
-        sharedState: store.state,
+        sharedData: GlobalStore.data,
         counter: 0 // for definition did user drag file into div. If counter > 0, user dragged file.
     },
     created() {
         // Add listeners
         document.ondragenter = () => {
-            if (store.state.showDropLayer) {
+            if (GlobalState.showDropLayer) {
                 this.counter++;
             }
         };
         document.ondragleave = () => {
-            if (store.state.showDropLayer) {
+            if (GlobalState.showDropLayer) {
                 this.counter--;
             }
         };
         document.ondrop = () => {
-            if (store.state.showDropLayer) {
+            if (GlobalState.showDropLayer) {
                 this.counter = 0;
             }
         };
         setInterval(() => {
             if (this.counter == 0) {
-                this.sharedState.opacity = 1;
+                GlobalState.mainBlockOpacity = 1;
             } else {
-                this.sharedState.opacity = 0.3;
+                GlobalState.mainBlockOpacity = 0.3;
             }
         }, 10);
     },
@@ -405,6 +469,7 @@ var contextMenu = new Vue({
     el: "#context-menu",
     mixins: [VueClickaway.mixin], // from vue-clickaway
     data: {
+        sharedState: GlobalState,
         file: null,
         // Style
         top: "0px",
@@ -443,21 +508,68 @@ var contextMenu = new Vue({
             this.show = false;
         },
         // Options of context menu
-        changeName: function() {
-            this.show = false;
-            modalWindow.showWindow().renaming(this.file);
+        regularMode: function() {
+            return {
+                changeName: () => {
+                    this.show = false;
+                    modalWindow.showWindow().regularRenaming(this.file);
+                },
+                changeTags: () => {
+                    this.show = false;
+                    modalWindow.showWindow().regularFileTagsUpdating(this.file);
+                },
+                changeDescription: () => {
+                    this.show = false;
+                    modalWindow.showWindow().regularDescriptionChanging(this.file);
+                },
+                deleteFile: () => {
+                    this.show = false;
+                    modalWindow.showWindow().regularDeleting(this.file);
+                }
+            };
         },
-        changeTags: function() {
-            this.show = false;
-            modalWindow.showWindow().fileTags(this.file);
-        },
-        changeDescription: function() {
-            this.show = false;
-            modalWindow.showWindow().description(this.file);
-        },
-        deleteFile: function() {
-            this.show = false;
-            modalWindow.showWindow().deleting(this.file);
+        // Options of context menu (select mode)
+        selectMode: function() {
+            return {
+                addTags: () => {
+                    this.show = false;
+                    modalWindow.showWindow().selectFilesTagsAdding(mainBlock.getSelectedFiles());
+                },
+                deleteTags: () => {
+                    this.show = false;
+                    modalWindow.showWindow().selectFilesTagsDeleting(mainBlock.getSelectedFiles());
+                },
+                downloadFiles: () => {
+                    let params = new URLSearchParams();
+                    let files = mainBlock.getSelectedFiles();
+                    for (let file of files) {
+                        // need to use link to a file, not filename
+                        params.append("file", file.origin);
+                    }
+
+                    fetch("/api/files/download?" + params, {
+                        method: "GET",
+                        credentials: "same-origin"
+                    }).then(resp => {
+                        resp.blob().then(file => {
+                            let a = document.createElement("a"),
+                                url = URL.createObjectURL(file);
+
+                            a.href = url;
+                            a.download = "files.zip";
+                            document.body.appendChild(a);
+                            a.click();
+
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                        });
+                    });
+                },
+                deleteFiles: () => {
+                    this.show = false;
+                    modalWindow.showWindow().selectDeleting(mainBlock.getSelectedFiles());
+                }
+            };
         }
     }
 });
@@ -470,13 +582,19 @@ var modalWindow = new Vue({
         file: null,
         show: false,
         error: "",
-        sharedState: store.state,
+        selectedFiles: [],
+        sharedData: GlobalStore.data,
         // Modes
-        renameMode: false,
-        tagsMode: false,
-        descriptionMode: false,
-        deleteMode: false,
         globalTagsMode: false,
+        //
+        regularRenameMode: false,
+        regularFileTagsMode: false,
+        regularDescriptionMode: false,
+        regularDeleteMode: false,
+        //
+        selectFilesTagsAddMode: false,
+        selectFilesTagsDeleteMode: false,
+        selectDeleteMode: false,
         // For files API
         fileNewData: {
             newFilename: "",
@@ -491,68 +609,105 @@ var modalWindow = new Vue({
         // UI
         showWindow: function() {
             return {
-                renaming: file => {
+                globalTagsUpdating: () => {
+                    GlobalState.showDropLayer = false;
+
+                    this.globalTagsMode = true;
+
+                    this.show = true;
+                },
+                // Regular mode
+                regularRenaming: file => {
+                    GlobalState.showDropLayer = false;
+
                     this.file = file;
-                    this.renameMode = true;
+                    this.regularRenameMode = true;
                     this.fileNewData.newFilename = file.filename;
 
                     this.show = true;
                 },
-                fileTags: file => {
-                    store.state.showDropLayer = false;
+                regularFileTagsUpdating: file => {
+                    GlobalState.showDropLayer = false;
 
                     this.fileNewData.newTags = [];
                     this.fileNewData.unusedTags = [];
 
-                    for (let id in this.sharedState.allTags) {
+                    for (let id in this.sharedData.allTags) {
                         if (file.tags.includes(Number(id))) {
-                            this.fileNewData.newTags.push(this.sharedState.allTags[id]);
+                            this.fileNewData.newTags.push(this.sharedData.allTags[id]);
                         } else {
-                            this.fileNewData.unusedTags.push(this.sharedState.allTags[id]);
+                            this.fileNewData.unusedTags.push(this.sharedData.allTags[id]);
                         }
                     }
 
                     this.file = file;
-                    this.tagsMode = true;
+                    this.regularFileTagsMode = true;
 
                     this.show = true;
                 },
-                description: file => {
+                regularDescriptionChanging: file => {
+                    GlobalState.showDropLayer = false;
+
                     this.file = file;
                     this.fileNewData.unusedTags;
-                    this.descriptionMode = true;
+                    this.regularDescriptionMode = true;
 
                     this.show = true;
                 },
-                deleting: file => {
+                regularDeleting: file => {
+                    GlobalState.showDropLayer = false;
+
                     this.file = file;
-                    this.deleteMode = true;
+                    this.regularDeleteMode = true;
 
                     this.show = true;
                 },
-                globalTags: () => {
-                    this.globalTagsMode = true;
+                // Select mode
+                selectFilesTagsAdding: files => {
+                    GlobalState.showDropLayer = false;
+
+                    this.selectedFiles = files;
+                    this.selectFilesTagsAddMode = true;
+
+                    this.show = true;
+                },
+                selectFilesTagsDeleting: files => {
+                    GlobalState.showDropLayer = false;
+
+                    this.selectedFiles = files;
+                    this.selectFilesTagsDeleteMode = true;
+
+                    this.show = true;
+                },
+                selectDeleting: files => {
+                    GlobalState.showDropLayer = false;
+
+                    this.selectedFiles = files;
+                    this.selectDeleteMode = true;
 
                     this.show = true;
                 }
             };
         },
         hideWindow: function() {
-            this.renameMode = false;
-            this.tagsMode = false;
-            this.descriptionMode = false;
-            this.deleteMode = false;
-            this.show = false;
             this.globalTagsMode = false;
+            this.regularRenameMode = false;
+            this.regularFileTagsMode = false;
+            this.regularDescriptionMode = false;
+            this.regularDeleteMode = false;
+            this.selectFilesTagsAddMode = false;
+            this.selectFilesTagsDeleteMode = false;
+            this.selectDeleteMode = false;
+            this.show = false;
 
             this.error = "";
 
-            store.state.showDropLayer = true;
+            GlobalState.showDropLayer = true;
         },
         // Drag and drop
         tagsDragAndDrop: function() {
             return {
-                addToFile: ev => {
+                add: ev => {
                     let tagID = Number(ev.dataTransfer.getData("tagName"));
                     let index = -1;
                     for (i in this.fileNewData.unusedTags) {
@@ -567,7 +722,7 @@ var modalWindow = new Vue({
                     this.fileNewData.newTags.push(this.fileNewData.unusedTags[index]);
                     this.fileNewData.unusedTags.splice(index, 1);
                 },
-                delFromFile: ev => {
+                del: ev => {
                     let tagID = ev.dataTransfer.getData("tagName");
                     let index = -1;
                     for (i in this.fileNewData.newTags) {
@@ -587,6 +742,7 @@ var modalWindow = new Vue({
         // Files API
         filesAPI: function() {
             return {
+                // Regular mode
                 rename: () => {
                     let params = new URLSearchParams();
                     params.append("file", this.file.filename);
@@ -673,7 +829,7 @@ var modalWindow = new Vue({
                             console.error(err);
                         });
                 },
-                delete: () => {
+                deleteFile: () => {
                     let params = new URLSearchParams();
                     params.append("file", this.file.filename);
 
@@ -721,6 +877,144 @@ var modalWindow = new Vue({
                             }
                         })
                         .catch(err => eventWindow.add(true, err));
+                },
+                // Select mode
+                addSelectedFilesTags: tagIDs => {
+                    if (tagIDs.length == 0) {
+                        return;
+                    }
+
+                    // Update tags and refresh list of files after all changes
+                    (async () => {
+                        for (file of this.selectedFiles) {
+                            let tags = new Set(file.tags);
+                            for (tag of tagIDs) {
+                                tags.add(tag);
+                            }
+
+                            let params = new URLSearchParams();
+                            params.append("file", file.filename);
+                            params.append("tags", Array.from(tags).join(","));
+
+                            await fetch("/api/files", {
+                                method: "PUT",
+                                body: params
+                            })
+                                .then(resp => {
+                                    if (isErrorStatusCode(resp.status)) {
+                                        resp.text().then(text => {
+                                            console.error(text);
+                                        });
+                                        return;
+                                    }
+                                })
+                                .catch(err => console.error(err));
+                        }
+                    })()
+                        .then(() => {
+                            // Refresh list of files
+                            mainBlock.unselectAllFile();
+                            topBar.search().usual();
+                            this.hideWindow();
+                        })
+                        .catch(err => console.error(err));
+                },
+                deleteSelectedFilesTags: tagIDs => {
+                    if (tagIDs.length == 0) {
+                        return;
+                    }
+
+                    // Update tags and refresh list of files after all changes
+                    (async () => {
+                        for (file of this.selectedFiles) {
+                            let tags = new Set(file.tags);
+                            for (tag of tagIDs) {
+                                tags.delete(tag);
+                            }
+
+                            let params = new URLSearchParams();
+                            let tagsList = "empty";
+                            if (tags.size != 0) {
+                                tagsList = Array.from(tags).join(",");
+                            }
+                            params.append("file", file.filename);
+                            params.append("tags", tagsList);
+
+                            await fetch("/api/files", {
+                                method: "PUT",
+                                body: params
+                            })
+                                .then(resp => {
+                                    if (isErrorStatusCode(resp.status)) {
+                                        resp.text().then(text => {
+                                            console.error(text);
+                                        });
+                                    }
+                                })
+                                .catch(err => console.error(err));
+                        }
+                    })()
+                        .then(() => {
+                            // Refresh list of files
+                            mainBlock.unselectAllFile();
+                            topBar.search().usual();
+                            this.hideWindow();
+                        })
+                        .catch(err => console.error(err));
+                },
+                deleteSelectedFiles: () => {
+                    let params = new URLSearchParams();
+                    for (f of this.selectedFiles) {
+                        params.append("file", f.filename);
+                    }
+
+                    fetch("/api/files?" + params, {
+                        method: "DELETE",
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (isErrorStatusCode(resp.status)) {
+                                resp.text().then(text => {
+                                    console.error(text);
+                                    this.error = text;
+                                });
+                                return;
+                            }
+
+                            // Refresh list of files
+                            updateStore();
+                            this.hideWindow();
+                            return resp.json();
+                        })
+                        .then(log => {
+                            if (log === undefined) {
+                                return;
+                            }
+                            console.log(log);
+                            /* Schema:
+                            [
+                                {
+                                    filename: string,
+                                    isError: boolean,
+                                    error: string (when isError == true),
+                                    status: string (when isError == false)
+                                }
+                            ]
+                            */
+                            for (let i in log) {
+                                let msg = log[i].filename;
+                                if (log[i].isError) {
+                                    msg += " " + log[i].error;
+                                } else {
+                                    msg += " " + log[i].status;
+                                }
+                                eventWindow.add(log[i].isError, msg);
+                            }
+                        })
+                        .catch(err => eventWindow.add(true, err));
+
+                    // If we don't call this function, next files will become selected.
+                    mainBlock.unselectAllFile();
                 }
             };
         },
@@ -748,7 +1042,7 @@ var modalWindow = new Vue({
                             }
 
                             this.tagsAPI().delNewTag();
-                            store.updateTags();
+                            GlobalStore.updateTags();
                         })
                         .catch(err => {
                             console.error(err);
@@ -775,7 +1069,7 @@ var modalWindow = new Vue({
                                 return;
                             }
 
-                            store.updateTags();
+                            GlobalStore.updateTags();
                         })
                         .catch(err => {
                             console.error(err);
@@ -799,7 +1093,7 @@ var modalWindow = new Vue({
                                 return;
                             }
 
-                            store.updateTags();
+                            GlobalStore.updateTags();
                             // Need to update files to remove deleted tag
                             topBar.search().usual();
                             return resp.text();

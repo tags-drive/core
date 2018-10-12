@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -114,6 +115,30 @@ func getParam(def, passed string, options ...string) (s string) {
 	}
 
 	return
+}
+
+// GET /api/files/download?file=132.png&file=456.jpg
+//
+// Response: blob zip-file
+//
+func downloadFiles(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	filenames := r.Form["file"]
+	if len(filenames) == 0 {
+		Error(w, "list of files can't be empty", http.StatusBadRequest)
+		return
+	}
+
+	body, err := files.ArchiveFiles(filenames)
+	if err != nil {
+		Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/zip")
+	if _, err := io.Copy(w, body); err != nil {
+		log.Errorf("can't copy zip file to response body: %s\n", err)
+	}
 }
 
 // GET /api/files/recent?number=5 (5 is a default value)

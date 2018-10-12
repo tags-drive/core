@@ -54,6 +54,7 @@ Vue.component("tags-input", {
 const validTagName = /^[\w\d- ]{1,20}$/;
 const validColor = /^#[\dabcdef]{6}$/;
 
+// For tags editing
 Vue.component("modifying-tags", {
     props: {
         tag: Object,
@@ -176,6 +177,107 @@ Vue.component("modifying-tags", {
 	</div>`
 });
 
+// For selected mod
+Vue.component("selected-add-tag", {
+    props: {
+        tag: Object
+    },
+    data: function() {
+        return {
+            shouldAdd: false
+        };
+    },
+    destroyed: function() {
+        if (this.shouldAdd) {
+            this.$parent.addTag(this.tag.id);
+        }
+    },
+    template: `
+	<div style="display: flex; margin-right: auto; margin-left: auto; margin-bottom: 5px; position: relative;">
+		<div style="width: 200px; display: flex">
+			<div :style="{ 'background-color': tag.color }" class="tag" style="margin: 0;">
+				<div>{{tag.name}}</div>
+			</div>
+		</div>
+		<div style="position: absolute; right: 0;">
+			<input v-model="shouldAdd" type="checkbox" style="width: 20px; height: 20px; right: 0;" title="Add tag">
+		</div>
+	</div>`
+});
+
+Vue.component("selected-add-tag-wrapper", {
+    props: {
+        tags: Object
+    },
+    data: function() {
+        return {
+            tagsForAdding: [] // id of tags
+        };
+    },
+    destroyed: function() {
+        this.$parent.filesAPI().addSelectedFilesTags(this.tagsForAdding);
+    },
+    methods: {
+        addTag: function(tagID) {
+            this.tagsForAdding.push(tagID);
+        }
+    },
+    template: `
+	<div>
+		<selected-add-tag v-for="tag in tags" :tag="tag"></selected-add-tag>
+	</div>`
+});
+
+Vue.component("selected-delete-tag", {
+    props: {
+        tag: Object
+    },
+    data: function() {
+        return {
+            shouldDelete: false
+        };
+    },
+    destroyed: function() {
+        if (this.shouldDelete) {
+            this.$parent.deleteTag(this.tag.id);
+        }
+    },
+    template: `
+	<div style="display: flex; margin-right: auto; margin-left: auto; margin-bottom: 5px; position: relative;">
+		<div style="width: 200px; display: flex">
+			<div :style="{ 'background-color': tag.color }" class="tag" style="margin: 0;">
+				<div>{{tag.name}}</div>
+			</div>
+		</div>
+		<div style="position: absolute; right: 0;">
+			<input v-model="shouldDelete" type="checkbox" style="width: 20px; height: 20px; right: 0;" title="Add tag">
+		</div>
+	</div>`
+});
+
+Vue.component("selected-delete-tag-wrapper", {
+    props: {
+        tags: Object
+    },
+    data: function() {
+        return {
+            tagsForDeleting: [] // id of tags
+        };
+    },
+    destroyed: function() {
+        this.$parent.filesAPI().deleteSelectedFilesTags(this.tagsForDeleting);
+    },
+    methods: {
+        deleteTag: function(tagID) {
+            this.tagsForDeleting.push(tagID);
+        }
+    },
+    template: `
+	<div>
+		<selected-delete-tag v-for="tag in tags" :tag="tag"></selected-delete-tag>
+	</div>`
+});
+
 // Files in Main block
 Vue.component("files", {
     props: {
@@ -184,23 +286,44 @@ Vue.component("files", {
     },
     data: function() {
         return {
-            hover: false
+            hover: false,
+            selected: false
         };
     },
     methods: {
-        showContextMenu: function(event, fileData) {
-            this.$parent.showContextMenu(event, fileData);
+        showContextMenu: function(event) {
+            contextMenu.setFile(this.file);
+            contextMenu.showMenu(event.x, event.y);
+        },
+        toggleSelect: function() {
+            // We can skip changing this.selected, because a checkbox is bound to this.selected
+
+            // The function is called after changing this.selected
+            if (this.selected) {
+                this.$parent.selectFile();
+            } else {
+                this.$parent.unselectFile();
+            }
+        },
+        /* For the parent */
+        select: function() {
+            this.selected = true;
+        },
+        unselect: function() {
+            this.selected = false;
         }
     },
     template: `
 	<tr
-		:style="[hover ? {'background-color': 'rgba(0, 0, 0, 0.1)'} : {'background-color': 'white'} ]"
+		:style="[hover || selected ? {'background-color': 'rgba(0, 0, 0, 0.1)'} : {'background-color': 'white'} ]"
 		@mouseover="hover = true;"
 		@mouseleave="hover = false;"
 		@click.right.prevent="showContextMenu($event, file);"
 		:title="file.description"
 	>
-		<td></td>
+		<td style="text-align: center; width: 30px;">
+			<input type="checkbox" @change="toggleSelect" v-model="selected" style="height: 15px; width: 15px;">
+		</td>
 		<td v-if="file.type == 'image'" style="width: 30px;">
 			<img :src="file.preview" style="width: 30px;">
 		</td>
