@@ -426,7 +426,7 @@ var uploader = new Vue({
                     if (isErrorStatusCode(resp.status)) {
                         resp.text().then(text => {
                             console.error(text);
-                            eventWindow.add(true, text);
+                            logWindow.add(true, text);
                         });
                         return;
                     }
@@ -456,10 +456,10 @@ var uploader = new Vue({
                         } else {
                             msg += " " + log[i].status;
                         }
-                        eventWindow.add(log[i].isError, msg);
+                        logWindow.add(log[i].isError, msg);
                     }
                 })
-                .catch(err => eventWindow.add(true, err));
+                .catch(err => logWindow.add(true, err));
         }
     }
 });
@@ -873,10 +873,10 @@ var modalWindow = new Vue({
                                 } else {
                                     msg += " " + log[i].status;
                                 }
-                                eventWindow.add(log[i].isError, msg);
+                                logWindow.add(log[i].isError, msg);
                             }
                         })
-                        .catch(err => eventWindow.add(true, err));
+                        .catch(err => logWindow.add(true, err));
                 },
                 // Select mode
                 addSelectedFilesTags: tagIDs => {
@@ -1008,10 +1008,10 @@ var modalWindow = new Vue({
                                 } else {
                                     msg += " " + log[i].status;
                                 }
-                                eventWindow.add(log[i].isError, msg);
+                                logWindow.add(log[i].isError, msg);
                             }
                         })
-                        .catch(err => eventWindow.add(true, err));
+                        .catch(err => logWindow.add(true, err));
 
                     // If we don't call this function, next files will become selected.
                     mainBlock.unselectAllFile();
@@ -1112,7 +1112,7 @@ var modalWindow = new Vue({
     }
 });
 
-var eventWindow = new Vue({
+var logWindow = new Vue({
     el: "#events-window",
     data: {
         // States
