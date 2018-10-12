@@ -12,6 +12,11 @@ const sortOrder = {
     desc: "desc"
 };
 
+const logTypes = {
+    info: "info",
+    error: "error"
+};
+
 // GlobalStore contains global data
 var GlobalStore = {
     data: {
@@ -25,7 +30,7 @@ var GlobalStore = {
         })
             .then(data => data.json())
             .then(files => this.setFiles(files))
-            .catch(err => console.error(err));
+            .catch(err => console.error(err)); // user can live without this error, so we won't use logError() here
     },
     updateTags: function() {
         fetch("/api/tags", {
@@ -36,7 +41,7 @@ var GlobalStore = {
             .then(tags => {
                 this.data.allTags = tags;
             })
-            .catch(err => console.error(err));
+            .catch(err => console.error(err)); // user can live without this error, so we won't use logError() here
     },
     setFiles: function(files) {
         // Change time from "2018-08-23T22:48:59.0459184+03:00" to "23-08-2018 22:48"
@@ -69,6 +74,16 @@ function isErrorStatusCode(statusCode) {
         return true;
     }
     return false;
+}
+
+function logInfo(msg) {
+    console.log(msg);
+    logWindow.add(logTypes.info, msg);
+}
+
+function logError(err) {
+    console.error(err);
+    logWindow.add(logTypes.error, err);
 }
 
 /* Main instances */
@@ -425,8 +440,7 @@ var uploader = new Vue({
                 .then(resp => {
                     if (isErrorStatusCode(resp.status)) {
                         resp.text().then(text => {
-                            console.error(text);
-                            eventWindow.add(true, text);
+                            logError(text);
                         });
                         return;
                     }
@@ -456,10 +470,15 @@ var uploader = new Vue({
                         } else {
                             msg += " " + log[i].status;
                         }
-                        eventWindow.add(log[i].isError, msg);
+
+                        if (log[i].isError) {
+                            logError(msg);
+                        } else {
+                            logInfo(msg);
+                        }
                     }
                 })
-                .catch(err => eventWindow.add(true, err));
+                .catch(err => logError(err));
         }
     }
 });
@@ -581,7 +600,6 @@ var modalWindow = new Vue({
     data: {
         file: null,
         show: false,
-        error: "",
         selectedFiles: [],
         sharedData: GlobalStore.data,
         // Modes
@@ -700,8 +718,6 @@ var modalWindow = new Vue({
             this.selectDeleteMode = false;
             this.show = false;
 
-            this.error = "";
-
             GlobalState.showDropLayer = true;
         },
         // Drag and drop
@@ -756,8 +772,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -766,8 +781,7 @@ var modalWindow = new Vue({
                             this.hideWindow();
                         })
                         .catch(err => {
-                            this.error = err;
-                            console.error(err);
+                            logError(err);
                         });
                 },
                 updateTags: () => {
@@ -788,8 +802,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -798,8 +811,7 @@ var modalWindow = new Vue({
                             this.hideWindow();
                         })
                         .catch(err => {
-                            this.error = err;
-                            console.error(err);
+                            logError(err);
                         });
                 },
                 updateDescription: () => {
@@ -815,8 +827,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -825,8 +836,7 @@ var modalWindow = new Vue({
                             this.hideWindow();
                         })
                         .catch(err => {
-                            this.error = err;
-                            console.error(err);
+                            logError(err);
                         });
                 },
                 deleteFile: () => {
@@ -840,8 +850,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -873,10 +882,15 @@ var modalWindow = new Vue({
                                 } else {
                                     msg += " " + log[i].status;
                                 }
-                                eventWindow.add(log[i].isError, msg);
+
+                                if (log[i].isError) {
+                                    logError(msg);
+                                } else {
+                                    logInfo(msg);
+                                }
                             }
                         })
-                        .catch(err => eventWindow.add(true, err));
+                        .catch(err => logError(err));
                 },
                 // Select mode
                 addSelectedFilesTags: tagIDs => {
@@ -903,12 +917,12 @@ var modalWindow = new Vue({
                                 .then(resp => {
                                     if (isErrorStatusCode(resp.status)) {
                                         resp.text().then(text => {
-                                            console.error(text);
+                                            logError(text);
                                         });
                                         return;
                                     }
                                 })
-                                .catch(err => console.error(err));
+                                .catch(err => logError(err));
                         }
                     })()
                         .then(() => {
@@ -917,7 +931,7 @@ var modalWindow = new Vue({
                             topBar.search().usual();
                             this.hideWindow();
                         })
-                        .catch(err => console.error(err));
+                        .catch(err => logError(err));
                 },
                 deleteSelectedFilesTags: tagIDs => {
                     if (tagIDs.length == 0) {
@@ -947,11 +961,11 @@ var modalWindow = new Vue({
                                 .then(resp => {
                                     if (isErrorStatusCode(resp.status)) {
                                         resp.text().then(text => {
-                                            console.error(text);
+                                            logError(text);
                                         });
                                     }
                                 })
-                                .catch(err => console.error(err));
+                                .catch(err => logError(err));
                         }
                     })()
                         .then(() => {
@@ -960,7 +974,7 @@ var modalWindow = new Vue({
                             topBar.search().usual();
                             this.hideWindow();
                         })
-                        .catch(err => console.error(err));
+                        .catch(err => logError(err));
                 },
                 deleteSelectedFiles: () => {
                     let params = new URLSearchParams();
@@ -975,8 +989,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -1008,10 +1021,15 @@ var modalWindow = new Vue({
                                 } else {
                                     msg += " " + log[i].status;
                                 }
-                                eventWindow.add(log[i].isError, msg);
+
+                                if (log[i].isError) {
+                                    logError(msg);
+                                } else {
+                                    logInfo(msg);
+                                }
                             }
                         })
-                        .catch(err => eventWindow.add(true, err));
+                        .catch(err => logError(err));
 
                     // If we don't call this function, next files will become selected.
                     mainBlock.unselectAllFile();
@@ -1035,8 +1053,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -1045,8 +1062,7 @@ var modalWindow = new Vue({
                             GlobalStore.updateTags();
                         })
                         .catch(err => {
-                            console.error(err);
-                            this.error = err;
+                            logError(err);
                         });
                 },
                 change: (tagID, newName, newColor) => {
@@ -1063,8 +1079,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -1072,8 +1087,7 @@ var modalWindow = new Vue({
                             GlobalStore.updateTags();
                         })
                         .catch(err => {
-                            console.error(err);
-                            this.error = err;
+                            logError(err);
                         });
                 },
                 del: tagID => {
@@ -1087,8 +1101,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -1099,8 +1112,7 @@ var modalWindow = new Vue({
                             return resp.text();
                         })
                         .catch(err => {
-                            console.error(err);
-                            this.error = err;
+                            logError(err);
                         });
                 },
                 // delNewTag deletes tag from tagsNewData.newTag
@@ -1112,20 +1124,23 @@ var modalWindow = new Vue({
     }
 });
 
-var eventWindow = new Vue({
-    el: "#events-window",
+var logWindow = new Vue({
+    el: "#log-window",
     data: {
+        sharedLogTypes: logTypes,
+        // Const
+        hideTimeout: 5 * 1000, // 5s in milliseconds
         // States
         show: false,
         isMouseInside: false, // if isMouseInside, hideAfter isn't changed
-        hideAfter: 1000 * 2, // time in milliseconds
+        hideAfter: 5 * 1000,
         // UI
         opacity: 1,
         lastScrollHeight: 0,
         // Data
         /* events - array of objects:
            {
-             isError: boolean,
+             type: string,
              msg: string,
              time: string
            }
@@ -1133,7 +1148,8 @@ var eventWindow = new Vue({
         events: []
     },
     created: function() {
-        const msTimeout = 50;
+        const msTimeout = 50; // 50ms is good enough. When 100, FPS is too low
+
         setInterval(() => {
             if (this.isMouseInside) {
                 return;
@@ -1145,7 +1161,7 @@ var eventWindow = new Vue({
             if (this.hideAfter < 1000) {
                 this.opacity = this.hideAfter / 1000;
             }
-        }, msTimeout); // 50 is good enough. When 100, FPS too low.
+        }, msTimeout);
     },
     methods: {
         // UI
@@ -1153,7 +1169,7 @@ var eventWindow = new Vue({
             return {
                 show: () => {
                     this.opacity = 1;
-                    this.hideAfter = 2 * 1000; // 2s
+                    this.hideAfter = this.hideTimeout;
                     this.show = true;
                 },
                 hide: () => {
@@ -1173,14 +1189,14 @@ var eventWindow = new Vue({
             };
         },
         // Data
-        add: function(isError, msg) {
+        add: function(type, msg) {
             let time = new Date().format("HH:MM");
-            let obj = { isError: isError, msg: msg, time: time };
-            console.log(obj); // We should log obj, because there's rotation of messages
+            let obj = { type: type, msg: msg, time: time };
             this.events.push(obj);
 
-            if (this.events.length > 5) {
-                this.events.splice(0, 1); // remove first message
+            // Remove old events
+            while (this.events.length > 10) {
+                this.events.splice(0, 1);
             }
             this.window().show();
             this.window().scrollToEnd();

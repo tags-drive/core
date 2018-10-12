@@ -334,13 +334,14 @@ th {
 }
 
 /* Events window */
-#events-window {
+#log-window {
     background-color: var(--secondary-color);
     border: 1px var(--primary-border-color) solid;
     border-radius: 5px;
     bottom: 10px;
     height: 200px;
     left: 10px;
+    z-index: 3;
     overflow: auto;
     padding: 10px;
     position: fixed;

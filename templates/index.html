@@ -56,15 +56,15 @@
 		<div id="main-block"></div>
 	</div>
 
-	<!-- Events block -->
-	<div id="events-window" v-if="show" @mouseenter="window().mouseEnter()" @mouseleave="window().mouseLeave()" :style="{'opacity': opacity}">
+	<!-- Log block -->
+	<div id="log-window" v-if="show" @mouseenter="window().mouseEnter()" @mouseleave="window().mouseLeave()" :style="{'opacity': opacity}">
 		<div style="float: right;">
 			<i class="material-icons btn" @click="window().hide()">close</i>
 		</div>
 		<div v-for="event in events" class="events-window__msg">
 			{{event.time}}
-			<span v-if="event.isError" style="color: red;">Error:</span>
-			<span v-else="event.isError" style="color: green;">Ok:</span>
+			<span v-if="event.type == sharedLogTypes.error" style="color: red;">Error:</span>
+			<span v-else="event.type == sharedLogTypes.info" style="color: green;">Ok:</span>
 			{{event.msg}}
 		</div>
 	</div>
@@ -199,9 +199,6 @@
 				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().deleteSelectedFiles()">
 				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
 			</div>
-
-			<!-- Error -->
-			<div v-if="error != ''" id="modal-window__error">Error: {{error}}</div>
 		</div>
 	</div>
 
