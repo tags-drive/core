@@ -1125,7 +1125,7 @@ var modalWindow = new Vue({
 });
 
 var logWindow = new Vue({
-    el: "#events-window",
+    el: "#log-window",
     data: {
         sharedLogTypes: logTypes,
         // States
@@ -1191,6 +1191,7 @@ var logWindow = new Vue({
             let obj = { type: type, msg: msg, time: time };
             this.events.push(obj);
 
+            // TODO while
             if (this.events.length > 5) {
                 this.events.splice(0, 1); // remove first message
             }

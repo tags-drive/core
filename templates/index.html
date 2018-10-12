@@ -57,7 +57,7 @@
 	</div>
 
 	<!-- Log block -->
-	<div id="events-window" v-if="show" @mouseenter="window().mouseEnter()" @mouseleave="window().mouseLeave()" :style="{'opacity': opacity}">
+	<div id="log-window" v-if="show" @mouseenter="window().mouseEnter()" @mouseleave="window().mouseLeave()" :style="{'opacity': opacity}">
 		<div style="float: right;">
 			<i class="material-icons btn" @click="window().hide()">close</i>
 		</div>

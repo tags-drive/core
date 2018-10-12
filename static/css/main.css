@@ -334,7 +334,7 @@ th {
 }
 
 /* Events window */
-#events-window {
+#log-window {
     background-color: var(--secondary-color);
     border: 1px var(--primary-border-color) solid;
     border-radius: 5px;
