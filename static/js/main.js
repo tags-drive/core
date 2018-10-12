@@ -1128,10 +1128,12 @@ var logWindow = new Vue({
     el: "#log-window",
     data: {
         sharedLogTypes: logTypes,
+        // Const
+        hideTimeout: 5 * 1000, // 5s in milliseconds
         // States
         show: false,
         isMouseInside: false, // if isMouseInside, hideAfter isn't changed
-        hideAfter: 1000 * 2, // time in milliseconds
+        hideAfter: 5 * 1000,
         // UI
         opacity: 1,
         lastScrollHeight: 0,
@@ -1146,7 +1148,8 @@ var logWindow = new Vue({
         events: []
     },
     created: function() {
-        const msTimeout = 50;
+        const msTimeout = 50; // 50ms is good enough. When 100, FPS is too low
+
         setInterval(() => {
             if (this.isMouseInside) {
                 return;
@@ -1158,7 +1161,7 @@ var logWindow = new Vue({
             if (this.hideAfter < 1000) {
                 this.opacity = this.hideAfter / 1000;
             }
-        }, msTimeout); // 50 is good enough. When 100, FPS too low.
+        }, msTimeout);
     },
     methods: {
         // UI
@@ -1166,7 +1169,7 @@ var logWindow = new Vue({
             return {
                 show: () => {
                     this.opacity = 1;
-                    this.hideAfter = 2 * 1000; // 2s
+                    this.hideAfter = this.hideTimeout;
                     this.show = true;
                 },
                 hide: () => {
@@ -1191,9 +1194,9 @@ var logWindow = new Vue({
             let obj = { type: type, msg: msg, time: time };
             this.events.push(obj);
 
-            // TODO while
-            if (this.events.length > 5) {
-                this.events.splice(0, 1); // remove first message
+            // Remove old events
+            while (this.events.length > 10) {
+                this.events.splice(0, 1);
             }
             this.window().show();
             this.window().scrollToEnd();
