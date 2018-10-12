@@ -76,6 +76,16 @@ function isErrorStatusCode(statusCode) {
     return false;
 }
 
+function logInfo(msg) {
+    console.log(msg);
+    logWindow.add(logTypes.info, msg);
+}
+
+function logError(err) {
+    console.error(err);
+    logWindow.add(logTypes.error, err);
+}
+
 /* Main instances */
 
 // Top bar
@@ -431,7 +441,7 @@ var uploader = new Vue({
                     if (isErrorStatusCode(resp.status)) {
                         resp.text().then(text => {
                             console.error(text);
-                            logWindow.add(true, text);
+                            logError(text);
                         });
                         return;
                     }
@@ -461,10 +471,15 @@ var uploader = new Vue({
                         } else {
                             msg += " " + log[i].status;
                         }
-                        logWindow.add(log[i].isError, msg);
+
+                        if (log[i].isError) {
+                            logError(msg);
+                        } else {
+                            logInfo(msg);
+                        }
                     }
                 })
-                .catch(err => logWindow.add(true, err));
+                .catch(err => logError(err));
         }
     }
 });
@@ -878,10 +893,15 @@ var modalWindow = new Vue({
                                 } else {
                                     msg += " " + log[i].status;
                                 }
-                                logWindow.add(log[i].isError, msg);
+
+                                if (log[i].isError) {
+                                    logError(msg);
+                                } else {
+                                    logInfo(msg);
+                                }
                             }
                         })
-                        .catch(err => logWindow.add(true, err));
+                        .catch(err => logError(err));
                 },
                 // Select mode
                 addSelectedFilesTags: tagIDs => {
@@ -1013,10 +1033,15 @@ var modalWindow = new Vue({
                                 } else {
                                     msg += " " + log[i].status;
                                 }
-                                logWindow.add(log[i].isError, msg);
+
+                                if (log[i].isError) {
+                                    logError(msg);
+                                } else {
+                                    logInfo(msg);
+                                }
                             }
                         })
-                        .catch(err => logWindow.add(true, err));
+                        .catch(err => logError(err));
 
                     // If we don't call this function, next files will become selected.
                     mainBlock.unselectAllFile();
@@ -1120,7 +1145,7 @@ var modalWindow = new Vue({
 var logWindow = new Vue({
     el: "#events-window",
     data: {
-		sharedLogTypes: logTypes,
+        sharedLogTypes: logTypes,
         // States
         show: false,
         isMouseInside: false, // if isMouseInside, hideAfter isn't changed
