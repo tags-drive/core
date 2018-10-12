@@ -199,9 +199,6 @@
 				<input class="btn deleteBtn" style="height: 50px; width: 100px;" type="button" value="Delete" @click="filesAPI().deleteSelectedFiles()">
 				<input class="btn" style="height: 50px; width: 100px;" type="button" value="Cancel" @click="hideWindow">
 			</div>
-
-			<!-- Error -->
-			<div v-if="error != ''" id="modal-window__error">Error: {{error}}</div>
 		</div>
 	</div>
 

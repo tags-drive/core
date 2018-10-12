@@ -30,7 +30,7 @@ var GlobalStore = {
         })
             .then(data => data.json())
             .then(files => this.setFiles(files))
-            .catch(err => console.error(err));
+            .catch(err => console.error(err)); // user can live without this error, so we won't use logError() here
     },
     updateTags: function() {
         fetch("/api/tags", {
@@ -41,7 +41,7 @@ var GlobalStore = {
             .then(tags => {
                 this.data.allTags = tags;
             })
-            .catch(err => console.error(err));
+            .catch(err => console.error(err)); // user can live without this error, so we won't use logError() here
     },
     setFiles: function(files) {
         // Change time from "2018-08-23T22:48:59.0459184+03:00" to "23-08-2018 22:48"
@@ -440,7 +440,6 @@ var uploader = new Vue({
                 .then(resp => {
                     if (isErrorStatusCode(resp.status)) {
                         resp.text().then(text => {
-                            console.error(text);
                             logError(text);
                         });
                         return;
@@ -601,7 +600,6 @@ var modalWindow = new Vue({
     data: {
         file: null,
         show: false,
-        error: "",
         selectedFiles: [],
         sharedData: GlobalStore.data,
         // Modes
@@ -720,8 +718,6 @@ var modalWindow = new Vue({
             this.selectDeleteMode = false;
             this.show = false;
 
-            this.error = "";
-
             GlobalState.showDropLayer = true;
         },
         // Drag and drop
@@ -776,8 +772,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -786,8 +781,7 @@ var modalWindow = new Vue({
                             this.hideWindow();
                         })
                         .catch(err => {
-                            this.error = err;
-                            console.error(err);
+                            logError(err);
                         });
                 },
                 updateTags: () => {
@@ -808,8 +802,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -818,8 +811,7 @@ var modalWindow = new Vue({
                             this.hideWindow();
                         })
                         .catch(err => {
-                            this.error = err;
-                            console.error(err);
+                            logError(err);
                         });
                 },
                 updateDescription: () => {
@@ -835,8 +827,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -845,8 +836,7 @@ var modalWindow = new Vue({
                             this.hideWindow();
                         })
                         .catch(err => {
-                            this.error = err;
-                            console.error(err);
+                            logError(err);
                         });
                 },
                 deleteFile: () => {
@@ -860,8 +850,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -928,12 +917,12 @@ var modalWindow = new Vue({
                                 .then(resp => {
                                     if (isErrorStatusCode(resp.status)) {
                                         resp.text().then(text => {
-                                            console.error(text);
+                                            logError(text);
                                         });
                                         return;
                                     }
                                 })
-                                .catch(err => console.error(err));
+                                .catch(err => logError(err));
                         }
                     })()
                         .then(() => {
@@ -942,7 +931,7 @@ var modalWindow = new Vue({
                             topBar.search().usual();
                             this.hideWindow();
                         })
-                        .catch(err => console.error(err));
+                        .catch(err => logError(err));
                 },
                 deleteSelectedFilesTags: tagIDs => {
                     if (tagIDs.length == 0) {
@@ -972,11 +961,11 @@ var modalWindow = new Vue({
                                 .then(resp => {
                                     if (isErrorStatusCode(resp.status)) {
                                         resp.text().then(text => {
-                                            console.error(text);
+                                            logError(text);
                                         });
                                     }
                                 })
-                                .catch(err => console.error(err));
+                                .catch(err => logError(err));
                         }
                     })()
                         .then(() => {
@@ -985,7 +974,7 @@ var modalWindow = new Vue({
                             topBar.search().usual();
                             this.hideWindow();
                         })
-                        .catch(err => console.error(err));
+                        .catch(err => logError(err));
                 },
                 deleteSelectedFiles: () => {
                     let params = new URLSearchParams();
@@ -1000,8 +989,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -1065,8 +1053,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -1075,8 +1062,7 @@ var modalWindow = new Vue({
                             GlobalStore.updateTags();
                         })
                         .catch(err => {
-                            console.error(err);
-                            this.error = err;
+                            logError(err);
                         });
                 },
                 change: (tagID, newName, newColor) => {
@@ -1093,8 +1079,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -1102,8 +1087,7 @@ var modalWindow = new Vue({
                             GlobalStore.updateTags();
                         })
                         .catch(err => {
-                            console.error(err);
-                            this.error = err;
+                            logError(err);
                         });
                 },
                 del: tagID => {
@@ -1117,8 +1101,7 @@ var modalWindow = new Vue({
                         .then(resp => {
                             if (isErrorStatusCode(resp.status)) {
                                 resp.text().then(text => {
-                                    console.error(text);
-                                    this.error = text;
+                                    logError(text);
                                 });
                                 return;
                             }
@@ -1129,8 +1112,7 @@ var modalWindow = new Vue({
                             return resp.text();
                         })
                         .catch(err => {
-                            console.error(err);
-                            this.error = err;
+                            logError(err);
                         });
                 },
                 // delNewTag deletes tag from tagsNewData.newTag
