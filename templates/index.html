@@ -63,8 +63,8 @@
 		</div>
 		<div v-for="event in events" class="events-window__msg">
 			{{event.time}}
-			<span v-if="event.isError" style="color: red;">Error:</span>
-			<span v-else="event.isError" style="color: green;">Ok:</span>
+			<span v-if="event.type == sharedLogTypes.error" style="color: red;">Error:</span>
+			<span v-else="event.type == sharedLogTypes.info" style="color: green;">Ok:</span>
 			{{event.msg}}
 		</div>
 	</div>

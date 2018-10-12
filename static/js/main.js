@@ -12,6 +12,11 @@ const sortOrder = {
     desc: "desc"
 };
 
+const logTypes = {
+    info: "info",
+    error: "error"
+};
+
 // GlobalStore contains global data
 var GlobalStore = {
     data: {
@@ -1115,6 +1120,7 @@ var modalWindow = new Vue({
 var logWindow = new Vue({
     el: "#events-window",
     data: {
+		sharedLogTypes: logTypes,
         // States
         show: false,
         isMouseInside: false, // if isMouseInside, hideAfter isn't changed
@@ -1125,7 +1131,7 @@ var logWindow = new Vue({
         // Data
         /* events - array of objects:
            {
-             isError: boolean,
+             type: string,
              msg: string,
              time: string
            }
@@ -1173,10 +1179,9 @@ var logWindow = new Vue({
             };
         },
         // Data
-        add: function(isError, msg) {
+        add: function(type, msg) {
             let time = new Date().format("HH:MM");
-            let obj = { isError: isError, msg: msg, time: time };
-            console.log(obj); // We should log obj, because there's rotation of messages
+            let obj = { type: type, msg: msg, time: time };
             this.events.push(obj);
 
             if (this.events.length > 5) {
