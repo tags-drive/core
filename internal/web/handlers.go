@@ -19,6 +19,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	io.Copy(w, f)
+	f.Close()
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
