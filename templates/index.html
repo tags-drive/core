@@ -46,8 +46,12 @@
 			</div>
 		</div>
 		<!-- Settings -->
-		<div id="top-bar__settings" class="vertically" @click="settings().tags()">
+		<div id="top-bar__tag-editing-button" class="vertically" @click="settings().tags()">
 			<img src="/static/icons/tag.png" title="Change tags">
+		</div>
+		<!-- Log out -->
+		<div id="top-bar__logout" class="vertically">
+			<i class="material-icons" style="font-size: 30px;" title="Log out" @click="console.log('logout');/*settings().logout()*/">exit_to_app</i>
 		</div>
 	</div>
 

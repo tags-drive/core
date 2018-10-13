@@ -80,6 +80,7 @@ body {
     background-color: var(--primary-color);
     border-bottom: 1px var(--primary-border-color) solid;
     display: flex;
+    justify-content: center;
     height: 50px;
     position: sticky;
     top: 0;
@@ -105,7 +106,7 @@ body {
     margin-bottom: auto;
     margin-top: auto;
     position: relative;
-    width: 80%;
+    width: 75%;
 }
 
 #top-bar__search__tags {
@@ -159,21 +160,28 @@ body {
     width: 100px;
 }
 
-#top-bar__settings {
+#top-bar__tag-editing-button {
     cursor: pointer;
     height: 80%;
     margin-left: 10px;
     position: relative;
-    width: 30px;
+	width: 30px;
+	margin-right: 5px;
 }
 
-#top-bar__settings > img {
+#top-bar__tag-editing-button > img {
     /* middle */
     bottom: 0;
     margin: auto;
     position: absolute;
     top: 0;
     width: 100%;
+}
+
+#top-bar__logout {
+	margin-left: 5px;
+	cursor: pointer;
+    width: 35px;
 }
 
 /* Remove arrow in input with datalist */
