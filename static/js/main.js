@@ -224,7 +224,28 @@ var topBar = new Vue({
         },
         settings: function() {
             return {
-                tags: () => modalWindow.showWindow().globalTagsUpdating()
+                tags: () => modalWindow.showWindow().globalTagsUpdating(),
+                logout: () => {
+                    if (!confirm("Are you sure you want log out?")) {
+                        return;
+                    }
+
+                    fetch("/logout", {
+                        method: "POST",
+                        credentials: "same-origin"
+                    })
+                        .then(resp => {
+                            if (isErrorStatusCode(resp.status)) {
+                                resp.text().then(text => {
+                                    logError(text);
+                                });
+                                return;
+                            }
+
+                            location.reload(true);
+                        })
+                        .catch(err => logError(err));
+                }
             };
         }
     }

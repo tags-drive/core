@@ -80,6 +80,7 @@ body {
     background-color: var(--primary-color);
     border-bottom: 1px var(--primary-border-color) solid;
     display: flex;
+    justify-content: center;
     height: 50px;
     position: sticky;
     top: 0;
@@ -105,7 +106,8 @@ body {
     margin-bottom: auto;
     margin-top: auto;
     position: relative;
-    width: 80%;
+	width: 75%;
+	justify-content: space-between;
 }
 
 #top-bar__search__tags {
@@ -116,7 +118,6 @@ body {
     margin-top: auto;
     padding: 5px;
     position: relative;
-    width: 50%;
 }
 
 #top-bar__search__tags__list {
@@ -129,7 +130,7 @@ body {
     padding: 5px;
     position: absolute;
     top: 35px;
-    width: 95%;
+    width: 400px;
 }
 
 .top-bar__search__suggestion-tag {
@@ -144,11 +145,9 @@ body {
 
 #top-bar__search__advanced {
     display: flex;
-    height: 25px;
-    margin-bottom: auto;
-    margin-top: auto;
-    padding: 5px;
-    width: 43%;
+	height: 25px;
+	margin-top: auto;
+	margin-bottom: auto;
 }
 
 #top-bar__search__tag-input {
@@ -159,21 +158,28 @@ body {
     width: 100px;
 }
 
-#top-bar__settings {
+#top-bar__tag-editing-button {
     cursor: pointer;
     height: 80%;
     margin-left: 10px;
     position: relative;
     width: 30px;
+    margin-right: 5px;
 }
 
-#top-bar__settings > img {
+#top-bar__tag-editing-button > img {
     /* middle */
     bottom: 0;
     margin: auto;
     position: absolute;
     top: 0;
     width: 100%;
+}
+
+#top-bar__logout {
+    margin-left: 5px;
+    cursor: pointer;
+    width: 35px;
 }
 
 /* Remove arrow in input with datalist */

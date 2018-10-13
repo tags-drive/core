@@ -30,24 +30,31 @@
 				</div>
 			</div>
 
-			<div class="vertically" style="border-right: 1px solid black; height: 90%;"></div>
-			<div id="top-bar__search__advanced">
-				<input v-model="text" type="text" placeholder="Text for search" style="margin-right: 5px;">
+			<div style="display: flex;">
+				<!-- Separator -->
+				<div class="vertically" style="border-right: 1px solid black; height: 90%; margin-right: 5px;"></div>
+				<div id="top-bar__search__advanced">
+					<input v-model="text" type="text" placeholder="Text for search" style="margin-right: 5px;">
 
-				<div class="vertically" style="margin-right: 5px;">Mode</div>
-				<select v-model="selectedMode" style="margin-right: 5px;">
-					<option>And</option>
-					<option>Or</option>
-					<option>Not</option>
-				</select>
-			</div>
-			<div style="height: 100%; right: 0px; position: absolute;">
-				<i @click="search().usual()" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
+					<div class="vertically" style="margin-right: 5px;">Mode</div>
+					<select v-model="selectedMode" style="margin-right: 5px;">
+						<option>And</option>
+						<option>Or</option>
+						<option>Not</option>
+					</select>
+				</div>
+				<div style="height: 100%;">
+					<i @click="search().usual()" class="material-icons" style="font-size: 37px; cursor: pointer;">search</i>
+				</div>
 			</div>
 		</div>
 		<!-- Settings -->
-		<div id="top-bar__settings" class="vertically" @click="settings().tags()">
+		<div id="top-bar__tag-editing-button" class="vertically" @click="settings().tags()">
 			<img src="/static/icons/tag.png" title="Change tags">
+		</div>
+		<!-- Log out -->
+		<div id="top-bar__logout" class="vertically">
+			<i class="material-icons" style="font-size: 30px;" title="Log out" @click="settings().logout()">exit_to_app</i>
 		</div>
 	</div>
 
