@@ -319,9 +319,8 @@ Vue.component("files", {
 		@mouseover="hover = true;"
 		@mouseleave="hover = false;"
 		@click.right.prevent="showContextMenu($event, file);"
-		:title="file.description"
 	>
-		<td style="text-align: center; width: 30px;">
+		<td style="text-align: center;">
 			<input type="checkbox" @change="toggleSelect" v-model="selected" style="height: 15px; width: 15px;">
 		</td>
 		<td v-if="file.type == 'image'" style="width: 30px;">
@@ -330,7 +329,7 @@ Vue.component("files", {
 		<td v-else style="width: 30px; text-align: center;">
 			<img :src="'/ext/' + file.filename.split('.').pop()" style="width: 30px;">
 		</td>	
-		<td style="width: 200px;">
+		<td>
 			<div class="filename" :title="file.filename">
 				{{file.filename}}
 			</div>
@@ -341,6 +340,12 @@ Vue.component("files", {
 					<div>{{allTags[id].name}}</div>
 				</div>
 			</div>
+		</td>
+		<td :title="file.description">
+			{{
+				// Cut too long description
+				(file.description.length > 20) ? file.description.slice(0, 20) + '...' : file.description
+			}}
 		</td>
 		<td>{{(file.size / (1024 * 1024)).toFixed(1)}}</td>
 		<td>{{file.addTime}}</td>

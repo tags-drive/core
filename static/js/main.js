@@ -373,40 +373,42 @@ var mainBlock = new Vue({
         }
     },
     template: `
-	<table :style="{'opacity': sharedState.mainBlockOpacity}" class="file-table" style="width:100%;">
-		<tr style="top: 100px;">
+	<table :style="{'opacity': sharedState.mainBlockOpacity}" class="file-table" style="width: 100%;">
+		<tr>
 			<th style="text-align: center; width: 30px;">
 				<input
-				type="checkbox"
-				:indeterminate.prop="selectCount > 0 && selectCount != sharedData.allFiles.length"
-				v-model="allSelected"
-				@click="toggleAllFiles"
-				style="height: 15px; width: 15px;"
-				title="Select all"
-			>
+					type="checkbox"
+					:indeterminate.prop="selectCount > 0 && selectCount != sharedData.allFiles.length"
+					v-model="allSelected"
+					@click="toggleAllFiles"
+					style="height: 15px; width: 15px;"
+					title="Select all">
 			</th>
-			<!-- Preview image -->
-			<th></th> 
 			<th>
+				<!-- Preview image -->
+			</th>
+			<th style="width: 210px;">
 				Filename
 				<i class="material-icons" id="sortByNameIcon" @click="sort().byName()" :style="[sortByNameModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="font-size: 20px; cursor: pointer;">
 					sort
 				</i>
 			</th>
 			<th>Tags</th>
-			<th>
+			<th style="width: 20%;">Description</th>
+			<th style="width: 100px;">
 				Size (MB)
 				<i class="material-icons" id="sortByNameSize" @click="sort().bySize()" :style="[sortBySizeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
 					sort
 				</i>
 			</th>
-			<th>
+			<th style="width: 150px;">
 				Time of adding
 				<i class="material-icons" id="sortByNameTime" @click="sort().byTime()" :style="[sortByTimeModeAsc ? {'transform': 'scale(1, 1)'} : {'transform': 'scale(1, -1)'}]" style="transform: scale(1, 1); font-size: 20px; cursor: pointer;">
 					sort
 				</i>
 			</th>
 		</tr>
+
 		<files v-for="file in sharedData.allFiles" :file="file" :allTags="sharedData.allTags"></files>
 	</table>`
 });
