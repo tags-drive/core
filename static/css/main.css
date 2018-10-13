@@ -106,7 +106,8 @@ body {
     margin-bottom: auto;
     margin-top: auto;
     position: relative;
-    width: 75%;
+	width: 75%;
+	justify-content: space-between;
 }
 
 #top-bar__search__tags {
@@ -117,7 +118,6 @@ body {
     margin-top: auto;
     padding: 5px;
     position: relative;
-    width: 50%;
 }
 
 #top-bar__search__tags__list {
@@ -130,7 +130,7 @@ body {
     padding: 5px;
     position: absolute;
     top: 35px;
-    width: 95%;
+    width: 400px;
 }
 
 .top-bar__search__suggestion-tag {
@@ -145,11 +145,9 @@ body {
 
 #top-bar__search__advanced {
     display: flex;
-    height: 25px;
-    margin-bottom: auto;
-    margin-top: auto;
-    padding: 5px;
-    width: 43%;
+	height: 25px;
+	margin-top: auto;
+	margin-bottom: auto;
 }
 
 #top-bar__search__tag-input {
@@ -165,8 +163,8 @@ body {
     height: 80%;
     margin-left: 10px;
     position: relative;
-	width: 30px;
-	margin-right: 5px;
+    width: 30px;
+    margin-right: 5px;
 }
 
 #top-bar__tag-editing-button > img {
@@ -179,8 +177,8 @@ body {
 }
 
 #top-bar__logout {
-	margin-left: 5px;
-	cursor: pointer;
+    margin-left: 5px;
+    cursor: pointer;
     width: 35px;
 }
 
