@@ -214,65 +214,80 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(response)
 }
 
-// PUT /api/files?file=123&new-name=567&tags=tag1,tag2,tag3&description=some-new-cool-description
-// newname, tags and description can be skipped
-// To clear all tags, client should send "empty" (...&tags=empty&...)
+// PUT /api/files/name?file=123&new-name=567
 //
 // Response: -
 //
-func changeFile(w http.ResponseWriter, r *http.Request) {
-	var (
-		filename       = r.FormValue("file")
-		newName        = r.FormValue("new-name")
-		newDescription = r.FormValue("description")
-		tags           = func() []int {
-			t := r.FormValue("tags")
-			if t == "" || t == "empty" {
-				return []int{}
-			}
-			res := []int{}
-
-			for _, s := range strings.Split(t, ",") {
-				if id, err := strconv.Atoi(s); err == nil {
-					res = append(res, id)
-				}
-			}
-			return res
-		}()
-	)
-
+func changeFilename(w http.ResponseWriter, r *http.Request) {
+	filename := r.FormValue("file")
 	if filename == "" {
 		Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Change tags, at first
-	if r.FormValue("tags") == "empty" || len(tags) != 0 {
-		// If r.FormValue("tags") == "empty", tags == []int{}. So, we can use it to remove all tags
-		err := files.ChangeTags(filename, tags)
-		if err != nil {
-			Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	newName := r.FormValue("new-name")
+	if newName == "" {
+		Error(w, "new-name param can't be empty", http.StatusBadRequest)
+		return
 	}
 
-	// Change filename
-	if newName != "" {
-		// We can skip checking of invalid characters, because Go will return an error
-		err := files.RenameFile(filename, newName)
-		if err != nil {
-			Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	// We can skip checking of invalid characters, because Go will return an error
+	err := files.RenameFile(filename, newName)
+	if err != nil {
+		Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// PUT /api/files/tags?file=123&tags=1,2,3
+//
+// Response: -
+//
+func changeFileTags(w http.ResponseWriter, r *http.Request) {
+	filename := r.FormValue("file")
+	if filename == "" {
+		Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
+		return
 	}
 
-	// Change description
-	if newDescription != "" {
-		err := files.ChangeDescription(filename, newDescription)
-		if err != nil {
-			Error(w, err.Error(), http.StatusInternalServerError)
-			return
+	tags := func() []int {
+		t := r.FormValue("tags")
+		if t == "" {
+			return []int{}
 		}
+
+		res := []int{}
+		for _, s := range strings.Split(t, ",") {
+			if id, err := strconv.Atoi(s); err == nil {
+				res = append(res, id)
+			}
+		}
+		return res
+	}()
+
+	err := files.ChangeTags(filename, tags)
+	if err != nil {
+		Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// PUT /api/files/description?file=123&description=some-new-cool-description
+//
+// Response: -
+//
+func changeFileDescription(w http.ResponseWriter, r *http.Request) {
+	filename := r.FormValue("file")
+	if filename == "" {
+		Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
+		return
+	}
+
+	newDescription := r.FormValue("description")
+	err := files.ChangeDescription(filename, newDescription)
+	if err != nil {
+		Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
