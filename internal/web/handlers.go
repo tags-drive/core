@@ -12,6 +12,10 @@ import (
 	"github.com/ShoshinNikita/tags-drive/internal/web/auth"
 )
 
+func mock(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mock"))
+}
+
 func index(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open("templates/index.html")
 	if err != nil {
