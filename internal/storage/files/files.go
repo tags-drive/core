@@ -241,7 +241,13 @@ func ArchiveFiles(files []string) (body io.Reader, err error) {
 			continue
 		}
 
-		if _, err := io.Copy(wr, f); err != nil {
+		if params.Encrypt {
+			_, err = sio.Decrypt(wr, f, sio.Config{Key: params.Key[:]})
+		} else {
+			_, err = io.Copy(wr, f)
+		}
+
+		if err != nil {
 			log.Errorf("Can't load file %s\n", filename)
 		}
 
