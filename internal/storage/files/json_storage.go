@@ -6,27 +6,12 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
 
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 )
-
-// FileInfo contains the information about a file
-type FileInfo struct {
-	Filename    string    `json:"filename"`
-	Type        string    `json:"type"`
-	Origin      string    `json:"origin"` // Origin is a path to a file (params.DataFolder/filename)
-	Description string    `json:"description"`
-	Size        int64     `json:"size"`
-	Tags        []int     `json:"tags"`
-	AddTime     time.Time `json:"addTime"`
-
-	// Only if Type == TypeImage
-	Preview string `json:"preview,omitempty"` // Preview is a path to a resized image
-}
 
 // jsonStorage implements files.storage interface.
 // It is a map (filename: FileInfo) with RWMutex
@@ -95,8 +80,6 @@ func (fs jsonStorage) write() {
 func (fs *jsonStorage) decode(r io.Reader) error {
 	return json.NewDecoder(r).Decode(&fs.info)
 }
-
-/* Files */
 
 func (fs jsonStorage) getFile(filename string) (FileInfo, error) {
 	fs.mutex.RLock()

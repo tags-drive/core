@@ -29,6 +29,20 @@ var (
 	ErrAlreadyExist   = errors.New("file already exists")
 )
 
+// FileInfo contains the information about a file
+type FileInfo struct {
+	Filename    string    `json:"filename"`
+	Type        string    `json:"type"`
+	Origin      string    `json:"origin"` // Origin is a path to a file (params.DataFolder/filename)
+	Description string    `json:"description"`
+	Size        int64     `json:"size"`
+	Tags        []int     `json:"tags"`
+	AddTime     time.Time `json:"addTime"`
+
+	// Only if Type == TypeImage
+	Preview string `json:"preview,omitempty"` // Preview is a path to a resized image
+}
+
 type storage interface {
 	init() error
 
