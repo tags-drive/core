@@ -10,24 +10,24 @@ import (
 func TestIsGoodFile(t *testing.T) {
 	tests := []struct {
 		m     files.TagMode
-		fTags []string
-		pTags []string
+		fTags []int
+		pTags []int
 		res   bool
 	}{
-		{files.ModeAnd, []string{"a", "b", "c"}, []string{"a", "c"}, true},
-		{files.ModeAnd, []string{"a", "b", "c"}, []string{"a", "e"}, false},
-		{files.ModeOr, []string{"a", "b", "c"}, []string{"a", "e"}, true},
-		{files.ModeOr, []string{"a", "b", "c"}, []string{"f", "e"}, false},
-		{files.ModeNot, []string{"p", "b", "c"}, []string{"a", "e"}, true},
-		{files.ModeNot, []string{"a", "b", "c"}, []string{"a", "e"}, false},
+		{files.ModeAnd, []int{1, 2, 3}, []int{1, 2}, true},
+		{files.ModeAnd, []int{1, 2, 3}, []int{1, 5}, false},
+		{files.ModeOr, []int{1, 2, 3}, []int{1, 5}, true},
+		{files.ModeOr, []int{1, 2, 3}, []int{4, 7}, false},
+		{files.ModeNot, []int{8, 9, 10}, []int{1, 2}, true},
+		{files.ModeNot, []int{1, 2, 3}, []int{1, 7}, false},
 		// Empty file tags
-		{files.ModeAnd, []string{}, []string{"a", "e"}, false},
-		{files.ModeOr, []string{}, []string{"a", "e"}, false},
-		{files.ModeNot, []string{}, []string{"a", "e"}, true},
+		{files.ModeAnd, []int{}, []int{1, 7}, false},
+		{files.ModeOr, []int{}, []int{1, 7}, false},
+		{files.ModeNot, []int{}, []int{1, 7}, true},
 		// Empty passed tags
-		{files.ModeAnd, []string{"a", "b", "c"}, []string{}, true},
-		{files.ModeOr, []string{"a", "b", "c"}, []string{}, true},
-		{files.ModeNot, []string{"a", "b", "c"}, []string{}, true},
+		{files.ModeAnd, []int{1, 2, 3}, []int{}, true},
+		{files.ModeOr, []int{1, 2, 3}, []int{}, true},
+		{files.ModeNot, []int{1, 2, 3}, []int{}, true},
 	}
 
 	for i, tt := range tests {
@@ -36,7 +36,6 @@ func TestIsGoodFile(t *testing.T) {
 			t.Errorf("Test #%d Want: %v Got %v", i, tt.res, res)
 		}
 	}
-
 }
 
 func TestSortFiles(t *testing.T) {
