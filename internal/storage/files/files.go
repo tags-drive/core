@@ -30,6 +30,35 @@ var (
 	ErrAlreadyExist   = errors.New("file already exists")
 )
 
+type storage interface {
+	// getFile returns a file with passed filename
+	getFile(filename string) (FileInfo, error)
+
+	// getFiles returns files
+	//     tagMode - mode of tags
+	//     tags - list of needed tags
+	//     search - string, which filename has to contain
+	getFiles(m TagMode, tags []int, search string) (files []FileInfo)
+
+	// add adds a file
+	addFile(info FileInfo) error
+
+	// renameFile renames a file
+	renameFile(oldName string, newName string) error
+
+	// updateFileTags updates tags of a file
+	updateFileTags(filename string, changedTagsID []int) error
+
+	// updateFileDescription update description of a file
+	updateFileDescription(filename string, newDesc string) error
+
+	// deleteFile deletes a file from list (not from disk)
+	deleteFile(filename string) error
+
+	// deleteTagFromFiles deletes a tag (it's called when user deletes a tag)
+	deleteTagFromFiles(tagID int)
+}
+
 var allFiles = filesData{
 	info:  make(map[string]FileInfo),
 	mutex: new(sync.RWMutex),
