@@ -172,7 +172,7 @@ func upload(src io.Reader, path string) error {
 	return nil
 }
 
-// writeFile writes file on a disk. It encrypts (or doesn't encrypt) the file according to params.Encrypt
+// writeFile writes file into dst. It encrypts (or doesn't encrypt) the file according to params.Encrypt
 func writeFile(dst io.Writer, src io.Reader) (int64, error) {
 	if params.Encrypt {
 		return sio.Encrypt(dst, src, sio.Config{Key: params.Key[:]})
