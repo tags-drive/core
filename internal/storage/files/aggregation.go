@@ -2,7 +2,6 @@ package files
 
 import (
 	"sort"
-	"strings"
 )
 
 type TagMode int
@@ -111,45 +110,10 @@ func sortFiles(s SortMode, files []FileInfo) {
 	}
 }
 
-// getFiles returns slice of FileInfo with passed tags. If tags is an empty slice, function will return all files
-func (fs filesData) getFiles(m TagMode, tags []int, search string) (files []FileInfo) {
-	fs.mutex.RLock()
-	if len(tags) == 0 {
-		files = make([]FileInfo, len(fs.info))
-		i := 0
-		for _, v := range fs.info {
-			files[i] = v
-			i++
-		}
-	} else {
-		for _, v := range fs.info {
-			if isGoodFile(m, v.Tags, tags) {
-				files = append(files, v)
-			}
-		}
-	}
-
-	fs.mutex.RUnlock()
-
-	if search == "" {
-		return files
-	}
-
-	// Need to remove files with incorrect name
-	var goodFiles []FileInfo
-	for _, f := range files {
-		if strings.Contains(f.Filename, search) {
-			goodFiles = append(goodFiles, f)
-		}
-	}
-
-	return goodFiles
-}
-
 // Get returns all files with (or without) passed tags
 // For more information, see AndMode, OrMode, NotMode
 func Get(m TagMode, s SortMode, tags []int, search string) []FileInfo {
-	files := allFiles.getFiles(m, tags, search)
+	files := fileStorage.getFiles(m, tags, search)
 	sortFiles(s, files)
 	return files
 }

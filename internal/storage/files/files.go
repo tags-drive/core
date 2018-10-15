@@ -3,7 +3,6 @@ package files
 import (
 	"archive/zip"
 	"bytes"
-	"encoding/json"
 	"io"
 	"mime/multipart"
 	"os"
@@ -31,6 +30,8 @@ var (
 )
 
 type storage interface {
+	init() error
+
 	// getFile returns a file with passed filename
 	getFile(filename string) (FileInfo, error)
 
@@ -59,47 +60,22 @@ type storage interface {
 	deleteTagFromFiles(tagID int)
 }
 
-var allFiles = filesData{
-	info:  make(map[string]FileInfo),
-	mutex: new(sync.RWMutex),
+var fileStorage = struct {
+	storage
+}{
+	// Default storage is jsonStorage
+	storage: &jsonStorage{
+		info:  make(map[string]FileInfo),
+		mutex: new(sync.RWMutex),
+	},
 }
 
 // Init reads params.Files and decode its data
 func Init() error {
-	// Create folders
-	err := os.MkdirAll(params.DataFolder, 0600)
+	// TODO storage switch
+	err := fileStorage.init()
 	if err != nil {
-		return errors.Wrapf(err, "can't create a folder %s", params.DataFolder)
-	}
-
-	err = os.MkdirAll(params.ResizedImagesFolder, 0600)
-	if err != nil {
-		return errors.Wrapf(err, "can't create a folder %s", params.ResizedImagesFolder)
-	}
-
-	f, err := os.OpenFile(params.Files, os.O_RDWR, 0600)
-	if err != nil {
-		// Have to create a new file
-		if os.IsNotExist(err) {
-			log.Infof("File %s doesn't exist. Need to create a new file\n", params.Files)
-			f, err = os.OpenFile(params.Files, os.O_CREATE|os.O_RDWR, 0600)
-			if err != nil {
-				return errors.Wrap(err, "can't create a new file")
-			}
-			// Write empty structure
-			json.NewEncoder(f).Encode(allFiles)
-			// Can exit because we don't need to decode files from the file
-			f.Close()
-			return nil
-		}
-
-		return errors.Wrapf(err, "can't open file %s", params.Files)
-	}
-
-	defer f.Close()
-	err = allFiles.decode(f)
-	if err != nil {
-		return errors.Wrapf(err, "can't decode data")
+		return errors.Wrapf(err, "can't init storage")
 	}
 
 	return nil
@@ -158,7 +134,7 @@ func UploadFile(f *multipart.FileHeader) error {
 		upload(file, info.Origin)
 	}
 
-	return allFiles.add(info)
+	return fileStorage.addFile(info)
 }
 
 func upload(src io.Reader, path string) error {
@@ -193,12 +169,12 @@ func writeFile(dst io.Writer, src io.Reader) (int64, error) {
 
 // DeleteFile deletes file from structure and from disk
 func DeleteFile(filename string) error {
-	file, err := allFiles.get(filename)
+	file, err := fileStorage.getFile(filename)
 	if err != nil {
 		return err
 	}
 
-	err = allFiles.delete(filename)
+	err = fileStorage.deleteFile(filename)
 	if err != nil {
 		return err
 	}
@@ -223,22 +199,22 @@ func DeleteFile(filename string) error {
 
 // RenameFile renames a file
 func RenameFile(oldName, newName string) error {
-	return allFiles.rename(oldName, newName)
+	return fileStorage.renameFile(oldName, newName)
 }
 
 // ChangeTags changes the tags
 func ChangeTags(filename string, tags []int) error {
-	return allFiles.changeTags(filename, tags)
+	return fileStorage.updateFileTags(filename, tags)
 }
 
 // DeleteTag deletes a tag
 func DeleteTag(tagID int) {
-	allFiles.deleteTag(tagID)
+	fileStorage.deleteTagFromFiles(tagID)
 }
 
 // ChangeDescription changes the description of a file
 func ChangeDescription(filename, newDescription string) error {
-	return allFiles.changeDescription(filename, newDescription)
+	return fileStorage.updateFileDescription(filename, newDescription)
 }
 
 // ArchiveFiles archives passed files and returns io.Reader

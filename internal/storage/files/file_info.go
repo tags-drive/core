@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/ShoshinNikita/log"
+	"github.com/pkg/errors"
 
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 )
@@ -26,17 +28,51 @@ type FileInfo struct {
 	Preview string `json:"preview,omitempty"` // Preview is a path to a resized image
 }
 
-// filesData is a map (filename: FileInfo) with RWMutex
-// files.json keeps only filesData.info
-type filesData struct {
+// jsonStorage implements files.storage interface.
+// It is a map (filename: FileInfo) with RWMutex
+type jsonStorage struct {
 	info  map[string]FileInfo
 	mutex *sync.RWMutex
 }
 
-/* Persistent */
+func (fs jsonStorage) init() error {
+	// Create folders
+	err := os.MkdirAll(params.DataFolder, 0600)
+	if err != nil {
+		return errors.Wrapf(err, "can't create a folder %s", params.DataFolder)
+	}
+
+	err = os.MkdirAll(params.ResizedImagesFolder, 0600)
+	if err != nil {
+		return errors.Wrapf(err, "can't create a folder %s", params.ResizedImagesFolder)
+	}
+
+	f, err := os.OpenFile(params.Files, os.O_RDWR, 0600)
+	if err != nil {
+		// Have to create a new file
+		if os.IsNotExist(err) {
+			log.Infof("File %s doesn't exist. Need to create a new file\n", params.Files)
+			f, err = os.OpenFile(params.Files, os.O_CREATE|os.O_RDWR, 0600)
+			if err != nil {
+				return errors.Wrap(err, "can't create a new file")
+			}
+			// Write empty structure
+			f.Write([]byte("{}"))
+			// Can exit because we don't need to decode files from the file
+			f.Close()
+			return nil
+		}
+
+		return errors.Wrapf(err, "can't open file %s", params.Files)
+	}
+
+	defer f.Close()
+
+	return fs.decode(f)
+}
 
 // write writes fs.info into params.TagsFile
-func (fs filesData) write() {
+func (fs jsonStorage) write() {
 	fs.mutex.RLock()
 	defer fs.mutex.RUnlock()
 
@@ -56,13 +92,13 @@ func (fs filesData) write() {
 }
 
 // decode decodes fs.info
-func (fs *filesData) decode(r io.Reader) error {
+func (fs *jsonStorage) decode(r io.Reader) error {
 	return json.NewDecoder(r).Decode(&fs.info)
 }
 
 /* Files */
 
-func (fs filesData) get(filename string) (FileInfo, error) {
+func (fs jsonStorage) getFile(filename string) (FileInfo, error) {
 	fs.mutex.RLock()
 	defer fs.mutex.RUnlock()
 
@@ -73,8 +109,43 @@ func (fs filesData) get(filename string) (FileInfo, error) {
 	return f, nil
 }
 
-// add adds an element into fs.info and call fs.write()
-func (fs *filesData) add(info FileInfo) error {
+// getFiles returns slice of FileInfo with passed tags. If tags is an empty slice, function will return all files
+func (fs jsonStorage) getFiles(m TagMode, tags []int, search string) (files []FileInfo) {
+	fs.mutex.RLock()
+	if len(tags) == 0 {
+		files = make([]FileInfo, len(fs.info))
+		i := 0
+		for _, v := range fs.info {
+			files[i] = v
+			i++
+		}
+	} else {
+		for _, v := range fs.info {
+			if isGoodFile(m, v.Tags, tags) {
+				files = append(files, v)
+			}
+		}
+	}
+
+	fs.mutex.RUnlock()
+
+	if search == "" {
+		return files
+	}
+
+	// Need to remove files with incorrect name
+	var goodFiles []FileInfo
+	for _, f := range files {
+		if strings.Contains(f.Filename, search) {
+			goodFiles = append(goodFiles, f)
+		}
+	}
+
+	return goodFiles
+}
+
+// addFile adds an element into fs.info and call fs.write()
+func (fs *jsonStorage) addFile(info FileInfo) error {
 	fs.mutex.Lock()
 
 	if _, ok := fs.info[info.Filename]; ok {
@@ -91,8 +162,8 @@ func (fs *filesData) add(info FileInfo) error {
 	return nil
 }
 
-// rename renames a file
-func (fs *filesData) rename(oldName string, newName string) error {
+// renameFile renames a file
+func (fs *jsonStorage) renameFile(oldName string, newName string) error {
 	fs.mutex.Lock()
 	if _, ok := fs.info[oldName]; !ok {
 		fs.mutex.Unlock()
@@ -124,8 +195,8 @@ func (fs *filesData) rename(oldName string, newName string) error {
 	return nil
 }
 
-// delete deletes an element (from structure) and call fs.write()
-func (fs *filesData) delete(filename string) error {
+// deleteFile deletes an element (from structure) and call fs.write()
+func (fs *jsonStorage) deleteFile(filename string) error {
 	fs.mutex.Lock()
 
 	if _, ok := fs.info[filename]; !ok {
@@ -142,7 +213,7 @@ func (fs *filesData) delete(filename string) error {
 	return nil
 }
 
-func (fs *filesData) deleteTag(tagID int) {
+func (fs *jsonStorage) deleteTagFromFiles(tagID int) {
 	fs.mutex.Lock()
 
 	for filename, f := range fs.info {
@@ -167,7 +238,7 @@ func (fs *filesData) deleteTag(tagID int) {
 	fs.write()
 }
 
-func (fs *filesData) changeTags(filename string, changedTagsID []int) error {
+func (fs *jsonStorage) updateFileTags(filename string, changedTagsID []int) error {
 	fs.mutex.Lock()
 
 	if _, ok := fs.info[filename]; !ok {
@@ -187,7 +258,7 @@ func (fs *filesData) changeTags(filename string, changedTagsID []int) error {
 	return nil
 }
 
-func (fs *filesData) changeDescription(filename string, newDesc string) error {
+func (fs *jsonStorage) updateFileDescription(filename string, newDesc string) error {
 	fs.mutex.Lock()
 
 	if _, ok := fs.info[filename]; !ok {
