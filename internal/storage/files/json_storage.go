@@ -166,12 +166,7 @@ func (js *jsonStorage) renameFile(oldName string, newName string) error {
 	f.Origin = params.DataFolder + "/" + newName
 	js.info[newName] = f
 
-	// We have to unlock mutex after renaming, in order to user can't get invalid file
-	err := os.Rename(params.DataFolder+"/"+oldName, params.DataFolder+"/"+newName)
 	js.mutex.Unlock()
-	if err != nil {
-		return err
-	}
 
 	js.write()
 

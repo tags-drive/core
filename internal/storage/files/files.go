@@ -213,6 +213,12 @@ func DeleteFile(filename string) error {
 
 // RenameFile renames a file
 func RenameFile(oldName, newName string) error {
+	// At first, rename file on disk
+	err := os.Rename(params.DataFolder+"/"+oldName, params.DataFolder+"/"+newName)
+	if err != nil {
+		return err
+	}
+
 	return fileStorage.renameFile(oldName, newName)
 }
 
