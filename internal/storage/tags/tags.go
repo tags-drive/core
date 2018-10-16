@@ -29,6 +29,24 @@ type Tag struct {
 
 type Tags map[int]Tag
 
+type storage interface {
+	// getAll returns all tags
+	getAll() Tags
+
+	// addTag adds a new tag
+	addTag(tag Tag)
+
+	// updateTag updates name and color of tag with id == tagID
+	updateTag(tagID int, newName, newColor string)
+
+	// deleteTag deletes a tag
+	deleteTag(tag Tag)
+}
+
+var tagStorage = struct {
+	storage
+}{}
+
 type tagsStruct struct {
 	tags  Tags
 	mutex *sync.RWMutex
