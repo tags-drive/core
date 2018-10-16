@@ -1,14 +1,9 @@
 package tags
 
 import (
-	"encoding/json"
-	"io"
-	"os"
 	"sync"
 
-	"github.com/ShoshinNikita/log"
 	"github.com/ShoshinNikita/tags-drive/internal/params"
-	"github.com/ShoshinNikita/tags-drive/internal/storage/files"
 	"github.com/pkg/errors"
 )
 
@@ -29,128 +24,43 @@ type Tag struct {
 
 type Tags map[int]Tag
 
-type tagsStruct struct {
-	tags  Tags
-	mutex *sync.RWMutex
+type storage interface {
+	init() error
+
+	// getAll returns all tags
+	getAll() Tags
+
+	// addTag adds a new tag
+	addTag(tag Tag)
+
+	// updateTag updates name and color of tag with id == tagID
+	updateTag(id int, newName, newColor string)
+
+	// deleteTag deletes a tag
+	deleteTag(id int)
 }
 
-func (t tagsStruct) write() {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
+var tagStorage = struct {
+	storage
+}{}
 
-	f, err := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0600)
-	if err != nil {
-		log.Errorf("Can't open file %s: %s\n", params.TagsFile, err)
-		return
-	}
-
-	enc := json.NewEncoder(f)
-	if params.Debug {
-		enc.SetIndent("", "  ")
-	}
-	enc.Encode(t.tags)
-
-	f.Close()
-}
-
-func (t *tagsStruct) decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(&t.tags)
-}
-
-func (t tagsStruct) getAll() Tags {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
-
-	return t.tags
-}
-
-func (t *tagsStruct) add(tag Tag) {
-	t.mutex.Lock()
-
-	// Get max ID (max)
-	nextID := 0
-	for id := range t.tags {
-		if nextID < id {
-			nextID = id
-		}
-	}
-	nextID++
-	tag.ID = nextID
-	t.tags[nextID] = tag
-	t.mutex.Unlock()
-
-	t.write()
-}
-
-func (t *tagsStruct) deleteTag(id int) {
-	t.mutex.Lock()
-	// We can skip files.DeleteTag(id), if tag doesn't exist
-	if _, ok := t.tags[id]; !ok {
-		t.mutex.Unlock()
-		return
-	}
-
-	delete(t.tags, id)
-	t.mutex.Unlock()
-
-	t.write()
-
-	files.DeleteTag(id)
-}
-
-func (t *tagsStruct) change(id int, newName, newColor string) {
-	t.mutex.Lock()
-
-	if _, ok := t.tags[id]; !ok {
-		t.mutex.Unlock()
-		return
-	}
-
-	tag := t.tags[id]
-
-	if newName != "" {
-		tag.Name = newName
-	}
-
-	if newColor != "" {
-		if newColor[0] != '#' {
-			newColor = "#" + newColor
-		}
-		tag.Color = newColor
-	}
-
-	t.tags[id] = tag
-
-	t.mutex.Unlock()
-
-	t.write()
-}
-
-var allTags = tagsStruct{tags: make(Tags), mutex: new(sync.RWMutex)}
-
-// Init reads params.TagsFiles and decode its data
+// Init inits tagStorage
 func Init() error {
-	f, err := os.OpenFile(params.TagsFile, os.O_RDWR, 0600)
-	if err != nil {
-		// Have to create a new file
-		if os.IsNotExist(err) {
-			log.Infof("File %s doesn't exist. Need to create a new file\n", params.TagsFile)
-			f, err = os.OpenFile(params.TagsFile, os.O_CREATE|os.O_RDWR, 0600)
-			if err != nil {
-				return errors.Wrap(err, "can't create a new file")
-			}
-			// Write empty structure
-			json.NewEncoder(f).Encode(allTags.tags)
-			// Can exit because we don't need to decode files from the file
-			f.Close()
-			return nil
+	switch params.StorageType {
+	case params.JSONStorage:
+		tagStorage.storage = &jsonTagStorage{
+			tags:  make(Tags),
+			mutex: new(sync.RWMutex),
 		}
-
-		return errors.Wrapf(err, "can't open file %s", params.TagsFile)
+	default:
+		// Default storage is jsonTagStorage
+		tagStorage.storage = &jsonTagStorage{
+			tags:  make(Tags),
+			mutex: new(sync.RWMutex),
+		}
 	}
 
-	defer f.Close()
-	err = allTags.decode(f)
+	err := tagStorage.init()
 	if err != nil {
 		return errors.Wrapf(err, "can't decode data")
 	}
@@ -159,19 +69,19 @@ func Init() error {
 }
 
 func GetAllTags() Tags {
-	return allTags.getAll()
+	return tagStorage.getAll()
 }
 
 func AddTag(t Tag) {
-	allTags.add(t)
+	tagStorage.addTag(t)
 }
 
 func DeleteTag(id int) {
-	allTags.deleteTag(id)
+	tagStorage.deleteTag(id)
 }
 
 // Change changes a tag with passed id.
 // If pass empty newName (or newColor), field Name (or Color) won't be changed.
 func Change(id int, newName, newColor string) {
-	allTags.change(id, newName, newColor)
+	tagStorage.updateTag(id, newName, newColor)
 }
