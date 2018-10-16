@@ -12,12 +12,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-type jsonStorage struct {
+type jsonTagStorage struct {
 	tags  Tags
 	mutex *sync.RWMutex
 }
 
-func (t jsonStorage) init() error {
+func (jts jsonTagStorage) init() error {
 	f, err := os.OpenFile(params.TagsFile, os.O_RDWR, 0600)
 	if err != nil {
 		// Have to create a new file
@@ -38,12 +38,12 @@ func (t jsonStorage) init() error {
 	}
 
 	defer f.Close()
-	return t.decode(f)
+	return jts.decode(f)
 }
 
-func (t jsonStorage) write() {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
+func (jts jsonTagStorage) write() {
+	jts.mutex.RLock()
+	defer jts.mutex.RUnlock()
 
 	f, err := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0600)
 	if err != nil {
@@ -55,65 +55,49 @@ func (t jsonStorage) write() {
 	if params.Debug {
 		enc.SetIndent("", "  ")
 	}
-	enc.Encode(t.tags)
+	enc.Encode(jts.tags)
 
 	f.Close()
 }
 
-func (t *jsonStorage) decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(&t.tags)
+func (jts *jsonTagStorage) decode(r io.Reader) error {
+	return json.NewDecoder(r).Decode(&jts.tags)
 }
 
-func (t jsonStorage) getAll() Tags {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
+func (jts jsonTagStorage) getAll() Tags {
+	jts.mutex.RLock()
+	defer jts.mutex.RUnlock()
 
-	return t.tags
+	return jts.tags
 }
 
-func (t *jsonStorage) addTag(tag Tag) {
-	t.mutex.Lock()
+func (jts *jsonTagStorage) addTag(tag Tag) {
+	jts.mutex.Lock()
 
 	// Get max ID (max)
 	nextID := 0
-	for id := range t.tags {
+	for id := range jts.tags {
 		if nextID < id {
 			nextID = id
 		}
 	}
 	nextID++
 	tag.ID = nextID
-	t.tags[nextID] = tag
-	t.mutex.Unlock()
+	jts.tags[nextID] = tag
+	jts.mutex.Unlock()
 
-	t.write()
+	jts.write()
 }
 
-func (t *jsonStorage) deleteTag(id int) {
-	t.mutex.Lock()
-	// We can skip files.DeleteTag(id), if tag doesn't exist
-	if _, ok := t.tags[id]; !ok {
-		t.mutex.Unlock()
+func (jts *jsonTagStorage) updateTag(id int, newName, newColor string) {
+	jts.mutex.Lock()
+
+	if _, ok := jts.tags[id]; !ok {
+		jts.mutex.Unlock()
 		return
 	}
 
-	delete(t.tags, id)
-	t.mutex.Unlock()
-
-	t.write()
-
-	files.DeleteTag(id)
-}
-
-func (t *jsonStorage) updateTag(id int, newName, newColor string) {
-	t.mutex.Lock()
-
-	if _, ok := t.tags[id]; !ok {
-		t.mutex.Unlock()
-		return
-	}
-
-	tag := t.tags[id]
+	tag := jts.tags[id]
 
 	if newName != "" {
 		tag.Name = newName
@@ -126,9 +110,25 @@ func (t *jsonStorage) updateTag(id int, newName, newColor string) {
 		tag.Color = newColor
 	}
 
-	t.tags[id] = tag
+	jts.tags[id] = tag
 
-	t.mutex.Unlock()
+	jts.mutex.Unlock()
 
-	t.write()
+	jts.write()
+}
+
+func (jts *jsonTagStorage) deleteTag(id int) {
+	jts.mutex.Lock()
+	// We can skip files.DeleteTag(id), if tag doesn't exist
+	if _, ok := jts.tags[id]; !ok {
+		jts.mutex.Unlock()
+		return
+	}
+
+	delete(jts.tags, id)
+	jts.mutex.Unlock()
+
+	jts.write()
+
+	files.DeleteTag(id)
 }

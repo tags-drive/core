@@ -13,14 +13,14 @@ import (
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 )
 
-// jsonStorage implements files.storage interface.
+// jsonFileStorage implements files.storage interface.
 // It is a map (filename: FileInfo) with RWMutex
-type jsonStorage struct {
+type jsonFileStorage struct {
 	info  map[string]FileInfo
 	mutex *sync.RWMutex
 }
 
-func (js jsonStorage) init() error {
+func (jfs jsonFileStorage) init() error {
 	// Create folders
 	err := os.MkdirAll(params.DataFolder, 0600)
 	if err != nil {
@@ -53,13 +53,13 @@ func (js jsonStorage) init() error {
 
 	defer f.Close()
 
-	return js.decode(f)
+	return jfs.decode(f)
 }
 
 // write writes js.info into params.TagsFile
-func (js jsonStorage) write() {
-	js.mutex.RLock()
-	defer js.mutex.RUnlock()
+func (jfs jsonFileStorage) write() {
+	jfs.mutex.RLock()
+	defer jfs.mutex.RUnlock()
 
 	f, err := os.OpenFile(params.Files, os.O_TRUNC|os.O_RDWR, 0600)
 	if err != nil {
@@ -71,21 +71,21 @@ func (js jsonStorage) write() {
 	if params.Debug {
 		enc.SetIndent("", "  ")
 	}
-	enc.Encode(js.info)
+	enc.Encode(jfs.info)
 
 	f.Close()
 }
 
 // decode decodes js.info
-func (js *jsonStorage) decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(&js.info)
+func (jfs *jsonFileStorage) decode(r io.Reader) error {
+	return json.NewDecoder(r).Decode(&jfs.info)
 }
 
-func (js jsonStorage) getFile(filename string) (FileInfo, error) {
-	js.mutex.RLock()
-	defer js.mutex.RUnlock()
+func (jfs jsonFileStorage) getFile(filename string) (FileInfo, error) {
+	jfs.mutex.RLock()
+	defer jfs.mutex.RUnlock()
 
-	f, ok := js.info[filename]
+	f, ok := jfs.info[filename]
 	if !ok {
 		return FileInfo{}, ErrFileIsNotExist
 	}
@@ -93,24 +93,24 @@ func (js jsonStorage) getFile(filename string) (FileInfo, error) {
 }
 
 // getFiles returns slice of FileInfo with passed tags. If tags is an empty slice, function will return all files
-func (js jsonStorage) getFiles(m TagMode, tags []int, search string) (files []FileInfo) {
-	js.mutex.RLock()
+func (jfs jsonFileStorage) getFiles(m TagMode, tags []int, search string) (files []FileInfo) {
+	jfs.mutex.RLock()
 	if len(tags) == 0 {
-		files = make([]FileInfo, len(js.info))
+		files = make([]FileInfo, len(jfs.info))
 		i := 0
-		for _, v := range js.info {
+		for _, v := range jfs.info {
 			files[i] = v
 			i++
 		}
 	} else {
-		for _, v := range js.info {
+		for _, v := range jfs.info {
 			if isGoodFile(m, v.Tags, tags) {
 				files = append(files, v)
 			}
 		}
 	}
 
-	js.mutex.RUnlock()
+	jfs.mutex.RUnlock()
 
 	if search == "" {
 		return files
@@ -128,73 +128,73 @@ func (js jsonStorage) getFiles(m TagMode, tags []int, search string) (files []Fi
 }
 
 // addFile adds an element into js.info and call js.write()
-func (js *jsonStorage) addFile(info FileInfo) error {
-	js.mutex.Lock()
+func (jfs *jsonFileStorage) addFile(info FileInfo) error {
+	jfs.mutex.Lock()
 
-	if _, ok := js.info[info.Filename]; ok {
-		js.mutex.Unlock()
+	if _, ok := jfs.info[info.Filename]; ok {
+		jfs.mutex.Unlock()
 		return ErrAlreadyExist
 	}
 
 	info.Tags = []int{} // https://github.com/ShoshinNikita/tags-drive/issues/19
-	js.info[info.Filename] = info
-	js.mutex.Unlock()
+	jfs.info[info.Filename] = info
+	jfs.mutex.Unlock()
 
-	js.write()
+	jfs.write()
 
 	return nil
 }
 
 // renameFile renames a file
-func (js *jsonStorage) renameFile(oldName string, newName string) error {
-	js.mutex.Lock()
-	if _, ok := js.info[oldName]; !ok {
-		js.mutex.Unlock()
+func (jfs *jsonFileStorage) renameFile(oldName string, newName string) error {
+	jfs.mutex.Lock()
+	if _, ok := jfs.info[oldName]; !ok {
+		jfs.mutex.Unlock()
 		return ErrFileIsNotExist
 	}
 
 	// Check does file with new name exist
-	if _, ok := js.info[newName]; ok {
-		js.mutex.Unlock()
+	if _, ok := jfs.info[newName]; ok {
+		jfs.mutex.Unlock()
 		return ErrAlreadyExist
 	}
 
 	// Update map
-	f := js.info[oldName]
-	delete(js.info, oldName)
+	f := jfs.info[oldName]
+	delete(jfs.info, oldName)
 	f.Filename = newName
 	f.Origin = params.DataFolder + "/" + newName
-	js.info[newName] = f
+	jfs.info[newName] = f
 
-	js.mutex.Unlock()
+	jfs.mutex.Unlock()
 
-	js.write()
+	jfs.write()
 
 	return nil
 }
 
 // deleteFile deletes an element (from structure) and call js.write()
-func (js *jsonStorage) deleteFile(filename string) error {
-	js.mutex.Lock()
+func (jfs *jsonFileStorage) deleteFile(filename string) error {
+	jfs.mutex.Lock()
 
-	if _, ok := js.info[filename]; !ok {
-		js.mutex.Unlock()
+	if _, ok := jfs.info[filename]; !ok {
+		jfs.mutex.Unlock()
 		return ErrFileIsNotExist
 	}
 
-	delete(js.info, filename)
+	delete(jfs.info, filename)
 
-	js.mutex.Unlock()
+	jfs.mutex.Unlock()
 
-	js.write()
+	jfs.write()
 
 	return nil
 }
 
-func (js *jsonStorage) deleteTagFromFiles(tagID int) {
-	js.mutex.Lock()
+func (jfs *jsonFileStorage) deleteTagFromFiles(tagID int) {
+	jfs.mutex.Lock()
 
-	for filename, f := range js.info {
+	for filename, f := range jfs.info {
 		index := -1
 		for i := range f.Tags {
 			if f.Tags[i] == tagID {
@@ -208,50 +208,50 @@ func (js *jsonStorage) deleteTagFromFiles(tagID int) {
 		// Erase tag
 		f.Tags = append(f.Tags[0:index], f.Tags[index+1:]...)
 
-		js.info[filename] = f
+		jfs.info[filename] = f
 	}
 
-	js.mutex.Unlock()
+	jfs.mutex.Unlock()
 
-	js.write()
+	jfs.write()
 }
 
-func (js *jsonStorage) updateFileTags(filename string, changedTagsID []int) error {
-	js.mutex.Lock()
+func (jfs *jsonFileStorage) updateFileTags(filename string, changedTagsID []int) error {
+	jfs.mutex.Lock()
 
-	if _, ok := js.info[filename]; !ok {
-		js.mutex.Unlock()
+	if _, ok := jfs.info[filename]; !ok {
+		jfs.mutex.Unlock()
 		return ErrFileIsNotExist
 	}
 
 	// Update map
-	f := js.info[filename]
+	f := jfs.info[filename]
 	f.Tags = changedTagsID
-	js.info[filename] = f
+	jfs.info[filename] = f
 
-	js.mutex.Unlock()
+	jfs.mutex.Unlock()
 
-	js.write()
+	jfs.write()
 
 	return nil
 }
 
-func (js *jsonStorage) updateFileDescription(filename string, newDesc string) error {
-	js.mutex.Lock()
+func (jfs *jsonFileStorage) updateFileDescription(filename string, newDesc string) error {
+	jfs.mutex.Lock()
 
-	if _, ok := js.info[filename]; !ok {
-		js.mutex.Unlock()
+	if _, ok := jfs.info[filename]; !ok {
+		jfs.mutex.Unlock()
 		return ErrFileIsNotExist
 	}
 
 	// Update map
-	f := js.info[filename]
+	f := jfs.info[filename]
 	f.Description = newDesc
-	js.info[filename] = f
+	jfs.info[filename] = f
 
-	js.mutex.Unlock()
+	jfs.mutex.Unlock()
 
-	js.write()
+	jfs.write()
 
 	return nil
 }

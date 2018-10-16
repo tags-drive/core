@@ -78,19 +78,17 @@ var fileStorage = struct {
 	storage
 }{}
 
-// Init reads params.Files and decode its data
+// Init inits fileStorage
 func Init() error {
 	switch params.StorageType {
 	case params.JSONStorage:
-		log.Infoln("Storage type is \"sonStorage\"")
-		fileStorage.storage = &jsonStorage{
+		fileStorage.storage = &jsonFileStorage{
 			info:  make(map[string]FileInfo),
 			mutex: new(sync.RWMutex),
 		}
 	default:
-		log.Infoln("Use default storage type. Storage type is \"sonStorage\"")
-		// Default storage is jsonStorage
-		fileStorage.storage = &jsonStorage{
+		// Default storage is jsonFileStorage
+		fileStorage.storage = &jsonFileStorage{
 			info:  make(map[string]FileInfo),
 			mutex: new(sync.RWMutex),
 		}
