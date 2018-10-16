@@ -2,13 +2,11 @@ package tags
 
 import (
 	"encoding/json"
-	"io"
 	"os"
 	"sync"
 
 	"github.com/ShoshinNikita/log"
 	"github.com/ShoshinNikita/tags-drive/internal/params"
-	"github.com/ShoshinNikita/tags-drive/internal/storage/files"
 	"github.com/pkg/errors"
 )
 
@@ -30,6 +28,8 @@ type Tag struct {
 type Tags map[int]Tag
 
 type storage interface {
+	init() error
+
 	// getAll returns all tags
 	getAll() Tags
 
@@ -37,114 +37,17 @@ type storage interface {
 	addTag(tag Tag)
 
 	// updateTag updates name and color of tag with id == tagID
-	updateTag(tagID int, newName, newColor string)
+	updateTag(id int, newName, newColor string)
 
 	// deleteTag deletes a tag
-	deleteTag(tag Tag)
+	deleteTag(id int)
 }
 
 var tagStorage = struct {
 	storage
 }{}
 
-type tagsStruct struct {
-	tags  Tags
-	mutex *sync.RWMutex
-}
-
-func (t tagsStruct) write() {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
-
-	f, err := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0600)
-	if err != nil {
-		log.Errorf("Can't open file %s: %s\n", params.TagsFile, err)
-		return
-	}
-
-	enc := json.NewEncoder(f)
-	if params.Debug {
-		enc.SetIndent("", "  ")
-	}
-	enc.Encode(t.tags)
-
-	f.Close()
-}
-
-func (t *tagsStruct) decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(&t.tags)
-}
-
-func (t tagsStruct) getAll() Tags {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
-
-	return t.tags
-}
-
-func (t *tagsStruct) add(tag Tag) {
-	t.mutex.Lock()
-
-	// Get max ID (max)
-	nextID := 0
-	for id := range t.tags {
-		if nextID < id {
-			nextID = id
-		}
-	}
-	nextID++
-	tag.ID = nextID
-	t.tags[nextID] = tag
-	t.mutex.Unlock()
-
-	t.write()
-}
-
-func (t *tagsStruct) deleteTag(id int) {
-	t.mutex.Lock()
-	// We can skip files.DeleteTag(id), if tag doesn't exist
-	if _, ok := t.tags[id]; !ok {
-		t.mutex.Unlock()
-		return
-	}
-
-	delete(t.tags, id)
-	t.mutex.Unlock()
-
-	t.write()
-
-	files.DeleteTag(id)
-}
-
-func (t *tagsStruct) change(id int, newName, newColor string) {
-	t.mutex.Lock()
-
-	if _, ok := t.tags[id]; !ok {
-		t.mutex.Unlock()
-		return
-	}
-
-	tag := t.tags[id]
-
-	if newName != "" {
-		tag.Name = newName
-	}
-
-	if newColor != "" {
-		if newColor[0] != '#' {
-			newColor = "#" + newColor
-		}
-		tag.Color = newColor
-	}
-
-	t.tags[id] = tag
-
-	t.mutex.Unlock()
-
-	t.write()
-}
-
-var allTags = tagsStruct{tags: make(Tags), mutex: new(sync.RWMutex)}
+var allTags = jsonStorage{tags: make(Tags), mutex: new(sync.RWMutex)}
 
 // Init reads params.TagsFiles and decode its data
 func Init() error {
@@ -181,7 +84,7 @@ func GetAllTags() Tags {
 }
 
 func AddTag(t Tag) {
-	allTags.add(t)
+	allTags.addTag(t)
 }
 
 func DeleteTag(id int) {
@@ -191,5 +94,5 @@ func DeleteTag(id int) {
 // Change changes a tag with passed id.
 // If pass empty newName (or newColor), field Name (or Color) won't be changed.
 func Change(id int, newName, newColor string) {
-	allTags.change(id, newName, newColor)
+	allTags.updateTag(id, newName, newColor)
 }
