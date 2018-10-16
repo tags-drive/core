@@ -1,11 +1,8 @@
 package tags
 
 import (
-	"encoding/json"
-	"os"
 	"sync"
 
-	"github.com/ShoshinNikita/log"
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 	"github.com/pkg/errors"
 )
@@ -47,31 +44,23 @@ var tagStorage = struct {
 	storage
 }{}
 
-var allTags = jsonStorage{tags: make(Tags), mutex: new(sync.RWMutex)}
-
 // Init reads params.TagsFiles and decode its data
 func Init() error {
-	f, err := os.OpenFile(params.TagsFile, os.O_RDWR, 0600)
-	if err != nil {
-		// Have to create a new file
-		if os.IsNotExist(err) {
-			log.Infof("File %s doesn't exist. Need to create a new file\n", params.TagsFile)
-			f, err = os.OpenFile(params.TagsFile, os.O_CREATE|os.O_RDWR, 0600)
-			if err != nil {
-				return errors.Wrap(err, "can't create a new file")
-			}
-			// Write empty structure
-			json.NewEncoder(f).Encode(allTags.tags)
-			// Can exit because we don't need to decode files from the file
-			f.Close()
-			return nil
+	switch params.StorageType {
+	case params.JSONStorage:
+		tagStorage.storage = &jsonStorage{
+			tags:  make(Tags),
+			mutex: new(sync.RWMutex),
 		}
-
-		return errors.Wrapf(err, "can't open file %s", params.TagsFile)
+	default:
+		// Default storage is jsonStorage
+		tagStorage.storage = &jsonStorage{
+			tags:  make(Tags),
+			mutex: new(sync.RWMutex),
+		}
 	}
 
-	defer f.Close()
-	err = allTags.decode(f)
+	err := tagStorage.init()
 	if err != nil {
 		return errors.Wrapf(err, "can't decode data")
 	}
@@ -80,19 +69,19 @@ func Init() error {
 }
 
 func GetAllTags() Tags {
-	return allTags.getAll()
+	return tagStorage.getAll()
 }
 
 func AddTag(t Tag) {
-	allTags.addTag(t)
+	tagStorage.addTag(t)
 }
 
 func DeleteTag(id int) {
-	allTags.deleteTag(id)
+	tagStorage.deleteTag(id)
 }
 
 // Change changes a tag with passed id.
 // If pass empty newName (or newColor), field Name (or Color) won't be changed.
 func Change(id int, newName, newColor string) {
-	allTags.updateTag(id, newName, newColor)
+	tagStorage.updateTag(id, newName, newColor)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/ShoshinNikita/log"
 	"github.com/ShoshinNikita/tags-drive/internal/params"
 	"github.com/ShoshinNikita/tags-drive/internal/storage/files"
+	"github.com/pkg/errors"
 )
 
 type jsonStorage struct {
@@ -17,8 +18,27 @@ type jsonStorage struct {
 }
 
 func (t jsonStorage) init() error {
-	// TODO
-	return nil
+	f, err := os.OpenFile(params.TagsFile, os.O_RDWR, 0600)
+	if err != nil {
+		// Have to create a new file
+		if os.IsNotExist(err) {
+			log.Infof("File %s doesn't exist. Need to create a new file\n", params.TagsFile)
+			f, err = os.OpenFile(params.TagsFile, os.O_CREATE|os.O_RDWR, 0600)
+			if err != nil {
+				return errors.Wrap(err, "can't create a new file")
+			}
+			// Write empty structure
+			f.Write([]byte("{}"))
+			// Can exit because we don't need to decode tags from the file
+			f.Close()
+			return nil
+		}
+
+		return errors.Wrapf(err, "can't open file %s", params.TagsFile)
+	}
+
+	defer f.Close()
+	return t.decode(f)
 }
 
 func (t jsonStorage) write() {
