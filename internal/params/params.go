@@ -23,6 +23,8 @@ const (
 	MaxTokenLife = time.Hour * 24 * 60
 	// AuthCookieName defines name of cookie, which contains token
 	AuthCookieName = "auth"
+	// JSONStorage is used for StorageType
+	JSONStorage = "json"
 )
 
 var (
@@ -40,6 +42,8 @@ var (
 	Encrypt bool
 	// Key is used for encrypting of files. Key is a sha256 sum of Password
 	Key [32]byte
+	// StorageType is a type of storage
+	StorageType string
 )
 
 func init() {
@@ -102,4 +106,8 @@ func init() {
 	}()
 
 	Key = sha256.Sum256([]byte(Password))
+
+	StorageType = func() string {
+		return JSONStorage
+	}()
 }

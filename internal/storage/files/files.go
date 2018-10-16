@@ -76,17 +76,26 @@ type storage interface {
 
 var fileStorage = struct {
 	storage
-}{
-	// Default storage is jsonStorage
-	storage: &jsonStorage{
-		info:  make(map[string]FileInfo),
-		mutex: new(sync.RWMutex),
-	},
-}
+}{}
 
 // Init reads params.Files and decode its data
 func Init() error {
-	// TODO storage switch
+	switch params.StorageType {
+	case params.JSONStorage:
+		log.Infoln("Storage type is \"sonStorage\"")
+		fileStorage.storage = &jsonStorage{
+			info:  make(map[string]FileInfo),
+			mutex: new(sync.RWMutex),
+		}
+	default:
+		log.Infoln("Use default storage type. Storage type is \"sonStorage\"")
+		// Default storage is jsonStorage
+		fileStorage.storage = &jsonStorage{
+			info:  make(map[string]FileInfo),
+			mutex: new(sync.RWMutex),
+		}
+	}
+
 	err := fileStorage.init()
 	if err != nil {
 		return errors.Wrapf(err, "can't init storage")
