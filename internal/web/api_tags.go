@@ -16,6 +16,7 @@ import (
 func returnTags(w http.ResponseWriter, r *http.Request) {
 	allTags := tags.GetAllTags()
 
+	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
 		enc.SetIndent("", "  ")

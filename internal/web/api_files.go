@@ -95,6 +95,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		tagMode = files.ModeNot
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
 		enc.SetIndent("", "  ")
@@ -157,6 +158,7 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 
 	files := files.GetRecent(number)
 
+	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
 		enc.SetIndent("", "  ")
@@ -207,6 +209,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		response = append(response, resp)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
 		enc.SetIndent("", "  ")
@@ -327,6 +330,7 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		response = append(response, resp)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
 		enc.SetIndent("", "  ")
