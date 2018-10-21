@@ -60,6 +60,7 @@ Run `docker pull kirtis/tags-drive`. Create `run.sh` to run docker container (ex
 | PSWRD       | qwerty  | Password for login                               |
 | ENCRYPT     | false   | Should the **Tags Drive** encrypt uploaded files |
 | DBG         | false   |                                                  |
+| SKIP_LOGIN  | false   | Let use **Tags Drive** without loginning        |
 
 ### Frontend
 

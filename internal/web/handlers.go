@@ -43,8 +43,10 @@ func login(w http.ResponseWriter, r *http.Request) {
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
-	// We can skip err, because we already checked is there a cookie in authMiddleware()
-	c, _ := r.Cookie(params.AuthCookieName)
+	c, err := r.Cookie(params.AuthCookieName)
+	if err != nil {
+		return
+	}
 
 	token := c.Value
 	auth.DeleteToken(token)

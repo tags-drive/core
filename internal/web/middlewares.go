@@ -13,6 +13,11 @@ import (
 
 func authMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if params.SkipLogin {
+			h.ServeHTTP(w, r)
+			return
+		}
+
 		validToken := func() bool {
 			c, err := r.Cookie(params.AuthCookieName)
 			if err != nil {

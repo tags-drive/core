@@ -38,6 +38,8 @@ var (
 	Password string
 	// Debug defines is debug mode
 	Debug bool
+	// SkipLogin let use Tags Drive without loginning (for Debug only)
+	SkipLogin bool
 	// Encrypt defines, should the program encrypt files. False by default
 	Encrypt bool
 	// Key is used for encrypting of files. Key is a sha256 sum of Password
@@ -91,6 +93,14 @@ func init() {
 	Debug = func() bool {
 		value := os.Getenv("DBG")
 		if strings.ToLower(value) == "true" {
+			return true
+		}
+		return false
+	}()
+
+	SkipLogin = func() bool {
+		value := os.Getenv("SKIP_LOGIN")
+		if Debug && strings.ToLower(value) == "true" {
 			return true
 		}
 		return false
