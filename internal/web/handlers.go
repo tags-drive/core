@@ -16,6 +16,14 @@ func mock(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Mock"))
 }
 
+func setDebugHeaders(w http.ResponseWriter, r *http.Request) {
+	if params.Debug {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	}
+}
+
 func index(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open("templates/index.html")
 	if err != nil {

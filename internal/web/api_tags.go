@@ -16,6 +16,7 @@ import (
 func returnTags(w http.ResponseWriter, r *http.Request) {
 	allTags := tags.GetAllTags()
 
+	setDebugHeaders(w, r)
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
@@ -40,6 +41,7 @@ func addTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tags.AddTag(tags.Tag{Name: tagName, Color: tagColor})
+	setDebugHeaders(w, r)
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -65,6 +67,8 @@ func changeTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tags.Change(id, newName, newColor)
+
+	setDebugHeaders(w, r)
 }
 
 // DELETE /api/tags?id=tadID
@@ -82,4 +86,6 @@ func deleteTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tags.DeleteTag(id)
+
+	setDebugHeaders(w, r)
 }
