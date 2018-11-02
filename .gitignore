@@ -8,6 +8,7 @@ configs
 data
 scripts
 vendor
+web
 # files
 TODO.md
 *.bat

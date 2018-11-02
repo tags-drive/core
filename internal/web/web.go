@@ -19,11 +19,11 @@ import (
 func Start(stopChan chan struct{}, errChan chan<- error) {
 	router := mux.NewRouter()
 	// For static files
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/"))))
 	// For uploaded files
 	router.PathPrefix("/data/").Handler(http.StripPrefix("/data/", decryptMiddleware(http.Dir(params.DataFolder+"/"))))
 	// For exitensions
-	router.PathPrefix("/ext/").Handler(http.StripPrefix("/ext/", extensionHandler(http.Dir("static/ext/48px/"))))
+	router.PathPrefix("/ext/").Handler(http.StripPrefix("/ext/", extensionHandler(http.Dir("./web/static/ext/48px/"))))
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {

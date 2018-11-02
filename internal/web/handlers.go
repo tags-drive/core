@@ -25,7 +25,7 @@ func setDebugHeaders(w http.ResponseWriter, r *http.Request) {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	f, err := os.Open("templates/index.html")
+	f, err := os.Open("./web/index.html")
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -42,12 +42,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := os.Open("templates/login.html")
+	f, err := os.Open("./web/login.html")
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	setDebugHeaders(w, r)
 	io.Copy(w, f)
+	f.Close()
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
