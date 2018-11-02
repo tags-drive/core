@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ShoshinNikita/tags-drive/internal/params"
-	"github.com/ShoshinNikita/tags-drive/internal/web/auth"
+	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/web/auth"
 )
 
 func mock(w http.ResponseWriter, r *http.Request) {

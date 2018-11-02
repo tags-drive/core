@@ -9,7 +9,7 @@ import (
 	"github.com/ShoshinNikita/log"
 	"github.com/gorilla/mux"
 
-	"github.com/ShoshinNikita/tags-drive/internal/params"
+	"github.com/tags-drive/core/internal/params"
 )
 
 // Start starts the server. It has to run in goroutine

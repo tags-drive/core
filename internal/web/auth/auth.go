@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/ShoshinNikita/log"
-	"github.com/ShoshinNikita/tags-drive/internal/params"
 	"github.com/pkg/errors"
+	"github.com/tags-drive/core/internal/params"
 )
 
 // DefaultTokenSize can be used for function GenerateToken()

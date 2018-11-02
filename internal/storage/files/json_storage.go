@@ -10,7 +10,7 @@ import (
 	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
 
-	"github.com/ShoshinNikita/tags-drive/internal/params"
+	"github.com/tags-drive/core/internal/params"
 )
 
 // jsonFileStorage implements files.storage interface.
@@ -136,7 +136,7 @@ func (jfs *jsonFileStorage) addFile(info FileInfo) error {
 		return ErrAlreadyExist
 	}
 
-	info.Tags = []int{} // https://github.com/ShoshinNikita/tags-drive/issues/19
+	info.Tags = []int{} // https://github.com/tags-drive/core/issues/19
 	jfs.info[info.Filename] = info
 	jfs.mutex.Unlock()
 

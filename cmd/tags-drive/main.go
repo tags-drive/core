@@ -8,9 +8,9 @@ import (
 
 	"github.com/ShoshinNikita/log"
 
-	"github.com/ShoshinNikita/tags-drive/internal/storage"
-	"github.com/ShoshinNikita/tags-drive/internal/web"
-	"github.com/ShoshinNikita/tags-drive/internal/web/auth"
+	"github.com/tags-drive/core/internal/storage"
+	"github.com/tags-drive/core/internal/web"
+	"github.com/tags-drive/core/internal/web/auth"
 )
 
 func main() {

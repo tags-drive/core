@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ShoshinNikita/tags-drive/internal/storage/files"
+	"github.com/tags-drive/core/internal/storage/files"
 )
 
 func TestIsGoodFile(t *testing.T) {

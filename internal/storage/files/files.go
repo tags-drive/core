@@ -14,8 +14,8 @@ import (
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
-	"github.com/ShoshinNikita/tags-drive/internal/params"
-	"github.com/ShoshinNikita/tags-drive/internal/storage/files/resizing"
+	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/storage/files/resizing"
 )
 
 const (

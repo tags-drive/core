@@ -3,7 +3,7 @@ package tags
 import (
 	"sync"
 
-	"github.com/ShoshinNikita/tags-drive/internal/params"
+	"github.com/tags-drive/core/internal/params"
 	"github.com/pkg/errors"
 )
 

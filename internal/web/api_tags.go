@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ShoshinNikita/tags-drive/internal/params"
-	"github.com/ShoshinNikita/tags-drive/internal/storage/tags"
+	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/storage/tags"
 )
 
 // GET /api/tags

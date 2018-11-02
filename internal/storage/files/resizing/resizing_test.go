@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ShoshinNikita/tags-drive/internal/storage/files/resizing"
+	"github.com/tags-drive/core/internal/storage/files/resizing"
 )
 
 func TestResizing(t *testing.T) {

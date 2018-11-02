@@ -7,8 +7,8 @@ import (
 	"sync"
 
 	"github.com/ShoshinNikita/log"
-	"github.com/ShoshinNikita/tags-drive/internal/params"
-	"github.com/ShoshinNikita/tags-drive/internal/storage/files"
+	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/pkg/errors"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/ShoshinNikita/log"
 
-	"github.com/ShoshinNikita/tags-drive/internal/params"
+	"github.com/tags-drive/core/internal/params"
 )
 
 type tokenStruct struct {
