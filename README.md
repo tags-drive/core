@@ -48,7 +48,6 @@ Run `docker pull kirtis/tags-drive`. Create `run.sh` to run docker container (ex
 **Requirements:**
 
 - Docker
-- Docker Compose
 
 **Parameters:**
 
@@ -61,7 +60,3 @@ Run `docker pull kirtis/tags-drive`. Create `run.sh` to run docker container (ex
 | ENCRYPT     | false   | Should the **Tags Drive** encrypt uploaded files |
 | DBG         | false   |                                                  |
 | SKIP_LOGIN  | false   | Let use **Tags Drive** without loginning        |
-
-### Frontend
-
-**Tags Drive** uses framework [Vue.js](https://vuejs.org).
