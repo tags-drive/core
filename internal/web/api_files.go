@@ -340,12 +340,11 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		response = append(response, resp)
 	}
 
+	setDebugHeaders(w, r)
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(response)
-
-	setDebugHeaders(w, r)
 }
