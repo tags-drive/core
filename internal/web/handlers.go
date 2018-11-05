@@ -17,11 +17,9 @@ func mock(w http.ResponseWriter, r *http.Request) {
 }
 
 func setDebugHeaders(w http.ResponseWriter, r *http.Request) {
-	if params.Debug {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	}
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +45,9 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	setDebugHeaders(w, r)
+	if params.Debug {
+		setDebugHeaders(w, r)
+	}
 	io.Copy(w, f)
 	f.Close()
 }
@@ -108,6 +108,9 @@ func extensionHandler(dir http.Dir) http.Handler {
 			return
 		}
 
+		if params.Debug {
+			setDebugHeaders(w, r)
+		}
 		io.Copy(w, f)
 		f.Close()
 	})

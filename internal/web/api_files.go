@@ -95,7 +95,9 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		tagMode = files.ModeNot
 	}
 
-	setDebugHeaders(w, r)
+	if params.Debug {
+		setDebugHeaders(w, r)
+	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
@@ -137,7 +139,9 @@ func downloadFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	setDebugHeaders(w, r)
+	if params.Debug {
+		setDebugHeaders(w, r)
+	}
 	w.Header().Set("Content-Type", "application/zip")
 	if _, err := io.Copy(w, body); err != nil {
 		log.Errorf("can't copy zip file to response body: %s\n", err)
@@ -160,7 +164,9 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 
 	files := files.GetRecent(number)
 
-	setDebugHeaders(w, r)
+	if params.Debug {
+		setDebugHeaders(w, r)
+	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
@@ -212,7 +218,9 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		response = append(response, resp)
 	}
 
-	setDebugHeaders(w, r)
+	if params.Debug {
+		setDebugHeaders(w, r)
+	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
@@ -245,7 +253,9 @@ func changeFilename(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	setDebugHeaders(w, r)
+	if params.Debug {
+		setDebugHeaders(w, r)
+	}
 }
 
 // PUT /api/files/tags?file=123&tags=1,2,3
@@ -280,7 +290,9 @@ func changeFileTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	setDebugHeaders(w, r)
+	if params.Debug {
+		setDebugHeaders(w, r)
+	}
 }
 
 // PUT /api/files/description?file=123&description=some-new-cool-description
@@ -301,7 +313,9 @@ func changeFileDescription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	setDebugHeaders(w, r)
+	if params.Debug {
+		setDebugHeaders(w, r)
+	}
 }
 
 // DELETE /api/files?file=file1&file=file2
@@ -340,7 +354,9 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		response = append(response, resp)
 	}
 
-	setDebugHeaders(w, r)
+	if params.Debug {
+		setDebugHeaders(w, r)
+	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
