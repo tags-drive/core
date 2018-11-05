@@ -3,8 +3,8 @@ package tags
 import (
 	"sync"
 
-	"github.com/tags-drive/core/internal/params"
 	"github.com/pkg/errors"
+	"github.com/tags-drive/core/internal/params"
 )
 
 const (

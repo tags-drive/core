@@ -11,7 +11,7 @@ import (
 
 // GET /api/tags
 //
-// Response: json list of all tags
+// Response: map with all tags
 //
 func returnTags(w http.ResponseWriter, r *http.Request) {
 	allTags := tags.GetAllTags()
