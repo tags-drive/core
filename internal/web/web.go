@@ -18,12 +18,24 @@ import (
 // After stopping the server function sends http.ErrServerClosed into errChan
 func Start(stopChan chan struct{}, errChan chan<- error) {
 	router := mux.NewRouter()
+
+	staticHandler := http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/")))
+	uploadedFilesHandler := http.StripPrefix("/data/", decryptMiddleware(http.Dir(params.DataFolder+"/")))
+	exitensionsHandler := http.StripPrefix("/ext/", extensionHandler(http.Dir("./web/static/ext/48px/")))
+
+	if params.Debug {
+		staticHandler = debugFileServeMiddleware(staticHandler)
+		uploadedFilesHandler = debugFileServeMiddleware(uploadedFilesHandler)
+		exitensionsHandler = debugFileServeMiddleware(exitensionsHandler)
+	}
+
 	// For static files
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/"))))
+	router.PathPrefix("/static/").Handler(staticHandler)
 	// For uploaded files
-	router.PathPrefix("/data/").Handler(http.StripPrefix("/data/", decryptMiddleware(http.Dir(params.DataFolder+"/"))))
+	router.PathPrefix("/data/").Handler(uploadedFilesHandler)
 	// For exitensions
-	router.PathPrefix("/ext/").Handler(http.StripPrefix("/ext/", extensionHandler(http.Dir("./web/static/ext/48px/"))))
+	router.PathPrefix("/ext/").Handler(exitensionsHandler)
+
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {

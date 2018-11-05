@@ -99,3 +99,11 @@ func debugMiddleware(h http.Handler) http.Handler {
 		h.ServeHTTP(w, r)
 	})
 }
+
+// debugFileServeMiddleware calls setDebugHeaders() before Handler.ServeHTTP()
+func debugFileServeMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		setDebugHeaders(w, r)
+		h.ServeHTTP(w, r)
+	})
+}
