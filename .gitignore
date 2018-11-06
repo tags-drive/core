@@ -7,7 +7,6 @@ app/*
 configs
 data
 scripts
-vendor
 web
 # files
 TODO.md
