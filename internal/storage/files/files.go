@@ -52,7 +52,7 @@ type storage interface {
 	// getFiles returns files
 	//     tagMode - mode of tags
 	//     tags - list of needed tags
-	//     search - string, which filename has to contain
+	//     search - string, which filename has to contain (lower case)
 	getFiles(m TagMode, tags []int, search string) (files []FileInfo)
 
 	// add adds a file

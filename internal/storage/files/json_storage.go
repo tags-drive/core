@@ -119,7 +119,7 @@ func (jfs jsonFileStorage) getFiles(m TagMode, tags []int, search string) (files
 	// Need to remove files with incorrect name
 	var goodFiles []FileInfo
 	for _, f := range files {
-		if strings.Contains(f.Filename, search) {
+		if strings.Contains(strings.ToLower(f.Filename), search) {
 			goodFiles = append(goodFiles, f)
 		}
 	}

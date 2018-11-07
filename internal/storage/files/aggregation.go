@@ -1,6 +1,7 @@
 package files
 
 import (
+	"strings"
 	"sort"
 )
 
@@ -113,6 +114,7 @@ func sortFiles(s SortMode, files []FileInfo) {
 // Get returns all files with (or without) passed tags
 // For more information, see AndMode, OrMode, NotMode
 func Get(m TagMode, s SortMode, tags []int, search string) []FileInfo {
+	search = strings.ToLower(search)
 	files := fileStorage.getFiles(m, tags, search)
 	sortFiles(s, files)
 	return files
