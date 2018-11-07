@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -68,15 +67,14 @@ func main() {
 
 	select {
 	case err := <-errChan:
-		// We got an error during the work
-		log.Errorln(err)
-		close(stopChan)
+		// Server is down
+		log.Fatalln(err)
 	case <-termChan:
 		// We got SIGTERM, SIGKILL or SIGINT
 		close(stopChan)
 	}
 
-	if err := <-errChan; err != http.ErrServerClosed {
+	if err := <-errChan; err != nil {
 		log.Fatalln(err)
 	}
 
