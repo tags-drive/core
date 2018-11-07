@@ -23,12 +23,6 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	uploadedFilesHandler := http.StripPrefix("/data/", decryptMiddleware(http.Dir(params.DataFolder+"/")))
 	exitensionsHandler := http.StripPrefix("/ext/", extensionHandler(http.Dir("./web/static/ext/48px/")))
 
-	if params.Debug {
-		staticHandler = debugFileServeMiddleware(staticHandler)
-		uploadedFilesHandler = debugFileServeMiddleware(uploadedFilesHandler)
-		exitensionsHandler = debugFileServeMiddleware(exitensionsHandler)
-	}
-
 	// For static files
 	router.PathPrefix("/static/").Handler(staticHandler)
 	// For uploaded files

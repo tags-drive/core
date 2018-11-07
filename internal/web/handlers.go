@@ -45,9 +45,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if params.Debug {
-		setDebugHeaders(w, r)
-	}
+
 	io.Copy(w, f)
 	f.Close()
 }
@@ -108,9 +106,6 @@ func extensionHandler(dir http.Dir) http.Handler {
 			return
 		}
 
-		if params.Debug {
-			setDebugHeaders(w, r)
-		}
 		io.Copy(w, f)
 		f.Close()
 	})

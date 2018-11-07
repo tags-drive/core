@@ -95,9 +95,6 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		tagMode = files.ModeNot
 	}
 
-	if params.Debug {
-		setDebugHeaders(w, r)
-	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
@@ -139,9 +136,6 @@ func downloadFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if params.Debug {
-		setDebugHeaders(w, r)
-	}
 	w.Header().Set("Content-Type", "application/zip")
 	if _, err := io.Copy(w, body); err != nil {
 		log.Errorf("can't copy zip file to response body: %s\n", err)
@@ -164,9 +158,6 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 
 	files := files.GetRecent(number)
 
-	if params.Debug {
-		setDebugHeaders(w, r)
-	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
@@ -218,9 +209,6 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		response = append(response, resp)
 	}
 
-	if params.Debug {
-		setDebugHeaders(w, r)
-	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
@@ -251,10 +239,6 @@ func changeFilename(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	if params.Debug {
-		setDebugHeaders(w, r)
 	}
 }
 
@@ -289,10 +273,6 @@ func changeFileTags(w http.ResponseWriter, r *http.Request) {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	if params.Debug {
-		setDebugHeaders(w, r)
-	}
 }
 
 // PUT /api/files/description?file=123&description=some-new-cool-description
@@ -311,10 +291,6 @@ func changeFileDescription(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	if params.Debug {
-		setDebugHeaders(w, r)
 	}
 }
 
@@ -354,9 +330,6 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		response = append(response, resp)
 	}
 
-	if params.Debug {
-		setDebugHeaders(w, r)
-	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
