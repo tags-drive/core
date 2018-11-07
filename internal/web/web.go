@@ -74,6 +74,11 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 func Error(w http.ResponseWriter, err string, code int) {
 	if params.Debug {
 		log.Errorf("Request error: %s (code: %d)\n", err, code)
+	} else {
+		// We should to log server errors
+		if 500 <= code && code < 600 {
+			log.Errorf("Request error: %s (code: %d)\n", err, code)
+		}
 	}
 
 	http.Error(w, err, code)
