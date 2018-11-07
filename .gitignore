@@ -1,14 +1,7 @@
-# folders
+# IDEs
 .vscode
-app/*
-!app/Dockerfile
-!app/tags-drive.env
-!app/run.sh
+# Folders
 configs
 data
 scripts
 web
-# files
-TODO.md
-*.bat
-*.json
