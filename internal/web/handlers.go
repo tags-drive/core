@@ -8,19 +8,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/ShoshinNikita/log"
+
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/web/auth"
 )
-
-func mock(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Mock"))
-}
-
-func setDebugHeaders(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-}
 
 func index(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open("./web/index.html")
@@ -28,6 +20,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	io.Copy(w, f)
 	f.Close()
 }
@@ -56,6 +49,8 @@ func logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Warnf("%s logged out\n", r.RemoteAddr)
+
 	token := c.Value
 	auth.DeleteToken(token)
 	// Delete cookie
@@ -64,15 +59,18 @@ func logout(w http.ResponseWriter, r *http.Request) {
 
 func authentication(w http.ResponseWriter, r *http.Request) {
 	encrypt := func(s string) string {
+		const repeats = 11
+
 		hash := sha256.Sum256([]byte(s))
-		for i := 0; i < 10; i++ {
+		for i := 0; i < repeats-1; i++ {
 			hash = sha256.Sum256([]byte(hex.EncodeToString(hash[:])))
 		}
 		return hex.EncodeToString(hash[:])
 	}
 
 	var (
-		login    = r.FormValue("login")
+		login = r.FormValue("login")
+		// password is already encrypted
 		password = r.FormValue("password")
 	)
 
@@ -82,8 +80,12 @@ func authentication(w http.ResponseWriter, r *http.Request) {
 		} else {
 			Error(w, "invalid password", http.StatusBadRequest)
 		}
+
+		log.Warnf("%s tried to login with \"%s\" and \"%s\"\n", r.RemoteAddr, login, password)
 		return
 	}
+
+	log.Warnf("%s successfully logged in\n", r.RemoteAddr)
 
 	token := auth.GenerateToken()
 	auth.AddToken(token)
@@ -92,6 +94,7 @@ func authentication(w http.ResponseWriter, r *http.Request) {
 
 func extensionHandler(dir http.Dir) http.Handler {
 	const blankFilename = "_blank.png"
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ext := r.URL.Path
 		f, err := dir.Open(ext + ".png")
@@ -109,4 +112,14 @@ func extensionHandler(dir http.Dir) http.Handler {
 		io.Copy(w, f)
 		f.Close()
 	})
+}
+
+func setDebugHeaders(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
+func mock(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mock"))
 }
