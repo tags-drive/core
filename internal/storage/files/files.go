@@ -109,6 +109,8 @@ func Init() error {
 		return errors.Wrapf(err, "can't init storage")
 	}
 
+	go scheduleDeleting()
+
 	return nil
 }
 
@@ -336,4 +338,24 @@ func DeleteFileForce(filename string) error {
 	}
 
 	return nil
+}
+
+// scheduleDeleting deletes files with expired TimeToDelete
+// It has to be run in goroutine
+func scheduleDeleting() {
+	ticker := time.NewTicker(time.Hour * 12)
+
+	for ; true; <-ticker.C {
+		log.Infoln("Delete old files")
+
+		var err error
+		for _, filename := range fileStorage.getExpiredDeletedFiles() {
+			err = DeleteFileForce(filename)
+			if err != nil {
+				log.Errorf("can't delete file \"%s\": %s\n", filename, err)
+			} else {
+				log.Infof("file \"%s\" was successfully deleted\n", filename)
+			}
+		}
+	}
 }
