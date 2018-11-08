@@ -12,10 +12,6 @@ const (
 	DefaultColor = "#ffffff"
 )
 
-var (
-	ErrTagIsNotExist = errors.New("tag doesn't exist")
-)
-
 type Tag struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
