@@ -12,7 +12,7 @@ import (
 	"github.com/tags-drive/core/internal/params"
 )
 
-// Start starts the server. It has to run in goroutine
+// Start starts the server. It has to be ran in goroutine
 //
 // Functions stops when stopChan is closed. If there's any error, function will send it into errChan
 // After stopping the server function sends http.ErrServerClosed into errChan
@@ -44,36 +44,50 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	}
 
 	server := &http.Server{Addr: params.Port, Handler: handler}
-
+	localErrChan := make(chan error)
 	go func() {
 		log.Infoln("Start web server")
-		if !params.IsTLS {
-			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				errChan <- err
+
+		listenAndServe := server.ListenAndServe
+		if params.IsTLS {
+			listenAndServe = func() error {
+				return server.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key")
 			}
-		} else {
-			if err := server.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key"); err != nil && err != http.ErrServerClosed {
-				errChan <- err
-			}
+		}
+
+		// http.ErrServerClosed is a valid error
+		if err := listenAndServe(); err != nil && err != http.ErrServerClosed {
+			localErrChan <- err
 		}
 	}()
 
-	<-stopChan
+	select {
+	case err := <-localErrChan:
+		close(localErrChan)
+		errChan <- err
+		// We don't have to shutdown server gracefully because it is down
+		return
+	case <-stopChan:
+		// We have to shutdown server gracefully
+	}
+
 	log.Infoln("Stopping web server")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	server.SetKeepAlivesEnabled(false)
-	if err := server.Shutdown(ctx); err != nil {
-		errChan <- err
-	} else {
-		errChan <- http.ErrServerClosed
-	}
+	errChan <- server.Shutdown(ctx)
 }
 
+// Error is a wrapper over http.Error
 func Error(w http.ResponseWriter, err string, code int) {
 	if params.Debug {
 		log.Errorf("Request error: %s (code: %d)\n", err, code)
+	} else {
+		// We should to log server errors
+		if 500 <= code && code < 600 {
+			log.Errorf("Request error: %s (code: %d)\n", err, code)
+		}
 	}
 
 	http.Error(w, err, code)

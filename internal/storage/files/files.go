@@ -3,10 +3,12 @@ package files
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -74,9 +76,7 @@ type storage interface {
 	deleteTagFromFiles(tagID int)
 }
 
-var fileStorage = struct {
-	storage
-}{}
+var fileStorage = struct{ storage }{}
 
 // Init inits fileStorage
 func Init() error {
@@ -100,6 +100,26 @@ func Init() error {
 	}
 
 	return nil
+}
+
+// Get returns all files with (or without) passed tags
+// For more information, see AndMode, OrMode, NotMode
+func Get(m TagMode, s SortMode, tags []int, search string) []FileInfo {
+	search = strings.ToLower(search)
+	files := fileStorage.getFiles(m, tags, search)
+	sortFiles(s, files)
+	return files
+}
+
+// GetRecent returns the last uploaded files
+//
+// Func uses Get(ModeAnd, SortByTimeDesc, []int{}, "")
+func GetRecent(number int) []FileInfo {
+	files := Get(ModeAnd, SortByTimeDesc, []int{}, "")
+	if len(files) > number {
+		files = files[:number]
+	}
+	return files
 }
 
 // UploadFile tries to upload a new file. If it was successful, the function calls Files.add()
@@ -127,12 +147,13 @@ func UploadFile(f *multipart.FileHeader) error {
 		if err != nil {
 			return err
 		}
+
 		// Save an original image
 		r, err := resizing.Encode(img, ext)
 		if err != nil {
 			return err
 		}
-		err = upload(r, info.Origin)
+		err = copyToFile(r, info.Origin)
 		if err != nil {
 			return err
 		}
@@ -145,20 +166,21 @@ func UploadFile(f *multipart.FileHeader) error {
 			log.Errorf("Can't encode a resized image %s: %s\n", info.Filename, err)
 			break
 		}
-		err = upload(r, info.Preview)
+		err = copyToFile(r, info.Preview)
 		if err != nil {
 			log.Errorf("Can't save a resized image %s: %s\n", info.Filename, err)
 		}
 	default:
 		// Save a file
 		info.Type = typeFile
-		upload(file, info.Origin)
+		copyToFile(file, info.Origin)
 	}
 
 	return fileStorage.addFile(info)
 }
 
-func upload(src io.Reader, path string) error {
+// copyToFile copies data from src to new created file
+func copyToFile(src io.Reader, path string) error {
 	if _, err := os.Open(path); !os.IsNotExist(err) {
 		return ErrAlreadyExist
 	}
@@ -169,7 +191,13 @@ func upload(src io.Reader, path string) error {
 	}
 	defer newFile.Close()
 
-	_, err = writeFile(newFile, src)
+	// Write file
+	if params.Encrypt {
+		_, err = sio.Encrypt(newFile, src, sio.Config{Key: params.Key[:]})
+	} else {
+		_, err = io.Copy(newFile, src)
+	}
+
 	if err != nil {
 		// Deleting of the bad file
 		os.Remove(path)
@@ -179,13 +207,90 @@ func upload(src io.Reader, path string) error {
 	return nil
 }
 
-// writeFile writes file into dst. It encrypts (or doesn't encrypt) the file according to params.Encrypt
-func writeFile(dst io.Writer, src io.Reader) (int64, error) {
-	if params.Encrypt {
-		return sio.Encrypt(dst, src, sio.Config{Key: params.Key[:]})
+// RenameFile renames a file
+//
+// If there was an error during renaming file on a disk, it tries to recover previous filename
+//
+func RenameFile(oldName, newName string) error {
+	err := fileStorage.renameFile(oldName, newName)
+	if err != nil {
+		return errors.Wrapf(err, "can't rename file in a storage\"%s\"", oldName)
 	}
 
-	return io.Copy(dst, src)
+	err = os.Rename(params.DataFolder+"/"+oldName, params.DataFolder+"/"+newName)
+	if err != nil {
+		// Try to recover
+		e := fileStorage.renameFile(oldName, newName)
+		if e == nil {
+			// Success. Return the first error
+			return errors.Wrapf(err, "can't rename file \"%s\" on a disk; previous name was recovered", oldName)
+		}
+
+		// Return both errors
+		return fmt.Errorf("can't rename file on a disk: %s; can't recover previous filename: %s", err, e)
+	}
+
+	return nil
+}
+
+// ChangeTags changes the tags
+func ChangeTags(filename string, tags []int) error {
+	return fileStorage.updateFileTags(filename, tags)
+}
+
+// DeleteTag deletes a tag
+func DeleteTag(tagID int) {
+	fileStorage.deleteTagFromFiles(tagID)
+}
+
+// ChangeDescription changes the description of a file
+func ChangeDescription(filename, newDescription string) error {
+	return fileStorage.updateFileDescription(filename, newDescription)
+}
+
+// ArchiveFiles archives passed files and returns io.Reader
+func ArchiveFiles(files []string) (body io.Reader, err error) {
+	buff := bytes.NewBuffer([]byte(""))
+
+	zipWriter := zip.NewWriter(buff)
+	defer zipWriter.Close()
+
+	for _, filename := range files {
+		f, err := os.Open(filename)
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", filename)
+			continue
+		}
+		stat, err := f.Stat()
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", filename)
+			continue
+		}
+
+		header, err := zip.FileInfoHeader(stat)
+		header.Method = zip.Deflate
+
+		wr, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", filename)
+			f.Close()
+			continue
+		}
+
+		if params.Encrypt {
+			_, err = sio.Decrypt(wr, f, sio.Config{Key: params.Key[:]})
+		} else {
+			_, err = io.Copy(wr, f)
+		}
+
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", filename)
+		}
+
+		f.Close()
+	}
+
+	return buff, nil
 }
 
 // DeleteFile deletes file from structure and from disk
@@ -216,75 +321,4 @@ func DeleteFile(filename string) error {
 	}
 
 	return nil
-}
-
-// RenameFile renames a file
-func RenameFile(oldName, newName string) error {
-	// At first, rename file on disk
-	err := os.Rename(params.DataFolder+"/"+oldName, params.DataFolder+"/"+newName)
-	if err != nil {
-		return err
-	}
-
-	return fileStorage.renameFile(oldName, newName)
-}
-
-// ChangeTags changes the tags
-func ChangeTags(filename string, tags []int) error {
-	return fileStorage.updateFileTags(filename, tags)
-}
-
-// DeleteTag deletes a tag
-func DeleteTag(tagID int) {
-	fileStorage.deleteTagFromFiles(tagID)
-}
-
-// ChangeDescription changes the description of a file
-func ChangeDescription(filename, newDescription string) error {
-	return fileStorage.updateFileDescription(filename, newDescription)
-}
-
-// ArchiveFiles archives passed files and returns io.Reader
-func ArchiveFiles(files []string) (body io.Reader, err error) {
-	buff := bytes.NewBuffer([]byte(""))
-
-	zipWriter := zip.NewWriter(buff)
-	defer zipWriter.Close()
-
-	for _, filename := range files {
-		f, err := os.Open(filename)
-		if err != nil {
-			log.Errorf("Can't load file %s\n", filename)
-			continue
-		}
-		stat, err := f.Stat()
-		if err != nil {
-			log.Errorf("Can't load file %s\n", filename)
-			continue
-		}
-
-		header, err := zip.FileInfoHeader(stat)
-		header.Method = zip.Deflate
-
-		wr, err := zipWriter.CreateHeader(header)
-		if err != nil {
-			log.Errorf("Can't load file %s\n", filename)
-			f.Close()
-			continue
-		}
-
-		if params.Encrypt {
-			_, err = sio.Decrypt(wr, f, sio.Config{Key: params.Key[:]})
-		} else {
-			_, err = io.Copy(wr, f)
-		}
-
-		if err != nil {
-			log.Errorf("Can't load file %s\n", filename)
-		}
-
-		f.Close()
-	}
-
-	return buff, nil
 }

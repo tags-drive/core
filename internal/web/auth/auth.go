@@ -11,8 +11,7 @@ import (
 	"github.com/tags-drive/core/internal/params"
 )
 
-// DefaultTokenSize can be used for function GenerateToken()
-const DefaultTokenSize = 30
+const maxTokenSize = 30
 
 var allTokens = tokens{mutex: new(sync.RWMutex)}
 
@@ -54,9 +53,9 @@ func Init() error {
 	return nil
 }
 
-// GenerateToken generates token with passed size
+// GenerateToken generates a new token
 func GenerateToken() string {
-	return generate(DefaultTokenSize)
+	return generate(maxTokenSize)
 }
 
 // AddToken adds new generated token

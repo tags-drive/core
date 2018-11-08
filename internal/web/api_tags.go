@@ -11,7 +11,9 @@ import (
 
 // GET /api/tags
 //
-// Response: map with all tags
+// Params: -
+//
+// Response: json map
 //
 func returnTags(w http.ResponseWriter, r *http.Request) {
 	allTags := tags.GetAllTags()
@@ -24,7 +26,11 @@ func returnTags(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(allTags)
 }
 
-// POST /api/tags?name=tag-name&color=tag-color
+// POST /api/tags
+//
+// Params:
+//   - name: name of a new tag
+//   - color: color of a new tag (`#ffffff` by default)
 //
 // Response: -
 //
@@ -43,8 +49,12 @@ func addTag(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// PUT /api/tags?id=tagID&name=new-name&color=new-color
-// new-color shouldn't contain '#'
+// PUT /api/tags
+//
+// Params:
+//   - id: id of a tag
+//   - name: new name of a tag (can be empty)
+//   - color: new color of a tag (can be empty)
 //
 // Response: -
 //
@@ -67,7 +77,10 @@ func changeTag(w http.ResponseWriter, r *http.Request) {
 	tags.Change(id, newName, newColor)
 }
 
-// DELETE /api/tags?id=tadID
+// DELETE /api/tags
+//
+// Params:
+//   - id: id of a tag (one tag at a time)
 //
 // Response: -
 //
