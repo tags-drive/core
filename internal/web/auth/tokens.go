@@ -17,7 +17,7 @@ type tokenStruct struct {
 }
 
 type tokens struct {
-	tokens []tokenStruct // we can use []tokenStruct instead of map, because number of tokens is small and O(n) also isn't huge
+	tokens []tokenStruct // we can use array instead of map because number of tokens is small and O(n) is enough
 	mutex  *sync.RWMutex
 }
 
@@ -92,6 +92,8 @@ func (t *tokens) expire() {
 	for _, tok := range t.tokens {
 		if now.Before(tok.Expires) {
 			freshTokens = append(freshTokens, tok)
+		} else {
+			log.Infof("Token \"%s\" expired\n", tok.Token)
 		}
 	}
 
