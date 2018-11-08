@@ -40,9 +40,7 @@ type storage interface {
 	deleteTag(id int)
 }
 
-var tagStorage = struct {
-	storage
-}{}
+var tagStorage = struct{ storage }{}
 
 // Init inits tagStorage
 func Init() error {

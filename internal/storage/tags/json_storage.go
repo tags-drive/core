@@ -84,6 +84,7 @@ func (jts *jsonTagStorage) addTag(tag Tag) {
 	nextID++
 	tag.ID = nextID
 	jts.tags[nextID] = tag
+
 	jts.mutex.Unlock()
 
 	jts.write()
@@ -130,5 +131,6 @@ func (jts *jsonTagStorage) deleteTag(id int) {
 
 	jts.write()
 
+	// Remove links to deleted tag
 	files.DeleteTag(id)
 }
