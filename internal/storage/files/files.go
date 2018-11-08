@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -75,9 +76,7 @@ type storage interface {
 	deleteTagFromFiles(tagID int)
 }
 
-var fileStorage = struct {
-	storage
-}{}
+var fileStorage = struct{ storage }{}
 
 // Init inits fileStorage
 func Init() error {
@@ -101,6 +100,26 @@ func Init() error {
 	}
 
 	return nil
+}
+
+// Get returns all files with (or without) passed tags
+// For more information, see AndMode, OrMode, NotMode
+func Get(m TagMode, s SortMode, tags []int, search string) []FileInfo {
+	search = strings.ToLower(search)
+	files := fileStorage.getFiles(m, tags, search)
+	sortFiles(s, files)
+	return files
+}
+
+// GetRecent returns the last uploaded files
+//
+// Func uses Get(ModeAnd, SortByTimeDesc, []int{}, "")
+func GetRecent(number int) []FileInfo {
+	files := Get(ModeAnd, SortByTimeDesc, []int{}, "")
+	if len(files) > number {
+		files = files[:number]
+	}
+	return files
 }
 
 // UploadFile tries to upload a new file. If it was successful, the function calls Files.add()
@@ -188,36 +207,6 @@ func copyToFile(src io.Reader, path string) error {
 	return nil
 }
 
-// DeleteFile deletes file from structure and from disk
-func DeleteFile(filename string) error {
-	file, err := fileStorage.getFile(filename)
-	if err != nil {
-		return err
-	}
-
-	err = fileStorage.deleteFile(filename)
-	if err != nil {
-		return err
-	}
-
-	// Delete the original file
-	err = os.Remove(file.Origin)
-	if err != nil {
-		return err
-	}
-
-	if file.Preview != "" {
-		// Delete the resized image
-		err = os.Remove(file.Preview)
-		if err != nil {
-			// Only log error
-			log.Errorf("Can't delete a resized image %s: %s", file.Filename, err)
-		}
-	}
-
-	return nil
-}
-
 // RenameFile renames a file
 //
 // If there was an error during renaming file on a disk, it tries to recover previous filename
@@ -269,12 +258,12 @@ func ArchiveFiles(files []string) (body io.Reader, err error) {
 	for _, filename := range files {
 		f, err := os.Open(filename)
 		if err != nil {
-			log.Errorf("Can't load file %s\n", filename)
+			log.Errorf("Can't load file \"%s\"\n", filename)
 			continue
 		}
 		stat, err := f.Stat()
 		if err != nil {
-			log.Errorf("Can't load file %s\n", filename)
+			log.Errorf("Can't load file \"%s\"\n", filename)
 			continue
 		}
 
@@ -283,7 +272,7 @@ func ArchiveFiles(files []string) (body io.Reader, err error) {
 
 		wr, err := zipWriter.CreateHeader(header)
 		if err != nil {
-			log.Errorf("Can't load file %s\n", filename)
+			log.Errorf("Can't load file \"%s\"\n", filename)
 			f.Close()
 			continue
 		}
@@ -295,11 +284,41 @@ func ArchiveFiles(files []string) (body io.Reader, err error) {
 		}
 
 		if err != nil {
-			log.Errorf("Can't load file %s\n", filename)
+			log.Errorf("Can't load file \"%s\"\n", filename)
 		}
 
 		f.Close()
 	}
 
 	return buff, nil
+}
+
+// DeleteFile deletes file from structure and from disk
+func DeleteFile(filename string) error {
+	file, err := fileStorage.getFile(filename)
+	if err != nil {
+		return err
+	}
+
+	err = fileStorage.deleteFile(filename)
+	if err != nil {
+		return err
+	}
+
+	// Delete the original file
+	err = os.Remove(file.Origin)
+	if err != nil {
+		return err
+	}
+
+	if file.Preview != "" {
+		// Delete the resized image
+		err = os.Remove(file.Preview)
+		if err != nil {
+			// Only log error
+			log.Errorf("Can't delete a resized image %s: %s", file.Filename, err)
+		}
+	}
+
+	return nil
 }

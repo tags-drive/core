@@ -2,7 +2,6 @@ package files
 
 import (
 	"sort"
-	"strings"
 )
 
 type TagMode int
@@ -30,6 +29,7 @@ const (
 // isGoodFile checks if file has passed tags
 //
 // We can use nested loop, because number of tags is small
+//
 func isGoodFile(m TagMode, fileTags, passedTags []int) (res bool) {
 	if len(passedTags) == 0 {
 		return true
@@ -109,24 +109,4 @@ func sortFiles(s SortMode, files []FileInfo) {
 			return files[i].Size > files[j].Size
 		})
 	}
-}
-
-// Get returns all files with (or without) passed tags
-// For more information, see AndMode, OrMode, NotMode
-func Get(m TagMode, s SortMode, tags []int, search string) []FileInfo {
-	search = strings.ToLower(search)
-	files := fileStorage.getFiles(m, tags, search)
-	sortFiles(s, files)
-	return files
-}
-
-// GetRecent returns the last uploaded files
-//
-// Func uses GetAll(TimeDescMode)
-func GetRecent(number int) []FileInfo {
-	files := Get(ModeAnd, SortByTimeDesc, []int{}, "")
-	if len(files) > number {
-		files = files[:number]
-	}
-	return files
 }
