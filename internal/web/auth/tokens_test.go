@@ -4,12 +4,34 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
+
+	"github.com/ShoshinNikita/log"
 )
 
 func isEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	// a in b
 	for _, i := range a {
 		has := false
 		for _, j := range b {
+			if i == j {
+				has = true
+				break
+			}
+		}
+		if !has {
+			return false
+		}
+	}
+
+	// b in a
+	for _, i := range b {
+		has := false
+		for _, j := range a {
 			if i == j {
 				has = true
 				break
@@ -31,8 +53,18 @@ func toStringSlice(t []tokenStruct) (s []string) {
 }
 
 func TestMain(m *testing.M) {
-	// Create tokens.json file in folder web/auth. This file is used for test tokens.write()
-	f, _ := os.Create("tokens.json")
+	// Create tokens.json file in folder web/auth/configs. This file is used for test tokens.write()
+	err := os.Mkdir("configs", 0666)
+	if err != nil && !os.IsExist(err) {
+		log.Fatalln(err)
+		return
+	}
+
+	f, err := os.Create("configs/tokens.json")
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
 	// We have to close the file to remove it
 	f.Close()
 
@@ -40,7 +72,16 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	// Remove test file
-	os.Remove("tokens.json")
+	err = os.Remove("configs/tokens.json")
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+	err = os.Remove("configs")
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
 
 	os.Exit(code)
 }
@@ -92,7 +133,7 @@ func TestAdd(t *testing.T) {
 func TestDelete(t *testing.T) {
 	tt := tokens{mutex: new(sync.RWMutex), tokens: originalTokens()}
 
-	tt.delete("456")
+	tt.delete("465")
 	answerSlice := []tokenStruct{
 		tokenStruct{Token: "123"},
 		tokenStruct{Token: "789"},
@@ -155,5 +196,47 @@ func TestCheck(t *testing.T) {
 	answerBool = true
 	if res != answerBool {
 		t.Errorf("Wrong check result Want: %v Got: %v", answerBool, res)
+	}
+}
+
+func TestExpire(t *testing.T) {
+	testTokens := tokens{mutex: new(sync.RWMutex), tokens: originalTokens()}
+	tests := []struct {
+		before []tokenStruct
+		after  []tokenStruct
+	}{
+		{
+			before: []tokenStruct{
+				tokenStruct{Token: "123", Expires: time.Now().AddDate(0, 0, -1)},
+				tokenStruct{Token: "456", Expires: time.Now().AddDate(0, -2, 0)},
+				tokenStruct{Token: "789", Expires: time.Now().AddDate(0, 0, 1)},
+			},
+			after: []tokenStruct{
+				tokenStruct{Token: "789", Expires: time.Now().AddDate(0, 0, 1)},
+			},
+		},
+		{
+			before: []tokenStruct{
+				tokenStruct{Token: "123", Expires: time.Now().AddDate(1, 2, -1)},
+				tokenStruct{Token: "456", Expires: time.Now().AddDate(0, -2, 0)},
+				tokenStruct{Token: "789", Expires: time.Now().AddDate(-3, 0, 1)},
+			},
+			after: []tokenStruct{
+				tokenStruct{Token: "123", Expires: time.Now().AddDate(1, 2, -1)},
+			},
+		},
+	}
+
+	for i, tt := range tests {
+		testTokens.tokens = make([]tokenStruct, len(tt.before))
+		copy(testTokens.tokens, tt.before)
+		testTokens.expire()
+
+		want := toStringSlice(tt.after)
+		got := toStringSlice(testTokens.tokens)
+
+		if !isEqual(want, got) {
+			t.Errorf("Test #%d Want: %v Got: %v\n", i, want, got)
+		}
 	}
 }
