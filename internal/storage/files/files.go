@@ -23,6 +23,8 @@ import (
 const (
 	typeImage = "image"
 	typeFile  = "file"
+	//
+	timeBeforeDeleting = time.Hour * 24 * 7 // 7 days. File is deleted from storage and from disk after this time since user deleted the file
 )
 
 // Errors
@@ -71,11 +73,17 @@ type storage interface {
 	// updateFileDescription update description of a file
 	updateFileDescription(filename string, newDesc string) error
 
-	// deleteFile deletes a file from list (not from disk)
+	// deleteFile marks file deleted and sets TimeToDelete
 	deleteFile(filename string) error
+
+	// deleteFileForce deletes file
+	deleteFileForce(filename string) error
 
 	// deleteTagFromFiles deletes a tag (it's called when user deletes a tag)
 	deleteTagFromFiles(tagID int)
+
+	// getExpiredDeletedFiles returns names of files with expired TimeToDelete
+	getExpiredDeletedFiles() []string
 }
 
 var fileStorage = struct{ storage }{}
@@ -295,14 +303,19 @@ func ArchiveFiles(files []string) (body io.Reader, err error) {
 	return buff, nil
 }
 
-// DeleteFile deletes file from structure and from disk
+// DeleteFile calls fileStorage.deleteFile
 func DeleteFile(filename string) error {
+	return fileStorage.deleteFile(filename)
+}
+
+// DeleteFileForce deletes file from structure and from disk
+func DeleteFileForce(filename string) error {
 	file, err := fileStorage.getFile(filename)
 	if err != nil {
 		return err
 	}
 
-	err = fileStorage.deleteFile(filename)
+	err = fileStorage.deleteFileForce(filename)
 	if err != nil {
 		return err
 	}

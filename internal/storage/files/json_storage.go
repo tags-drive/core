@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
@@ -213,8 +214,29 @@ func (jfs *jsonFileStorage) updateFileDescription(filename string, newDesc strin
 	return nil
 }
 
-// deleteFile deletes an element (from structure) and call js.write()
+// deleteFile sets Deleted = true and update TimeToDelete
 func (jfs *jsonFileStorage) deleteFile(filename string) error {
+	jfs.mutex.Lock()
+
+	if _, ok := jfs.info[filename]; !ok {
+		jfs.mutex.Unlock()
+		return ErrFileIsNotExist
+	}
+
+	f := jfs.info[filename]
+	f.Deleted = true
+	f.TimeToDelete = time.Now().Add(timeBeforeDeleting)
+	jfs.info[filename] = f
+
+	jfs.mutex.Unlock()
+
+	jfs.write()
+
+	return nil
+}
+
+// deleteFile deletes an element (from structure) and call js.write()
+func (jfs *jsonFileStorage) deleteFileForce(filename string) error {
 	jfs.mutex.Lock()
 
 	if _, ok := jfs.info[filename]; !ok {
@@ -254,4 +276,21 @@ func (jfs *jsonFileStorage) deleteTagFromFiles(tagID int) {
 	jfs.mutex.Unlock()
 
 	jfs.write()
+}
+
+// getExpiredDeletedFiles returns names of files with expired TimeToDelete
+func (jfs *jsonFileStorage) getExpiredDeletedFiles() []string {
+	jfs.mutex.RLock()
+
+	var filesForDeleting []string
+	now := time.Now()
+	for _, file := range jfs.info {
+		if file.Deleted && file.TimeToDelete.Before(now) {
+			filesForDeleting = append(filesForDeleting, file.Filename)
+		}
+	}
+
+	jfs.mutex.RUnlock()
+
+	return filesForDeleting
 }
