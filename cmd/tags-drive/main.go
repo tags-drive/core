@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
-	"fmt"
 
 	"github.com/ShoshinNikita/log"
 
@@ -15,9 +15,9 @@ import (
 )
 
 func paramsToString() (s string) {
-	vars := []struct{
+	vars := []struct {
 		name string
-		v interface{}
+		v    interface{}
 	}{
 		{"Port", params.Port},
 		{"Login", params.Login},

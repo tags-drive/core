@@ -1,8 +1,8 @@
 package files
 
 import (
-	"strings"
 	"sort"
+	"strings"
 )
 
 type TagMode int

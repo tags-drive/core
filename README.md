@@ -140,7 +140,7 @@ Use this command to generate self-signed TLS certificate:
 - `GET /api/files/recent`
 
   **Params:**
-  - **number**: number of returned files (5 is adefault value)
+  - **number**: number of returned files (5 is a default value)
 
   **Response:** same as `GET /api/files`
 
@@ -178,7 +178,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Params:**
   - **file**: filename
-  - **tags**: updated list of tags, separated bycomma (`tags=1,2,3`)
+  - **tags**: updated list of tags, separated by comma (`tags=1,2,3`)
 
   **Response:** -
 

@@ -7,9 +7,9 @@ import (
 	"sync"
 
 	"github.com/ShoshinNikita/log"
+	"github.com/pkg/errors"
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files"
-	"github.com/pkg/errors"
 )
 
 type jsonTagStorage struct {
