@@ -3,6 +3,7 @@ package files
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"os"
@@ -218,14 +219,29 @@ func DeleteFile(filename string) error {
 }
 
 // RenameFile renames a file
+//
+// If there was an error during renaming file on a disk, it tries to recover previous filename
+//
 func RenameFile(oldName, newName string) error {
-	// At first, rename file on disk
-	err := os.Rename(params.DataFolder+"/"+oldName, params.DataFolder+"/"+newName)
+	err := fileStorage.renameFile(oldName, newName)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "can't rename file in a storage\"%s\"", oldName)
 	}
 
-	return fileStorage.renameFile(oldName, newName)
+	err = os.Rename(params.DataFolder+"/"+oldName, params.DataFolder+"/"+newName)
+	if err != nil {
+		// Try to recover
+		e := fileStorage.renameFile(oldName, newName)
+		if e == nil {
+			// Success. Return the first error
+			return errors.Wrapf(err, "can't rename file \"%s\" on a disk; previous name was recovered", oldName)
+		}
+
+		// Return both errors
+		return fmt.Errorf("can't rename file on a disk: %s; can't recover previous filename: %s", err, e)
+	}
+
+	return nil
 }
 
 // ChangeTags changes the tags
