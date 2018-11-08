@@ -33,16 +33,18 @@ var (
 
 // FileInfo contains the information about a file
 type FileInfo struct {
-	Filename    string    `json:"filename"`
-	Type        string    `json:"type"`
-	Origin      string    `json:"origin"` // Origin is a path to a file (params.DataFolder/filename)
+	Filename string `json:"filename"`
+	Type     string `json:"type"`              // typeImage or typeFile
+	Origin   string `json:"origin"`            // Origin is a path to a file (params.DataFolder/filename)
+	Preview  string `json:"preview,omitempty"` // Preview is a path to a resized image (only if Type == TypeImage)
+	//
+	Tags        []int     `json:"tags"`
 	Description string    `json:"description"`
 	Size        int64     `json:"size"`
-	Tags        []int     `json:"tags"`
 	AddTime     time.Time `json:"addTime"`
-
-	// Only if Type == TypeImage
-	Preview string `json:"preview,omitempty"` // Preview is a path to a resized image
+	//
+	Deleted      bool      `json:"deleted"`
+	TimeToDelete time.Time `json:"timeToDelete"`
 }
 
 type storage interface {
