@@ -32,11 +32,30 @@ type multiplyResponse struct {
 	Status   string `json:"status"` // Status isn't empty when IsError == false
 }
 
-// GET /api/files?sort=(name|size|time)&order(asc|desc)&tags=first,second,third&mode=(or|and|not)&search=abc
-// tags - list of tags separated by ',' (can be empty, then all files will be returned)
-// First elements in params is default (name, asc and etc.)
+func getParam(def, passed string, options ...string) (s string) {
+	s = def
+	if passed == def {
+		return
+	}
+	for _, opt := range options {
+		if passed == opt {
+			return passed
+		}
+	}
+
+	return
+}
+
+// GET /api/files
 //
-// Response: json array of files
+// Params:
+//   - sort name | size | time
+//   - order asc | desc
+//   - tags 1,2,3
+//   - mode or | and | not
+//   - search text for search
+//
+// Response: json array
 //
 func returnFiles(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -104,47 +123,12 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(files.Get(tagMode, sortMode, tags, search))
 }
 
-func getParam(def, passed string, options ...string) (s string) {
-	s = def
-	if passed == def {
-		return
-	}
-	for _, opt := range options {
-		if passed == opt {
-			return passed
-		}
-	}
-
-	return
-}
-
-// GET /api/files/download?file=132.png&file=456.jpg
+// GET /api/files/recent
 //
-// Response: blob zip-file
+// Params:
+//   - number: number of returned files (5 is a default value)
 //
-func downloadFiles(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	filenames := r.Form["file"]
-	if len(filenames) == 0 {
-		Error(w, "list of files can't be empty", http.StatusBadRequest)
-		return
-	}
-
-	body, err := files.ArchiveFiles(filenames)
-	if err != nil {
-		Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/zip")
-	if _, err := io.Copy(w, body); err != nil {
-		log.Errorf("can't copy zip file to response body: %s\n", err)
-	}
-}
-
-// GET /api/files/recent?number=5 (5 is a default value)
-//
-// Response: json array of files
+// Response: same as `GET /api/files`
 //
 func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 	number := func() int {
@@ -166,9 +150,39 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(files)
 }
 
-// POST /api/files (multipart/form-data)
+// GET /api/files/download
 //
-// Response: json list of strings with status of files uploading
+// Params:
+//   - file file for downloading
+//     (to download multiple files at a time, use `file` several times: `file=123.jp  file=hello.png`)
+//
+// Response: zip archive
+//
+func downloadFiles(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	filenames := r.Form["file"]
+	if len(filenames) == 0 {
+		Error(w, "list of files can't be empty", http.StatusBadRequest)
+		return
+	}
+
+	body, err := files.ArchiveFiles(filenames)
+	if err != nil {
+		Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/zip")
+	if _, err := io.Copy(w, body); err != nil {
+		log.Errorf("can't copy zip file to response body: %s\n", err)
+	}
+}
+
+// POST /api/files
+//
+// Body must be "multipart/form-data"
+//
+// Response: json array
 //
 func upload(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(maxSize)
@@ -217,9 +231,13 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(response)
 }
 
-// PUT /api/files/name?file=123&new-name=567
+// PUT /api/files/name
 //
-// Response: -
+// Params:
+//   - file: old filename
+//   - new-name: new filename
+//
+//  Response: -
 //
 func changeFilename(w http.ResponseWriter, r *http.Request) {
 	filename := r.FormValue("file")
@@ -242,7 +260,11 @@ func changeFilename(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// PUT /api/files/tags?file=123&tags=1,2,3
+// PUT /api/files/tags
+//
+// Params:
+//   - file: filename
+//   - tags: updated list of tags, separated by comma (`tags=1,2,3`)
 //
 // Response: -
 //
@@ -275,7 +297,11 @@ func changeFileTags(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// PUT /api/files/description?file=123&description=some-new-cool-description
+// PUT /api/files/description
+//
+// Params:
+//   - file: filename
+//   - description: updated description
 //
 // Response: -
 //
@@ -294,9 +320,13 @@ func changeFileDescription(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DELETE /api/files?file=file1&file=file2
+// DELETE /api/files
 //
-// Response: -
+// Params:
+//   - file: file for deleting
+//     (to delete multiplefiles at a time, use `file` several times:`file=123.jpg&file=hello.png`)
+//
+// Response: json array
 //
 func deleteFile(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
