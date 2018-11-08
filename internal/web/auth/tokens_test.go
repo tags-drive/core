@@ -2,6 +2,7 @@ package auth
 
 import (
 	"os"
+	"sort"
 	"sync"
 	"testing"
 	"time"
@@ -14,30 +15,15 @@ func isEqual(a, b []string) bool {
 		return false
 	}
 
-	// a in b
-	for _, i := range a {
-		has := false
-		for _, j := range b {
-			if i == j {
-				has = true
-				break
-			}
-		}
-		if !has {
-			return false
-		}
-	}
+	// Copy a to a and b to b (we don't want sort to affect original slices)
+	a = append(a[:0:0], a...)
+	b = append(b[:0:0], b...)
 
-	// b in a
-	for _, i := range b {
-		has := false
-		for _, j := range a {
-			if i == j {
-				has = true
-				break
-			}
-		}
-		if !has {
+	sort.Strings(a)
+	sort.Strings(b)
+
+	for i := range a {
+		if a[i] != b[i] {
 			return false
 		}
 	}
