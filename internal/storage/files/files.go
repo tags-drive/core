@@ -127,12 +127,13 @@ func UploadFile(f *multipart.FileHeader) error {
 		if err != nil {
 			return err
 		}
+
 		// Save an original image
 		r, err := resizing.Encode(img, ext)
 		if err != nil {
 			return err
 		}
-		err = upload(r, info.Origin)
+		err = copyToFile(r, info.Origin)
 		if err != nil {
 			return err
 		}
@@ -145,20 +146,21 @@ func UploadFile(f *multipart.FileHeader) error {
 			log.Errorf("Can't encode a resized image %s: %s\n", info.Filename, err)
 			break
 		}
-		err = upload(r, info.Preview)
+		err = copyToFile(r, info.Preview)
 		if err != nil {
 			log.Errorf("Can't save a resized image %s: %s\n", info.Filename, err)
 		}
 	default:
 		// Save a file
 		info.Type = typeFile
-		upload(file, info.Origin)
+		copyToFile(file, info.Origin)
 	}
 
 	return fileStorage.addFile(info)
 }
 
-func upload(src io.Reader, path string) error {
+// copyToFile copies data from src to new created file
+func copyToFile(src io.Reader, path string) error {
 	if _, err := os.Open(path); !os.IsNotExist(err) {
 		return ErrAlreadyExist
 	}
@@ -169,7 +171,13 @@ func upload(src io.Reader, path string) error {
 	}
 	defer newFile.Close()
 
-	_, err = writeFile(newFile, src)
+	// Write file
+	if params.Encrypt {
+		_, err = sio.Encrypt(newFile, src, sio.Config{Key: params.Key[:]})
+	} else {
+		_, err = io.Copy(newFile, src)
+	}
+
 	if err != nil {
 		// Deleting of the bad file
 		os.Remove(path)
@@ -177,15 +185,6 @@ func upload(src io.Reader, path string) error {
 	}
 
 	return nil
-}
-
-// writeFile writes file into dst. It encrypts (or doesn't encrypt) the file according to params.Encrypt
-func writeFile(dst io.Writer, src io.Reader) (int64, error) {
-	if params.Encrypt {
-		return sio.Encrypt(dst, src, sio.Config{Key: params.Key[:]})
-	}
-
-	return io.Copy(dst, src)
 }
 
 // DeleteFile deletes file from structure and from disk
