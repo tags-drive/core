@@ -46,17 +46,20 @@ var (
 
 	printChan = make(chan textStruct, 500)
 
-	// For [ERR]
-	red = color.New(color.FgRed).SprintFunc()
+	// For time
+	timePrintf = color.New(color.FgHiGreen).SprintfFunc()
 
 	// For [INFO]
-	cyan = color.New(color.FgCyan).SprintFunc()
+	infoPrint = color.New(color.FgCyan).SprintFunc()
 
-	// For time
-	yellowf = color.New(color.FgYellow).SprintfFunc()
+	// For [WARN]
+	warnPrint = color.New(color.FgYellow).SprintFunc()
 
-	// For fatal
-	bgRed = color.New(color.BgRed).SprintFunc()
+	// For [ERR]
+	errorPrint = color.New(color.FgRed).SprintFunc()
+
+	// For [FATAL]
+	fatalPrint = color.New(color.BgRed).SprintFunc()
 )
 
 // init runs goroutine, which prints text from channel
@@ -101,13 +104,6 @@ func PrintErrorLine(b bool) {
 	printErrorLine = b
 }
 
-func getTime() string {
-	if printColor {
-		return yellowf("%s ", time.Now().Format(timeLayout))
-	}
-	return fmt.Sprintf("%s ", time.Now().Format(timeLayout))
-}
-
 func getCaller() string {
 	// We need to skip 2 functions (this and log.Error(), log.Errorf() or log.Errorln())
 	_, file, line, ok := runtime.Caller(2)
@@ -124,23 +120,37 @@ func getCaller() string {
 	return fmt.Sprintf("%s:%d ", shortFile, line)
 }
 
-func getErrMsg() string {
+func getTime() string {
 	if printColor {
-		return red("[ERR] ")
+		return timePrintf("%s ", time.Now().Format(timeLayout))
 	}
-	return "[ERR] "
+	return fmt.Sprintf("%s ", time.Now().Format(timeLayout))
 }
 
 func getInfoMsg() string {
 	if printColor {
-		return cyan("[INFO] ")
+		return infoPrint("[INFO] ")
 	}
 	return "[INFO] "
 }
 
+func getWarnMsg() string {
+	if printColor {
+		return warnPrint("[WARN] ")
+	}
+	return "[WARN] "
+}
+
+func getErrMsg() string {
+	if printColor {
+		return errorPrint("[ERR] ")
+	}
+	return "[ERR] "
+}
+
 func getFatalMsg() (s string) {
 	if printColor {
-		return bgRed("[FATAL]") + " "
+		return fatalPrint("[FATAL]") + " "
 	}
 	return "[FATAL] "
 }
