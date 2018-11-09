@@ -65,10 +65,7 @@ func init() {
 	// Default - true
 	IsTLS = func() bool {
 		value := os.Getenv("TLS")
-		if strings.ToLower(value) == "false" {
-			return false
-		}
-		return true
+		return !(strings.ToLower(value) == "false")
 	}()
 
 	// Default - user
@@ -92,10 +89,7 @@ func init() {
 	// Default - false
 	Debug = func() bool {
 		value := os.Getenv("DBG")
-		if strings.ToLower(value) == "true" {
-			return true
-		}
-		return false
+		return strings.ToLower(value) == "true"
 	}()
 
 	SkipLogin = func() bool {
@@ -109,10 +103,7 @@ func init() {
 	// Default - false
 	Encrypt = func() bool {
 		enc := os.Getenv("ENCRYPT")
-		if enc == "true" {
-			return true
-		}
-		return false
+		return enc == "true"
 	}()
 
 	Key = sha256.Sum256([]byte(Password))

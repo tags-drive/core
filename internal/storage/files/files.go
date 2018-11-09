@@ -284,7 +284,7 @@ func ArchiveFiles(files []string) (body io.Reader, err error) {
 			continue
 		}
 
-		header, err := zip.FileInfoHeader(stat)
+		header, _ := zip.FileInfoHeader(stat)
 		header.Method = zip.Deflate
 
 		wr, err := zipWriter.CreateHeader(header)

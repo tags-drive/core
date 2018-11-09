@@ -23,7 +23,7 @@ func Decode(r io.Reader) (image.Image, error) {
 
 // Resize resizes an image
 func Resize(img image.Image) image.Image {
-	return imaging.Resize(img, 256, 0, imaging.Linear)
+	return imaging.Resize(img, width, height, imaging.Linear)
 }
 
 // Encode encodes an image into io.Reader

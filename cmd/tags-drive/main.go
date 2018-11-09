@@ -63,7 +63,7 @@ func main() {
 	termChan := make(chan os.Signal, 1)
 
 	go web.Start(stopChan, errChan)
-	signal.Notify(termChan, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGINT)
+	signal.Notify(termChan, syscall.SIGTERM, syscall.SIGINT)
 
 	select {
 	case err := <-errChan:

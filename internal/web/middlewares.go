@@ -25,11 +25,7 @@ func authMiddleware(h http.Handler) http.Handler {
 			}
 
 			token := c.Value
-			if !auth.CheckToken(token) {
-				return false
-			}
-
-			return true
+			return auth.CheckToken(token)
 		}()
 
 		if !validToken {
