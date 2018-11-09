@@ -166,6 +166,13 @@ Use this command to generate self-signed TLS certificate:
   }
   ```
 
+- `POST /api/files/recover`
+
+  **Params**:
+  - file: file for recovering (to recover multiple files at a time, use `file` several times:`file=123.jpg&file=hello.png`)
+
+  **Response**: -
+
 - `PUT /api/files/name`
 
   **Params:**
@@ -194,6 +201,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Params:**
   - **file**: file for deleting (to delete multiplefiles at a time, use `file` several times:`file=123.jpg&file=hello.png`)
+  - **force**: should file be deleted right now (if it isn't empty, file will be deleted right now)
 
   **Response:** json array of:
 

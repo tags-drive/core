@@ -17,6 +17,8 @@ var routes = []struct {
 	{"/api/files", "GET", returnFiles, true},
 	{"/api/files/download", "GET", downloadFiles, true},
 	{"/api/files", "POST", upload, true},
+	{"/api/files/recover", "POST", recoverFile, true},
+	{"/api/files/recover", "OPTIONS", setDebugHeaders, true},
 	{"/api/files/tags", "PUT", changeFileTags, true},
 	{"/api/files/tags", "OPTIONS", setDebugHeaders, true},
 	{"/api/files/name", "PUT", changeFilename, true},

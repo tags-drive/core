@@ -23,26 +23,31 @@ import (
 const (
 	typeImage = "image"
 	typeFile  = "file"
+	//
+	timeBeforeDeleting = time.Hour * 24 * 7 // 7 days. File is deleted from storage and from disk after this time since user deleted the file
 )
 
 // Errors
 var (
-	ErrFileIsNotExist = errors.New("the file doesn't exist")
-	ErrAlreadyExist   = errors.New("file already exists")
+	ErrFileIsNotExist   = errors.New("the file doesn't exist")
+	ErrAlreadyExist     = errors.New("file already exists")
+	ErrFileDeletedAgain = errors.New("file can't be deleted again")
 )
 
 // FileInfo contains the information about a file
 type FileInfo struct {
-	Filename    string    `json:"filename"`
-	Type        string    `json:"type"`
-	Origin      string    `json:"origin"` // Origin is a path to a file (params.DataFolder/filename)
+	Filename string `json:"filename"`
+	Type     string `json:"type"`              // typeImage or typeFile
+	Origin   string `json:"origin"`            // Origin is a path to a file (params.DataFolder/filename)
+	Preview  string `json:"preview,omitempty"` // Preview is a path to a resized image (only if Type == TypeImage)
+	//
+	Tags        []int     `json:"tags"`
 	Description string    `json:"description"`
 	Size        int64     `json:"size"`
-	Tags        []int     `json:"tags"`
 	AddTime     time.Time `json:"addTime"`
-
-	// Only if Type == TypeImage
-	Preview string `json:"preview,omitempty"` // Preview is a path to a resized image
+	//
+	Deleted      bool      `json:"deleted"`
+	TimeToDelete time.Time `json:"timeToDelete"`
 }
 
 type storage interface {
@@ -69,11 +74,21 @@ type storage interface {
 	// updateFileDescription update description of a file
 	updateFileDescription(filename string, newDesc string) error
 
-	// deleteFile deletes a file from list (not from disk)
+	// deleteFile marks file deleted and sets TimeToDelete
+	// File can't be deleted several times (function should return ErrFileDeletedAgain)
 	deleteFile(filename string) error
+
+	// deleteFileForce deletes file
+	deleteFileForce(filename string) error
+
+	// recover removes file from Trash
+	recover(filename string)
 
 	// deleteTagFromFiles deletes a tag (it's called when user deletes a tag)
 	deleteTagFromFiles(tagID int)
+
+	// getExpiredDeletedFiles returns names of files with expired TimeToDelete
+	getExpiredDeletedFiles() []string
 }
 
 var fileStorage = struct{ storage }{}
@@ -98,6 +113,8 @@ func Init() error {
 	if err != nil {
 		return errors.Wrapf(err, "can't init storage")
 	}
+
+	go scheduleDeleting()
 
 	return nil
 }
@@ -293,14 +310,19 @@ func ArchiveFiles(files []string) (body io.Reader, err error) {
 	return buff, nil
 }
 
-// DeleteFile deletes file from structure and from disk
+// DeleteFile calls fileStorage.deleteFile
 func DeleteFile(filename string) error {
+	return fileStorage.deleteFile(filename)
+}
+
+// DeleteFileForce deletes file from structure and from disk
+func DeleteFileForce(filename string) error {
 	file, err := fileStorage.getFile(filename)
 	if err != nil {
 		return err
 	}
 
-	err = fileStorage.deleteFile(filename)
+	err = fileStorage.deleteFileForce(filename)
 	if err != nil {
 		return err
 	}
@@ -321,4 +343,29 @@ func DeleteFile(filename string) error {
 	}
 
 	return nil
+}
+
+// scheduleDeleting deletes files with expired TimeToDelete
+// It has to be run in goroutine
+func scheduleDeleting() {
+	ticker := time.NewTicker(time.Hour * 12)
+
+	for ; true; <-ticker.C {
+		log.Infoln("Delete old files")
+
+		var err error
+		for _, filename := range fileStorage.getExpiredDeletedFiles() {
+			err = DeleteFileForce(filename)
+			if err != nil {
+				log.Errorf("can't delete file \"%s\": %s\n", filename, err)
+			} else {
+				log.Infof("file \"%s\" was successfully deleted\n", filename)
+			}
+		}
+	}
+}
+
+// RecoverFile "removes" file from Trash
+func RecoverFile(filename string) {
+	fileStorage.recover(filename)
 }
