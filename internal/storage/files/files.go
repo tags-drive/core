@@ -29,8 +29,8 @@ const (
 
 // Errors
 var (
-	ErrFileIsNotExist = errors.New("the file doesn't exist")
-	ErrAlreadyExist   = errors.New("file already exists")
+	ErrFileIsNotExist   = errors.New("the file doesn't exist")
+	ErrAlreadyExist     = errors.New("file already exists")
 	ErrFileDeletedAgain = errors.New("file can't be deleted again")
 )
 
@@ -80,6 +80,9 @@ type storage interface {
 
 	// deleteFileForce deletes file
 	deleteFileForce(filename string) error
+
+	// recover removes file from Trash
+	recover(filename string)
 
 	// deleteTagFromFiles deletes a tag (it's called when user deletes a tag)
 	deleteTagFromFiles(tagID int)
@@ -360,4 +363,9 @@ func scheduleDeleting() {
 			}
 		}
 	}
+}
+
+// RecoverFile "removes" file from Trash
+func RecoverFile(filename string) {
+	fileStorage.recover(filename)
 }

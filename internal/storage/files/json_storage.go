@@ -222,7 +222,7 @@ func (jfs *jsonFileStorage) deleteFile(filename string) error {
 		jfs.mutex.Unlock()
 		return ErrFileIsNotExist
 	}
-	
+
 	f := jfs.info[filename]
 	if f.Deleted {
 		jfs.mutex.Unlock()
@@ -256,6 +256,25 @@ func (jfs *jsonFileStorage) deleteFileForce(filename string) error {
 	jfs.write()
 
 	return nil
+}
+
+// recover sets Deleted = false
+func (jfs *jsonFileStorage) recover(filename string) {
+	jfs.mutex.Lock()
+
+	if _, ok := jfs.info[filename]; !ok {
+		jfs.mutex.Unlock()
+		return
+	}
+
+	f := jfs.info[filename]
+	f.Deleted = false
+	f.TimeToDelete = time.Time{}
+	jfs.info[filename] = f
+
+	jfs.mutex.Unlock()
+
+	jfs.write()
 }
 
 func (jfs *jsonFileStorage) deleteTagFromFiles(tagID int) {
