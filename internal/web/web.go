@@ -30,12 +30,24 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	// For exitensions
 	router.PathPrefix("/ext/").Handler(cacheMiddleware(exitensionsHandler, 7*24*60*60)) // cache for 7 days
 
+	// Add usual routes
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {
 			handler = authMiddleware(r.handler)
 		}
 		router.Path(r.path).Methods(r.methods).Handler(handler)
+	}
+
+	if params.Debug {
+		// Add debug routes
+		for _, r := range debugRoutes {
+			var handler http.Handler = r.handler
+			if r.needAuth {
+				handler = authMiddleware(r.handler)
+			}
+			router.Path(r.path).Methods(r.methods).Handler(handler)
+		}
 	}
 
 	var handler http.Handler = router

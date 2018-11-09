@@ -2,12 +2,14 @@ package web
 
 import "net/http"
 
-var routes = []struct {
+type route struct {
 	path     string
 	methods  string
 	handler  http.HandlerFunc
 	needAuth bool
-}{
+}
+
+var routes = []route{
 	{"/", "GET", index, true},
 	// auth
 	{"/login", "GET", login, false},
@@ -18,20 +20,25 @@ var routes = []struct {
 	{"/api/files/download", "GET", downloadFiles, true},
 	{"/api/files", "POST", upload, true},
 	{"/api/files/recover", "POST", recoverFile, true},
-	{"/api/files/recover", "OPTIONS", setDebugHeaders, true},
 	{"/api/files/tags", "PUT", changeFileTags, true},
-	{"/api/files/tags", "OPTIONS", setDebugHeaders, true},
 	{"/api/files/name", "PUT", changeFilename, true},
-	{"/api/files/name", "OPTIONS", setDebugHeaders, true},
 	{"/api/files/description", "PUT", changeFileDescription, true},
-	{"/api/files/description", "OPTIONS", setDebugHeaders, true},
 	{"/api/files", "DELETE", deleteFile, true},
-	{"/api/files", "OPTIONS", setDebugHeaders, true},
 	{"/api/files/recent", "GET", returnRecentFiles, true},
 	// tags
 	{"/api/tags", "GET", returnTags, true},
 	{"/api/tags", "POST", addTag, true},
 	{"/api/tags", "PUT", changeTag, true},
-	{"/api/tags", "OPTIONS", setDebugHeaders, true},
 	{"/api/tags", "DELETE", deleteTag, true},
+}
+
+var debugRoutes = []route{
+	{"/login", "OPTIONS", setDebugHeaders, false},
+	{"/logout", "OPTIONS", setDebugHeaders, false},
+	{"/api/files", "OPTIONS", setDebugHeaders, false},
+	{"/api/files/recover", "OPTIONS", setDebugHeaders, false},
+	{"/api/files/tags", "OPTIONS", setDebugHeaders, false},
+	{"/api/files/name", "OPTIONS", setDebugHeaders, false},
+	{"/api/files/description", "OPTIONS", setDebugHeaders, false},
+	{"/api/tags", "OPTIONS", setDebugHeaders, false},
 }
