@@ -325,6 +325,8 @@ func changeFileDescription(w http.ResponseWriter, r *http.Request) {
 // Params:
 //   - file: file for deleting
 //     (to delete multiplefiles at a time, use `file` several times:`file=123.jpg&file=hello.png`)
+//   - force: should file be deleted right now
+//     (if it isn't empty, file will be deleted right now)
 //
 // Response: json array
 //
@@ -336,6 +338,10 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	force := func() bool {
+		return r.FormValue("force") != ""
+	}()
+
 	respChan := make(chan multiplyResponse, 50)
 	wg := new(sync.WaitGroup)
 
@@ -343,12 +349,22 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		wg.Add(1)
 		go func(f string) {
 			defer wg.Done()
-			err := files.DeleteFile(f)
-			if err != nil {
-				respChan <- multiplyResponse{Filename: f, IsError: true, Error: err.Error()}
+
+			if !force {
+				err := files.DeleteFile(f)
+				if err != nil {
+					respChan <- multiplyResponse{Filename: f, IsError: true, Error: err.Error()}
+				} else {
+					respChan <- multiplyResponse{Filename: f, Status: "added into trash"}
+				}
 			} else {
-				respChan <- multiplyResponse{Filename: f, Status: "deleted"}
-			}
+				err := files.DeleteFileForce(f)
+				if err != nil {
+					respChan <- multiplyResponse{Filename: f, IsError: true, Error: err.Error()}
+				} else {
+					respChan <- multiplyResponse{Filename: f, Status: "deleted"}
+				}
+			}			
 		}(filename)
 	}
 
