@@ -82,6 +82,15 @@ func (jfs *jsonFileStorage) decode(r io.Reader) error {
 	return json.NewDecoder(r).Decode(&jfs.info)
 }
 
+// checkFile return true if file exists
+func (jfs jsonFileStorage) checkFile(filename string) bool {
+	jfs.mutex.RLock()
+	defer jfs.mutex.RUnlock()
+
+	_, ok := jfs.info[filename]
+	return ok
+}
+
 func (jfs jsonFileStorage) getFile(filename string) (FileInfo, error) {
 	jfs.mutex.RLock()
 	defer jfs.mutex.RUnlock()
@@ -130,15 +139,15 @@ func (jfs jsonFileStorage) getFiles(m TagMode, tags []int, search string) (files
 
 // addFile adds an element into js.info and call js.write()
 func (jfs *jsonFileStorage) addFile(info FileInfo) error {
-	jfs.mutex.Lock()
-
-	if _, ok := jfs.info[info.Filename]; ok {
-		jfs.mutex.Unlock()
+	if jfs.checkFile(info.Filename) {
 		return ErrAlreadyExist
 	}
 
+	jfs.mutex.Lock()
+
 	info.Tags = []int{} // https://github.com/tags-drive/core/issues/19
 	jfs.info[info.Filename] = info
+
 	jfs.mutex.Unlock()
 
 	jfs.write()
@@ -148,17 +157,16 @@ func (jfs *jsonFileStorage) addFile(info FileInfo) error {
 
 // renameFile renames a file
 func (jfs *jsonFileStorage) renameFile(oldName string, newName string) error {
-	jfs.mutex.Lock()
-	if _, ok := jfs.info[oldName]; !ok {
-		jfs.mutex.Unlock()
+	if !jfs.checkFile(oldName) {
 		return ErrFileIsNotExist
 	}
 
 	// Check does file with new name exist
-	if _, ok := jfs.info[newName]; ok {
-		jfs.mutex.Unlock()
+	if jfs.checkFile(newName) {
 		return ErrAlreadyExist
 	}
+
+	jfs.mutex.Lock()
 
 	// Update map
 	f := jfs.info[oldName]
@@ -175,12 +183,11 @@ func (jfs *jsonFileStorage) renameFile(oldName string, newName string) error {
 }
 
 func (jfs *jsonFileStorage) updateFileTags(filename string, changedTagsID []int) error {
-	jfs.mutex.Lock()
-
-	if _, ok := jfs.info[filename]; !ok {
-		jfs.mutex.Unlock()
+	if !jfs.checkFile(filename) {
 		return ErrFileIsNotExist
 	}
+
+	jfs.mutex.Lock()
 
 	// Update map
 	f := jfs.info[filename]
@@ -195,12 +202,11 @@ func (jfs *jsonFileStorage) updateFileTags(filename string, changedTagsID []int)
 }
 
 func (jfs *jsonFileStorage) updateFileDescription(filename string, newDesc string) error {
-	jfs.mutex.Lock()
-
-	if _, ok := jfs.info[filename]; !ok {
-		jfs.mutex.Unlock()
+	if !jfs.checkFile(filename) {
 		return ErrFileIsNotExist
 	}
+
+	jfs.mutex.Lock()
 
 	// Update map
 	f := jfs.info[filename]
@@ -216,12 +222,11 @@ func (jfs *jsonFileStorage) updateFileDescription(filename string, newDesc strin
 
 // deleteFile sets Deleted = true and update TimeToDelete
 func (jfs *jsonFileStorage) deleteFile(filename string) error {
-	jfs.mutex.Lock()
-
-	if _, ok := jfs.info[filename]; !ok {
-		jfs.mutex.Unlock()
+	if !jfs.checkFile(filename) {
 		return ErrFileIsNotExist
 	}
+
+	jfs.mutex.Lock()
 
 	f := jfs.info[filename]
 	if f.Deleted {
@@ -242,12 +247,11 @@ func (jfs *jsonFileStorage) deleteFile(filename string) error {
 
 // deleteFile deletes an element (from structure) and call js.write()
 func (jfs *jsonFileStorage) deleteFileForce(filename string) error {
-	jfs.mutex.Lock()
-
-	if _, ok := jfs.info[filename]; !ok {
-		jfs.mutex.Unlock()
+	if !jfs.checkFile(filename) {
 		return ErrFileIsNotExist
 	}
+
+	jfs.mutex.Lock()
 
 	delete(jfs.info, filename)
 
@@ -260,10 +264,13 @@ func (jfs *jsonFileStorage) deleteFileForce(filename string) error {
 
 // recover sets Deleted = false
 func (jfs *jsonFileStorage) recover(filename string) {
+	if !jfs.checkFile(filename) {
+		return
+	}
+
 	jfs.mutex.Lock()
 
-	if _, ok := jfs.info[filename]; !ok || !jfs.info[filename].Deleted {
-		jfs.mutex.Unlock()
+	if !jfs.info[filename].Deleted {
 		return
 	}
 
