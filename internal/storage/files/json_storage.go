@@ -222,8 +222,13 @@ func (jfs *jsonFileStorage) deleteFile(filename string) error {
 		jfs.mutex.Unlock()
 		return ErrFileIsNotExist
 	}
-
+	
 	f := jfs.info[filename]
+	if f.Deleted {
+		jfs.mutex.Unlock()
+		return ErrFileDeletedAgain
+	}
+
 	f.Deleted = true
 	f.TimeToDelete = time.Now().Add(timeBeforeDeleting)
 	jfs.info[filename] = f

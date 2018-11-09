@@ -31,6 +31,7 @@ const (
 var (
 	ErrFileIsNotExist = errors.New("the file doesn't exist")
 	ErrAlreadyExist   = errors.New("file already exists")
+	ErrFileDeletedAgain = errors.New("file can't be deleted again")
 )
 
 // FileInfo contains the information about a file
@@ -74,6 +75,7 @@ type storage interface {
 	updateFileDescription(filename string, newDesc string) error
 
 	// deleteFile marks file deleted and sets TimeToDelete
+	// File can't be deleted several times (function should return ErrFileDeletedAgain)
 	deleteFile(filename string) error
 
 	// deleteFileForce deletes file
