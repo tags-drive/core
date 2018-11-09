@@ -262,7 +262,7 @@ func (jfs *jsonFileStorage) deleteFileForce(filename string) error {
 func (jfs *jsonFileStorage) recover(filename string) {
 	jfs.mutex.Lock()
 
-	if _, ok := jfs.info[filename]; !ok {
+	if _, ok := jfs.info[filename]; !ok || !jfs.info[filename].Deleted {
 		jfs.mutex.Unlock()
 		return
 	}
