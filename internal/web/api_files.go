@@ -231,6 +231,27 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(response)
 }
 
+// POST /api/files/recover
+//
+// Params:
+//   - file: file for recovering
+//     (to recover multiple files at a time, use `file` several times:`file=123.jpg&file=hello.png`)
+//
+// Response: -
+//
+func recoverFile(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	filenames := r.Form["file"]
+	if len(filenames) == 0 {
+		Error(w, "list of files for recovering can't be empty", http.StatusBadRequest)
+		return
+	}
+
+	for _, f := range filenames {
+		files.RecoverFile(f)
+	}
+}
+
 // PUT /api/files/name
 //
 // Params:
@@ -364,7 +385,7 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 				} else {
 					respChan <- multiplyResponse{Filename: f, Status: "deleted"}
 				}
-			}			
+			}
 		}(filename)
 	}
 
