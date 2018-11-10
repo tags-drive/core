@@ -5,42 +5,48 @@ import (
 	"os"
 )
 
-func Fatal(v ...interface{}) {
+// Fatal prints error and call os.Exit(1)
+// Output pattern: (?time) [FATAL] (?file:line) error
+func (l Logger) Fatal(v ...interface{}) {
 	text := ""
-	if printTime {
-		text = getTime()
+	if l.printTime {
+		text = l.getTime()
 	}
-	text += getFatalMsg()
-	if printErrorLine {
-		text += getCaller()
+	text += l.getFatalMsg()
+	if l.printErrorLine {
+		text += l.getCaller()
 	}
-	printText(text + fmt.Sprint(v...))
+	l.printText(text + fmt.Sprint(v...))
 	os.Exit(1)
 
 }
 
-func Fatalf(format string, v ...interface{}) {
+// Fatalf prints error and call os.Exit(1)
+// Output pattern: (?time) [FATAL] (?file:line) error
+func (l Logger) Fatalf(format string, v ...interface{}) {
 	text := ""
-	if printTime {
-		text = getTime()
+	if l.printTime {
+		text = l.getTime()
 	}
-	text += getFatalMsg()
-	if printErrorLine {
-		text += getCaller()
+	text += l.getFatalMsg()
+	if l.printErrorLine {
+		text += l.getCaller()
 	}
-	printText(text + fmt.Sprintf(format, v...))
+	l.printText(text + fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
-func Fatalln(v ...interface{}) {
+// Fatalln prints error and call os.Exit(1)
+// Output pattern: (?time) [FATAL] (?file:line) error
+func (l Logger) Fatalln(v ...interface{}) {
 	text := ""
-	if printTime {
-		text = getTime()
+	if l.printTime {
+		text = l.getTime()
 	}
-	text += getFatalMsg()
-	if printErrorLine {
-		text += getCaller()
+	text += l.getFatalMsg()
+	if l.printErrorLine {
+		text += l.getCaller()
 	}
-	printText(text + fmt.Sprint(v...))
+	l.printText(text + fmt.Sprint(v...))
 	os.Exit(1)
 }
