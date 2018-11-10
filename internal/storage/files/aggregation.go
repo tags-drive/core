@@ -4,6 +4,8 @@ import (
 	"sort"
 )
 
+// TODO: delete TagMode
+
 type TagMode int
 
 const (
