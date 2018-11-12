@@ -12,6 +12,8 @@ func TestIsGoodFile(t *testing.T) {
 		tags   []int
 		answer bool
 	}{
+		{"", []int{}, true},
+		{"", []int{16, 20}, true},
 		{"15", []int{15}, true},
 		{"15", []int{16}, false},
 		{"6 !", []int{1, 2, 3, 7, 8, 9}, true},

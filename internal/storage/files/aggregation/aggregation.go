@@ -29,6 +29,10 @@ func IsGoodFile(expr string, fileTags []int) (res bool) {
 		}
 	}()
 
+	if expr == "" {
+		return true
+	}
+
 	var (
 		steps stack
 		s     string

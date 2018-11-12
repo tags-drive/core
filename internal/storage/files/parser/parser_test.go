@@ -13,6 +13,7 @@ func TestParse(t *testing.T) {
 		answer    string
 	}{
 		// correct
+		{"", true, ""},
 		{"15", true, "15"},
 		{"!6", true, "6 !"},
 		{"7&8", true, "7 8 &"},

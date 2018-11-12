@@ -22,6 +22,10 @@ func Parse(expr string) (res string, err error) {
 		}
 	}()
 
+	if expr == "" {
+		return "", nil
+	}
+
 	if !isCorrectExpression(expr) {
 		return "", ErrBadSyntax
 	}
