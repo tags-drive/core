@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
 
 // jsonFileStorage implements files.storage interface.
@@ -117,6 +118,32 @@ func (jfs jsonFileStorage) getFiles(m TagMode, tags []int, search string) (files
 			if isGoodFile(m, v.Tags, tags) {
 				files = append(files, v)
 			}
+		}
+	}
+
+	jfs.mutex.RUnlock()
+
+	if search == "" {
+		return files
+	}
+
+	// Need to remove files with incorrect name
+	var goodFiles []FileInfo
+	for _, f := range files {
+		if strings.Contains(strings.ToLower(f.Filename), search) {
+			goodFiles = append(goodFiles, f)
+		}
+	}
+
+	return goodFiles
+}
+
+func (jfs jsonFileStorage) getFilesNew(parsedExpr, search string) (files []FileInfo) {
+	jfs.mutex.RLock()
+
+	for _, v := range jfs.info {
+		if aggregation.IsGoodFile(parsedExpr, v.Tags) {
+			files = append(files, v)
 		}
 	}
 

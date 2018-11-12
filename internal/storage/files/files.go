@@ -62,6 +62,8 @@ type storage interface {
 	//     search - string, which filename has to contain (lower case)
 	getFiles(m TagMode, tags []int, search string) (files []FileInfo)
 
+	getFilesNew(expr, search string) (files []FileInfo)
+
 	// add adds a file
 	addFile(info FileInfo) error
 
@@ -124,6 +126,15 @@ func Init() error {
 func Get(m TagMode, s SortMode, tags []int, search string) []FileInfo {
 	search = strings.ToLower(search)
 	files := fileStorage.getFiles(m, tags, search)
+	sortFiles(s, files)
+	return files
+}
+
+// Get returns all files with (or without) passed tags
+// For more information, see AndMode, OrMode, NotMode
+func GetNew(parsedExpr string, s SortMode, search string) []FileInfo {
+	search = strings.ToLower(search)
+	files := fileStorage.getFilesNew(parsedExpr, search)
 	sortFiles(s, files)
 	return files
 }

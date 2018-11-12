@@ -14,6 +14,7 @@ import (
 
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files"
+	"github.com/tags-drive/core/internal/storage/files/parser"
 )
 
 const (
@@ -121,6 +122,63 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc.Encode(files.Get(tagMode, sortMode, tags, search))
+}
+
+// GET /api/files
+//
+// Params:
+//   - sort: name | size | time
+//   - order: asc | desc
+//   - expr: logical expression
+//   - search: text for search
+//
+// Response: json array
+//
+func returnFilesNew(w http.ResponseWriter, r *http.Request) {
+	var (
+		order  = getParam("asc", r.FormValue("order"), "asc", "desc")
+		expr   = r.FormValue("expr")
+		search = r.FormValue("search")
+
+		sortMode = files.SortByNameAsc
+	)
+
+	// Set sortMode
+	// Can skip default
+	switch r.FormValue("sort") {
+	case "name":
+		if order == "asc" {
+			sortMode = files.SortByNameAsc
+		} else {
+			sortMode = files.SortByNameDesc
+		}
+	case "size":
+		if order == "asc" {
+			sortMode = files.SortBySizeAsc
+		} else {
+			sortMode = files.SortBySizeDecs
+		}
+	case "time":
+		if order == "asc" {
+			sortMode = files.SortByTimeAsc
+		} else {
+			sortMode = files.SortByTimeDesc
+		}
+	}
+
+	parsedExpr, err := parser.Parse(expr)
+	if err != nil {
+		Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+
+	enc.Encode(files.GetNew(parsedExpr, sortMode, search))
 }
 
 // GET /api/files/recent
