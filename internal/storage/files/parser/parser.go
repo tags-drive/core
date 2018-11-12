@@ -14,6 +14,14 @@ var ErrBadSyntax = errors.New("bad syntax")
 //   - input: "(!7|6)&(6|9)" output: "7 ! 6 | 6 9 | &"
 //
 func Parse(expr string) (res string, err error) {
+	// Just in case
+	defer func() {
+		if r := recover(); r != nil {
+			res = ""
+			err = ErrBadSyntax
+		}
+	}()
+
 	if !isCorrectExpression(expr) {
 		return "", ErrBadSyntax
 	}
