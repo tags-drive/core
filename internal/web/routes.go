@@ -17,7 +17,6 @@ var routes = []route{
 	{"/logout", "POST", logout, true},
 	// files
 	{"/api/files", "GET", returnFiles, true},
-	{"/api/files/new", "GET", returnFilesNew, true},
 	{"/api/files/download", "GET", downloadFiles, true},
 	{"/api/files", "POST", upload, true},
 	{"/api/files/recover", "POST", recoverFile, true},
@@ -37,7 +36,6 @@ var debugRoutes = []route{
 	{"/login", "OPTIONS", setDebugHeaders, false},
 	{"/logout", "OPTIONS", setDebugHeaders, false},
 	{"/api/files", "OPTIONS", setDebugHeaders, false},
-	{"/api/files/new", "OPTIONS", setDebugHeaders, true}, // TODO: remove
 	{"/api/files/recover", "OPTIONS", setDebugHeaders, false},
 	{"/api/files/tags", "OPTIONS", setDebugHeaders, false},
 	{"/api/files/name", "OPTIONS", setDebugHeaders, false},

@@ -57,12 +57,9 @@ type storage interface {
 	getFile(filename string) (FileInfo, error)
 
 	// getFiles returns files
-	//     tagMode - mode of tags
-	//     tags - list of needed tags
+	//     expr - parsed logical expression
 	//     search - string, which filename has to contain (lower case)
-	getFiles(m TagMode, tags []int, search string) (files []FileInfo)
-
-	getFilesNew(expr, search string) (files []FileInfo)
+	getFiles(expr, search string) (files []FileInfo)
 
 	// add adds a file
 	addFile(info FileInfo) error
@@ -122,28 +119,18 @@ func Init() error {
 }
 
 // Get returns all files with (or without) passed tags
-// For more information, see AndMode, OrMode, NotMode
-func Get(m TagMode, s SortMode, tags []int, search string) []FileInfo {
+func Get(parsedExpr string, s SortMode, search string) []FileInfo {
 	search = strings.ToLower(search)
-	files := fileStorage.getFiles(m, tags, search)
-	sortFiles(s, files)
-	return files
-}
-
-// Get returns all files with (or without) passed tags
-// For more information, see AndMode, OrMode, NotMode
-func GetNew(parsedExpr string, s SortMode, search string) []FileInfo {
-	search = strings.ToLower(search)
-	files := fileStorage.getFilesNew(parsedExpr, search)
+	files := fileStorage.getFiles(parsedExpr, search)
 	sortFiles(s, files)
 	return files
 }
 
 // GetRecent returns the last uploaded files
 //
-// Func uses Get(ModeAnd, SortByTimeDesc, []int{}, "")
+// Func uses Get("", SortByTimeDesc, "")
 func GetRecent(number int) []FileInfo {
-	files := Get(ModeAnd, SortByTimeDesc, []int{}, "")
+	files := Get("", SortByTimeDesc, "")
 	if len(files) > number {
 		files = files[:number]
 	}

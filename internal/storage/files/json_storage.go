@@ -103,42 +103,8 @@ func (jfs jsonFileStorage) getFile(filename string) (FileInfo, error) {
 	return f, nil
 }
 
-// getFiles returns slice of FileInfo with passed tags. If tags is an empty slice, function will return all files
-func (jfs jsonFileStorage) getFiles(m TagMode, tags []int, search string) (files []FileInfo) {
-	jfs.mutex.RLock()
-	if len(tags) == 0 {
-		files = make([]FileInfo, len(jfs.info))
-		i := 0
-		for _, v := range jfs.info {
-			files[i] = v
-			i++
-		}
-	} else {
-		for _, v := range jfs.info {
-			if isGoodFile(m, v.Tags, tags) {
-				files = append(files, v)
-			}
-		}
-	}
-
-	jfs.mutex.RUnlock()
-
-	if search == "" {
-		return files
-	}
-
-	// Need to remove files with incorrect name
-	var goodFiles []FileInfo
-	for _, f := range files {
-		if strings.Contains(strings.ToLower(f.Filename), search) {
-			goodFiles = append(goodFiles, f)
-		}
-	}
-
-	return goodFiles
-}
-
-func (jfs jsonFileStorage) getFilesNew(parsedExpr, search string) (files []FileInfo) {
+// getFiles returns slice of FileInfo. If parsedExpr == "", it returns all files
+func (jfs jsonFileStorage) getFiles(parsedExpr, search string) (files []FileInfo) {
 	jfs.mutex.RLock()
 
 	for _, v := range jfs.info {

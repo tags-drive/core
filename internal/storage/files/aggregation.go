@@ -4,19 +4,6 @@ import (
 	"sort"
 )
 
-// TODO: delete TagMode
-
-type TagMode int
-
-const (
-	// ModeAnd returns files, which have all tags (a && b && x)
-	ModeAnd TagMode = iota
-	// ModeOr returns files, which have at least ont tag (a || b || x)
-	ModeOr
-	//ModeNot return files, which have not passed tags
-	ModeNot
-)
-
 type SortMode int
 
 const (
@@ -27,62 +14,6 @@ const (
 	SortBySizeAsc
 	SortBySizeDecs
 )
-
-// isGoodFile checks if file has passed tags
-//
-// We can use nested loop, because number of tags is small
-//
-func isGoodFile(m TagMode, fileTags, passedTags []int) (res bool) {
-	if len(passedTags) == 0 {
-		return true
-	}
-
-	switch m {
-	case ModeAnd:
-		if len(fileTags) == 0 {
-			return false
-		}
-		for _, pt := range passedTags {
-			has := false
-			for _, ft := range fileTags {
-				if pt == ft {
-					has = true
-					break
-				}
-			}
-			if !has {
-				return false
-			}
-		}
-		return true
-	case ModeOr:
-		if len(fileTags) == 0 {
-			return false
-		}
-		for _, pt := range passedTags {
-			for _, ft := range fileTags {
-				if pt == ft {
-					return true
-				}
-			}
-		}
-		return false
-	case ModeNot:
-		if len(fileTags) == 0 {
-			return true
-		}
-		for _, pt := range passedTags {
-			for _, ft := range fileTags {
-				if pt == ft {
-					return false
-				}
-			}
-		}
-		return true
-	}
-
-	return false
-}
 
 func sortFiles(s SortMode, files []FileInfo) {
 	switch s {

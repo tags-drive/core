@@ -50,83 +50,6 @@ func getParam(def, passed string, options ...string) (s string) {
 // GET /api/files
 //
 // Params:
-//   - sort name | size | time
-//   - order asc | desc
-//   - tags 1,2,3
-//   - mode or | and | not
-//   - search text for search
-//
-// Response: json array
-//
-func returnFiles(w http.ResponseWriter, r *http.Request) {
-	var (
-		order = getParam("asc", r.FormValue("order"), "asc", "desc")
-		tags  = func() []int {
-			t := r.FormValue("tags")
-			if t == "" {
-				return []int{}
-			}
-			res := []int{}
-
-			for _, s := range strings.Split(t, ",") {
-				if id, err := strconv.Atoi(s); err == nil {
-					res = append(res, id)
-				}
-			}
-			return res
-		}()
-		search = r.FormValue("search")
-
-		tagMode  = files.ModeOr
-		sortMode = files.SortByNameAsc
-	)
-
-	// Set sortMode
-	// Can skip default
-	switch r.FormValue("sort") {
-	case "name":
-		if order == "asc" {
-			sortMode = files.SortByNameAsc
-		} else {
-			sortMode = files.SortByNameDesc
-		}
-	case "size":
-		if order == "asc" {
-			sortMode = files.SortBySizeAsc
-		} else {
-			sortMode = files.SortBySizeDecs
-		}
-	case "time":
-		if order == "asc" {
-			sortMode = files.SortByTimeAsc
-		} else {
-			sortMode = files.SortByTimeDesc
-		}
-	}
-
-	// Set tagMode
-	// Can skip default
-	switch r.FormValue("mode") {
-	case "or":
-		tagMode = files.ModeOr
-	case "and":
-		tagMode = files.ModeAnd
-	case "not":
-		tagMode = files.ModeNot
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	if params.Debug {
-		enc.SetIndent("", "  ")
-	}
-
-	enc.Encode(files.Get(tagMode, sortMode, tags, search))
-}
-
-// GET /api/files
-//
-// Params:
 //   - sort: name | size | time
 //   - order: asc | desc
 //   - expr: logical expression
@@ -134,7 +57,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 //
 // Response: json array
 //
-func returnFilesNew(w http.ResponseWriter, r *http.Request) {
+func returnFiles(w http.ResponseWriter, r *http.Request) {
 	var (
 		order  = getParam("asc", r.FormValue("order"), "asc", "desc")
 		expr   = r.FormValue("expr")
@@ -178,7 +101,7 @@ func returnFilesNew(w http.ResponseWriter, r *http.Request) {
 		enc.SetIndent("", "  ")
 	}
 
-	enc.Encode(files.GetNew(parsedExpr, sortMode, search))
+	enc.Encode(files.Get(parsedExpr, sortMode, search))
 }
 
 // GET /api/files/recent
