@@ -50,10 +50,10 @@ func getParam(def, passed string, options ...string) (s string) {
 // GET /api/files
 //
 // Params:
-//   - sort: name | size | time
-//   - order: asc | desc
 //   - expr: logical expression
 //   - search: text for search
+//   - sort: name | size | time
+//   - order: asc | desc
 //
 // Response: json array
 //

@@ -116,11 +116,10 @@ Use this command to generate self-signed TLS certificate:
 - `GET /api/files`
 
   **Params:**
+  - **expr**: logical expression. Example: `!(12&15)&(12|15)` means all files with single tag with id `12` or `15`
+  - **search**: text for search
   - **sort**: name | size | time
   - **order**: asc | desc
-  - **tags**: 1,2,3
-  - **mode**: or | and | not
-  - **search**: text for search
 
   **Response:** json array of:
 
