@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"regexp"
+
 	"github.com/pkg/errors"
 )
 
@@ -32,26 +34,26 @@ func Parse(expr string) (res string, err error) {
 
 	var operators stack
 
-	lasDigit := false
+	lastDigit := false
 
 	for i := 0; i < len(expr); i++ {
 		c := expr[i]
 		switch {
 		case c == '&' || c == '|':
-			lasDigit = false
+			lastDigit = false
 			for operators.len > 0 &&
 				(operators.top() == '!' || isGreaterPriority(c, operators.top())) {
 				res += " " + string(operators.pop())
 			}
 			operators.push(c)
 		case c == '!':
-			lasDigit = false
+			lastDigit = false
 			operators.push(c)
 		case c == '(':
-			lasDigit = false
+			lastDigit = false
 			operators.push(c)
 		case c == ')':
-			lasDigit = false
+			lastDigit = false
 			for {
 				if operators.len == 0 {
 					return "", ErrBadSyntax
@@ -65,11 +67,11 @@ func Parse(expr string) (res string, err error) {
 			}
 
 		case isDigit(c):
-			if !lasDigit {
+			if !lastDigit {
 				res += " "
 			}
 			res += string(c)
-			lasDigit = true
+			lastDigit = true
 		default:
 			return "", ErrBadSyntax
 		}
@@ -135,6 +137,16 @@ func isCorrectExpression(expr string) bool {
 			if expr[i-1] == pare.f && expr[i] == pare.s {
 				return false
 			}
+		}
+	}
+
+	invalidRegexpes := []string{
+		`\d!\d`,
+	}
+	for _, r := range invalidRegexpes {
+		reg := regexp.MustCompile(r)
+		if reg.Match([]byte(expr)) {
+			return false
 		}
 	}
 

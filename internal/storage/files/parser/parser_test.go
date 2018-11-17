@@ -26,6 +26,7 @@ func TestParse(t *testing.T) {
 		{"(!1|2)&2&3", true, "1 ! 2 | 2 & 3 &"},
 		{"(!8|9)&6&66", true, "8 ! 9 | 6 & 66 &"},
 		// incorrect
+		{"15!12", false, ""},
 		{")5|8", false, ""},
 		{"&", false, ""},
 		{"|", false, ""},
