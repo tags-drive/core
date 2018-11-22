@@ -3,7 +3,7 @@ package parser_test
 import (
 	"testing"
 
-	"github.com/tags-drive/core/internal/storage/files/parser"
+	"github.com/tags-drive/core/internal/storage/files/logical-parser"
 )
 
 func TestParse(t *testing.T) {

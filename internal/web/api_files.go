@@ -14,7 +14,7 @@ import (
 
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files"
-	"github.com/tags-drive/core/internal/storage/files/parser"
+	"github.com/tags-drive/core/internal/storage/files/logical-parser"
 )
 
 const (
