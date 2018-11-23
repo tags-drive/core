@@ -1,4 +1,4 @@
-package parser
+package aggregation
 
 import (
 	"regexp"
@@ -8,14 +8,14 @@ import (
 
 var ErrBadSyntax = errors.New("bad syntax")
 
-// Parse returns exprs in reverse Polish notation
+// ParseLogicalExpr returns expression in reverse Polish notation
 //
 // Valid symbols: digits, !, &, |, (, )
 // Examples:
 //   - input: "66&!8|7" output: "66 8 ! & 7 |"
 //   - input: "(!7|6)&(6|9)" output: "7 ! 6 | 6 9 | &"
 //
-func Parse(expr string) (res string, err error) {
+func ParseLogicalExpr(expr string) (res string, err error) {
 	// Just in case
 	defer func() {
 		if r := recover(); r != nil {
@@ -32,7 +32,7 @@ func Parse(expr string) (res string, err error) {
 		return "", ErrBadSyntax
 	}
 
-	var operators stack
+	var operators logicalStack
 
 	lastDigit := false
 

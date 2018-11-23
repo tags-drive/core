@@ -19,7 +19,7 @@ func has(tags []int, tag int) bool {
 
 // IsGoodFile runs expression for file tags
 //
-// expr is a logical expression in reverse Polish notation.
+// expr is a logical expression in reverse Polish notation received from ParseLogicalExpr()
 //
 func IsGoodFile(expr string, fileTags []int) (res bool) {
 	// Just in case
@@ -34,7 +34,7 @@ func IsGoodFile(expr string, fileTags []int) (res bool) {
 	}
 
 	var (
-		steps stack
+		steps processingStack
 		s     string
 		err   error
 	)

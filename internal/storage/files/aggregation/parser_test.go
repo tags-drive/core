@@ -1,9 +1,9 @@
-package parser_test
+package aggregation_test
 
 import (
 	"testing"
 
-	"github.com/tags-drive/core/internal/storage/files/logical-parser"
+	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
 
 func TestParse(t *testing.T) {
@@ -38,7 +38,7 @@ func TestParse(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		res, err := parser.Parse(tt.expr)
+		res, err := aggregation.ParseLogicalExpr(tt.expr)
 		if !tt.isCorrect && err == nil {
 			t.Errorf("Test #%d Want: error Got: %s", i, res)
 			continue

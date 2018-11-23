@@ -14,7 +14,7 @@ import (
 
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files"
-	"github.com/tags-drive/core/internal/storage/files/logical-parser"
+	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
 
 const (
@@ -89,7 +89,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	parsedExpr, err := parser.Parse(expr)
+	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
 	if err != nil {
 		Error(w, err.Error(), http.StatusBadRequest)
 		return
