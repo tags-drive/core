@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ErrBadSyntax = errors.New("bad syntax")
+var errBadSyntax = errors.New("bad syntax")
 
 // ParseLogicalExpr returns expression in reverse Polish notation
 //
@@ -20,7 +20,7 @@ func ParseLogicalExpr(expr string) (res string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			res = ""
-			err = ErrBadSyntax
+			err = errBadSyntax
 		}
 	}()
 
@@ -29,7 +29,7 @@ func ParseLogicalExpr(expr string) (res string, err error) {
 	}
 
 	if !isCorrectExpression(expr) {
-		return "", ErrBadSyntax
+		return "", errBadSyntax
 	}
 
 	var operators logicalStack
@@ -56,7 +56,7 @@ func ParseLogicalExpr(expr string) (res string, err error) {
 			lastDigit = false
 			for {
 				if operators.len == 0 {
-					return "", ErrBadSyntax
+					return "", errBadSyntax
 				}
 				if operators.top() == '(' {
 					// Remove '('
@@ -73,7 +73,7 @@ func ParseLogicalExpr(expr string) (res string, err error) {
 			res += string(c)
 			lastDigit = true
 		default:
-			return "", ErrBadSyntax
+			return "", errBadSyntax
 		}
 	}
 
@@ -159,8 +159,4 @@ func isValidSymbol(c byte) bool {
 
 func isDigit(c byte) bool {
 	return '0' <= c && c <= '9'
-}
-
-func isOperator(c byte) bool {
-	return c == '&' || c == '|' || c == '!' || c == '(' || c == ')'
 }
