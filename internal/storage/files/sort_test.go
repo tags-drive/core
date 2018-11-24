@@ -7,37 +7,6 @@ import (
 	"github.com/tags-drive/core/internal/storage/files"
 )
 
-func TestIsGoodFile(t *testing.T) {
-	tests := []struct {
-		m     files.TagMode
-		fTags []int
-		pTags []int
-		res   bool
-	}{
-		{files.ModeAnd, []int{1, 2, 3}, []int{1, 2}, true},
-		{files.ModeAnd, []int{1, 2, 3}, []int{1, 5}, false},
-		{files.ModeOr, []int{1, 2, 3}, []int{1, 5}, true},
-		{files.ModeOr, []int{1, 2, 3}, []int{4, 7}, false},
-		{files.ModeNot, []int{8, 9, 10}, []int{1, 2}, true},
-		{files.ModeNot, []int{1, 2, 3}, []int{1, 7}, false},
-		// Empty file tags
-		{files.ModeAnd, []int{}, []int{1, 7}, false},
-		{files.ModeOr, []int{}, []int{1, 7}, false},
-		{files.ModeNot, []int{}, []int{1, 7}, true},
-		// Empty passed tags
-		{files.ModeAnd, []int{1, 2, 3}, []int{}, true},
-		{files.ModeOr, []int{1, 2, 3}, []int{}, true},
-		{files.ModeNot, []int{1, 2, 3}, []int{}, true},
-	}
-
-	for i, tt := range tests {
-		res := files.IsGoodFile(tt.m, tt.fTags, tt.pTags)
-		if res != tt.res {
-			t.Errorf("Test #%d Want: %v Got %v", i, tt.res, res)
-		}
-	}
-}
-
 func TestSortFiles(t *testing.T) {
 	getTime := func(s string) time.Time {
 		tm, err := time.Parse("01-02-2006 15:04:05", s)

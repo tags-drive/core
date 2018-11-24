@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
 
 // jsonFileStorage implements files.storage interface.
@@ -102,21 +103,13 @@ func (jfs jsonFileStorage) getFile(filename string) (FileInfo, error) {
 	return f, nil
 }
 
-// getFiles returns slice of FileInfo with passed tags. If tags is an empty slice, function will return all files
-func (jfs jsonFileStorage) getFiles(m TagMode, tags []int, search string) (files []FileInfo) {
+// getFiles returns slice of FileInfo. If parsedExpr == "", it returns all files
+func (jfs jsonFileStorage) getFiles(parsedExpr, search string) (files []FileInfo) {
 	jfs.mutex.RLock()
-	if len(tags) == 0 {
-		files = make([]FileInfo, len(jfs.info))
-		i := 0
-		for _, v := range jfs.info {
-			files[i] = v
-			i++
-		}
-	} else {
-		for _, v := range jfs.info {
-			if isGoodFile(m, v.Tags, tags) {
-				files = append(files, v)
-			}
+
+	for _, v := range jfs.info {
+		if aggregation.IsGoodFile(parsedExpr, v.Tags) {
+			files = append(files, v)
 		}
 	}
 

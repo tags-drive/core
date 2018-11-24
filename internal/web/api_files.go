@@ -14,6 +14,7 @@ import (
 
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files"
+	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
 
 const (
@@ -49,34 +50,19 @@ func getParam(def, passed string, options ...string) (s string) {
 // GET /api/files
 //
 // Params:
-//   - sort name | size | time
-//   - order asc | desc
-//   - tags 1,2,3
-//   - mode or | and | not
-//   - search text for search
+//   - expr: logical expression
+//   - search: text for search
+//   - sort: name | size | time
+//   - order: asc | desc
 //
 // Response: json array
 //
 func returnFiles(w http.ResponseWriter, r *http.Request) {
 	var (
-		order = getParam("asc", r.FormValue("order"), "asc", "desc")
-		tags  = func() []int {
-			t := r.FormValue("tags")
-			if t == "" {
-				return []int{}
-			}
-			res := []int{}
-
-			for _, s := range strings.Split(t, ",") {
-				if id, err := strconv.Atoi(s); err == nil {
-					res = append(res, id)
-				}
-			}
-			return res
-		}()
+		order  = getParam("asc", r.FormValue("order"), "asc", "desc")
+		expr   = r.FormValue("expr")
 		search = r.FormValue("search")
 
-		tagMode  = files.ModeOr
 		sortMode = files.SortByNameAsc
 	)
 
@@ -103,15 +89,10 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Set tagMode
-	// Can skip default
-	switch r.FormValue("mode") {
-	case "or":
-		tagMode = files.ModeOr
-	case "and":
-		tagMode = files.ModeAnd
-	case "not":
-		tagMode = files.ModeNot
+	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
+	if err != nil {
+		Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -120,7 +101,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		enc.SetIndent("", "  ")
 	}
 
-	enc.Encode(files.Get(tagMode, sortMode, tags, search))
+	enc.Encode(files.Get(parsedExpr, sortMode, search))
 }
 
 // GET /api/files/recent

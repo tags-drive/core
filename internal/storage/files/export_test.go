@@ -1,6 +1,5 @@
 package files
 
 var (
-	IsGoodFile = isGoodFile
-	SortFiles  = sortFiles
+	SortFiles = sortFiles
 )
