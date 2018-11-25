@@ -23,7 +23,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 	_, err = io.Copy(w, f)
 	if err != nil {
-		log.Errorf("can't io.Copy() %s: %s\n", f.Name(), err)
+		log.Errorf("Can't io.Copy() %s: %s\n", f.Name(), err)
 	}
 	f.Close()
 }
@@ -44,7 +44,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	_, err = io.Copy(w, f)
 	if err != nil {
-		log.Errorf("can't io.Copy() %s: %s\n", f.Name(), err)
+		log.Errorf("Can't io.Copy() %s: %s\n", f.Name(), err)
 	}
 	f.Close()
 }
@@ -112,7 +112,7 @@ func extensionHandler(dir http.Dir) http.Handler {
 			}
 			_, err = io.Copy(w, f)
 			if err != nil {
-				log.Errorf("can't io.Copy() %s.png: %s\n", ext, err)
+				log.Errorf("Can't io.Copy() %s.png: %s\n", ext, err)
 			}
 			f.Close()
 			return
@@ -120,7 +120,7 @@ func extensionHandler(dir http.Dir) http.Handler {
 
 		io.Copy(w, f)
 		if err != nil {
-			log.Errorf("can't io.Copy() %s.png: %s\n", ext, err)
+			log.Errorf("Can't io.Copy() %s.png: %s\n", ext, err)
 		}
 		f.Close()
 	})

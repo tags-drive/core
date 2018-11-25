@@ -352,9 +352,9 @@ func (fs FileStorage) scheduleDeleting() {
 		for _, filename := range fileStorage.getExpiredDeletedFiles() {
 			err = fs.DeleteForce(filename)
 			if err != nil {
-				log.Errorf("can't delete file \"%s\": %s\n", filename, err)
+				log.Errorf("Can't delete file \"%s\": %s\n", filename, err)
 			} else {
-				log.Infof("file \"%s\" was successfully deleted\n", filename)
+				log.Infof("File \"%s\" was successfully deleted\n", filename)
 			}
 		}
 	}

@@ -159,7 +159,7 @@ func downloadFiles(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/zip")
 	if _, err := io.Copy(w, body); err != nil {
-		log.Errorf("can't copy zip file to response body: %s\n", err)
+		log.Errorf("Can't copy zip file to response body: %s\n", err)
 	}
 }
 
