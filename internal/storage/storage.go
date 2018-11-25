@@ -11,20 +11,31 @@ import (
 // FileStorageInterface provides methods for interactions with files
 type FileStorageInterface interface {
 	Init() error
-	//
+
+	// Get returns all "good" sorted files
 	Get(expr string, s files.SortMode, search string) []files.FileInfo
+	// GetRecent returns the last uploaded files
 	GetRecent(number int) []files.FileInfo
+	// ArchiveFiles archives passed files and returns io.Reader with archive
 	Archive(filenames []string) (io.Reader, error)
-	//
+
+	// UploadFile uploads a new file
 	Upload(*multipart.FileHeader) error
-	//
+
+	// Rename renames a file
 	Rename(oldName, newName string) error
+	// ChangeTags changes the tags
 	ChangeTags(filename string, tags []int) error
+	// ChangeDescription changes the description
 	ChangeDescription(filename, newDescription string) error
-	//
+
+	// Delete "move" a file into Trash
 	Delete(filename string) error
+	// DeleteForce deletes file from storage and from disk
 	DeleteForce(filename string) error
+	// Recover "removes" file from Trash
 	Recover(filename string)
+	// DeleteTagFromFiles deletes a tag from files
 	DeleteTagFromFiles(tagID int)
 }
 
@@ -36,6 +47,8 @@ type TagStorageInterface interface {
 	//
 	GetAll() tags.Tags
 	Add(tags.Tag)
+	// Change changes a tag with passed id.
+	// If pass empty newName (or newColor), field Name (or Color) won't be changed.
 	Change(id int, newName, newColor string)
 	Delete(id int)
 }
