@@ -29,6 +29,9 @@ type storage interface {
 
 	// deleteTag deletes a tag
 	deleteTag(id int)
+
+	// check returns true, if there's tag with passed it, else - false
+	check(id int) bool
 }
 
 // TagStorage exposes methods for interactions with files
@@ -75,4 +78,8 @@ func (ts TagStorage) Delete(id int) {
 
 func (ts TagStorage) Change(id int, newName, newColor string) {
 	ts.storage.updateTag(id, newName, newColor)
+}
+
+func (ts TagStorage) Check(id int) bool {
+	return ts.storage.check(id)
 }

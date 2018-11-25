@@ -130,3 +130,11 @@ func (jts *jsonTagStorage) deleteTag(id int) {
 
 	jts.write()
 }
+
+func (jts jsonTagStorage) check(id int) bool {
+	jts.mutex.RLock()
+	defer jts.mutex.RUnlock()
+
+	_, ok := jts.tags[id]
+	return ok
+}

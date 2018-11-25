@@ -66,6 +66,8 @@ type TagStorageInterface interface {
 	Change(id int, newName, newColor string)
 	// Delete deletes a tag with passed id
 	Delete(id int)
+	// Check checks is there tag with passed id
+	Check(id int) bool
 }
 
 var Tags TagStorageInterface = &tags.TagStorage{}
