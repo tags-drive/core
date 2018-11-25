@@ -296,7 +296,14 @@ func changeFileTags(w http.ResponseWriter, r *http.Request) {
 		return res
 	}()
 
-	err := storage.Files.ChangeTags(filename, tags)
+	var goodTags []int
+	for _, id := range tags {
+		if storage.Tags.Check(id) {
+			goodTags = append(goodTags, id)
+		}
+	}
+
+	err := storage.Files.ChangeTags(filename, goodTags)
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
