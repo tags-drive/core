@@ -138,7 +138,9 @@ func (jfs *jsonFileStorage) addFile(info FileInfo) error {
 
 	jfs.mutex.Lock()
 
-	info.Tags = []int{} // https://github.com/tags-drive/core/issues/19
+	if info.Tags == nil {
+		info.Tags = []int{} // https://github.com/tags-drive/core/issues/19
+	}
 	jfs.info[info.Filename] = info
 
 	jfs.mutex.Unlock()

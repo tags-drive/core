@@ -138,7 +138,7 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 // GET /api/files/download
 //
 // Params:
-//   - file file for downloading
+//   - file: file for downloading
 //     (to download multiple files at a time, use `file` several times: `file=123.jp  file=hello.png`)
 //
 // Response: zip archive
@@ -167,9 +167,27 @@ func downloadFiles(w http.ResponseWriter, r *http.Request) {
 //
 // Body must be "multipart/form-data"
 //
+// Params:
+//   - tags: list of tags, separated by comma (`tags=1,2,3`)
+//
 // Response: json array
 //
 func upload(w http.ResponseWriter, r *http.Request) {
+	tags := func() []int {
+		t := r.FormValue("tags")
+		if t == "" {
+			return []int{}
+		}
+
+		res := []int{}
+		for _, s := range strings.Split(t, ",") {
+			if id, err := strconv.Atoi(s); err == nil {
+				res = append(res, id)
+			}
+		}
+		return res
+	}()
+
 	err := r.ParseMultipartForm(maxSize)
 	if err != nil {
 		switch err {
@@ -188,7 +206,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		wg.Add(1)
 		go func(header *multipart.FileHeader) {
 			defer wg.Done()
-			err := storage.Files.Upload(header)
+			err := storage.Files.Upload(header, tags)
 			if err != nil {
 				respChan <- multiplyResponse{Filename: header.Filename, IsError: true, Error: err.Error()}
 			} else {

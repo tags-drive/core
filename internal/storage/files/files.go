@@ -186,7 +186,7 @@ func (fs FileStorage) Archive(files []string) (body io.Reader, err error) {
 	return buff, nil
 }
 
-func (fs FileStorage) Upload(f *multipart.FileHeader) error {
+func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 	// Uploading //
 	file, err := f.Open()
 	if err != nil {
@@ -199,7 +199,8 @@ func (fs FileStorage) Upload(f *multipart.FileHeader) error {
 		Filename: f.Filename,
 		Size:     f.Size,
 		AddTime:  time.Now(),
-		Origin:   params.DataFolder + "/" + f.Filename}
+		Origin:   params.DataFolder + "/" + f.Filename,
+		Tags:     tags}
 
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".gif":

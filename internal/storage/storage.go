@@ -32,7 +32,7 @@ type FileStorageInterface interface {
 	Archive(filenames []string) (io.Reader, error)
 
 	// UploadFile uploads a new file
-	Upload(*multipart.FileHeader) error
+	Upload(file *multipart.FileHeader, tags []int) error
 
 	// Rename renames a file
 	Rename(oldName, newName string) error
