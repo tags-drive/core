@@ -91,29 +91,28 @@ type storage interface {
 	getExpiredDeletedFiles() []string
 }
 
-// internal storage
-var fileStorage storage
-
 // FileStorage exposes methods for interactions with files
-type FileStorage struct{}
+type FileStorage struct {
+	storage storage
+}
 
-// Init inits fileStorage
-func (fs FileStorage) Init() error {
+// Init inits fs.storage
+func (fs *FileStorage) Init() error {
 	switch params.StorageType {
 	case params.JSONStorage:
-		fileStorage = &jsonFileStorage{
+		fs.storage = &jsonFileStorage{
 			info:  make(map[string]FileInfo),
 			mutex: new(sync.RWMutex),
 		}
 	default:
 		// Default storage is jsonFileStorage
-		fileStorage = &jsonFileStorage{
+		fs.storage = &jsonFileStorage{
 			info:  make(map[string]FileInfo),
 			mutex: new(sync.RWMutex),
 		}
 	}
 
-	err := fileStorage.init()
+	err := fs.storage.init()
 	if err != nil {
 		return errors.Wrapf(err, "can't init storage")
 	}
@@ -130,7 +129,7 @@ func (fs FileStorage) Get(expr string, s SortMode, search string) ([]FileInfo, e
 	}
 
 	search = strings.ToLower(search)
-	files := fileStorage.getFiles(parsedExpr, search)
+	files := fs.storage.getFiles(parsedExpr, search)
 	sortFiles(s, files)
 	return files, nil
 }
@@ -240,7 +239,7 @@ func (fs FileStorage) Upload(f *multipart.FileHeader) error {
 		copyToFile(file, info.Origin)
 	}
 
-	return fileStorage.addFile(info)
+	return fs.storage.addFile(info)
 }
 
 // copyToFile copies data from src to new created file
@@ -274,7 +273,7 @@ func copyToFile(src io.Reader, path string) error {
 // Rename renames a file
 // If there was an error during renaming file on a disk, it tries to recover previous filename
 func (fs FileStorage) Rename(oldName, newName string) error {
-	err := fileStorage.renameFile(oldName, newName)
+	err := fs.storage.renameFile(oldName, newName)
 	if err != nil {
 		return errors.Wrapf(err, "can't rename file in a storage\"%s\"", oldName)
 	}
@@ -282,7 +281,7 @@ func (fs FileStorage) Rename(oldName, newName string) error {
 	err = os.Rename(params.DataFolder+"/"+oldName, params.DataFolder+"/"+newName)
 	if err != nil {
 		// Try to recover
-		e := fileStorage.renameFile(oldName, newName)
+		e := fs.storage.renameFile(oldName, newName)
 		if e == nil {
 			// Success. Return the first error
 			return errors.Wrapf(err, "can't rename file \"%s\" on a disk; previous name was recovered", oldName)
@@ -296,28 +295,28 @@ func (fs FileStorage) Rename(oldName, newName string) error {
 }
 
 func (fs FileStorage) ChangeTags(filename string, tags []int) error {
-	return fileStorage.updateFileTags(filename, tags)
+	return fs.storage.updateFileTags(filename, tags)
 }
 
 func (fs FileStorage) DeleteTagFromFiles(tagID int) {
-	fileStorage.deleteTagFromFiles(tagID)
+	fs.storage.deleteTagFromFiles(tagID)
 }
 
 func (fs FileStorage) ChangeDescription(filename, newDescription string) error {
-	return fileStorage.updateFileDescription(filename, newDescription)
+	return fs.storage.updateFileDescription(filename, newDescription)
 }
 
 func (fs FileStorage) Delete(filename string) error {
-	return fileStorage.deleteFile(filename)
+	return fs.storage.deleteFile(filename)
 }
 
 func (fs FileStorage) DeleteForce(filename string) error {
-	file, err := fileStorage.getFile(filename)
+	file, err := fs.storage.getFile(filename)
 	if err != nil {
 		return err
 	}
 
-	err = fileStorage.deleteFileForce(filename)
+	err = fs.storage.deleteFileForce(filename)
 	if err != nil {
 		return err
 	}
@@ -349,7 +348,7 @@ func (fs FileStorage) scheduleDeleting() {
 		log.Infoln("Delete old files")
 
 		var err error
-		for _, filename := range fileStorage.getExpiredDeletedFiles() {
+		for _, filename := range fs.storage.getExpiredDeletedFiles() {
 			err = fs.DeleteForce(filename)
 			if err != nil {
 				log.Errorf("Can't delete file \"%s\": %s\n", filename, err)
@@ -361,5 +360,5 @@ func (fs FileStorage) scheduleDeleting() {
 }
 
 func (fs FileStorage) Recover(filename string) {
-	fileStorage.recover(filename)
+	fs.storage.recover(filename)
 }

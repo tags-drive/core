@@ -51,7 +51,7 @@ type FileStorageInterface interface {
 	DeleteTagFromFiles(tagID int)
 }
 
-var Files FileStorageInterface = files.FileStorage{}
+var Files FileStorageInterface = &files.FileStorage{}
 
 // TagStorageInterface provides methods for interactions with tags
 type TagStorageInterface interface {

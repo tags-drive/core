@@ -31,28 +31,28 @@ type storage interface {
 	deleteTag(id int)
 }
 
-var tagStorage storage
-
 // TagStorage exposes methods for interactions with files
-type TagStorage struct{}
+type TagStorage struct {
+	storage storage
+}
 
-// Init inits tagStorage
-func (ts TagStorage) Init() error {
+// Init inits ts.storage
+func (ts *TagStorage) Init() error {
 	switch params.StorageType {
 	case params.JSONStorage:
-		tagStorage = &jsonTagStorage{
+		ts.storage = &jsonTagStorage{
 			tags:  make(Tags),
 			mutex: new(sync.RWMutex),
 		}
 	default:
 		// Default storage is jsonTagStorage
-		tagStorage = &jsonTagStorage{
+		ts.storage = &jsonTagStorage{
 			tags:  make(Tags),
 			mutex: new(sync.RWMutex),
 		}
 	}
 
-	err := tagStorage.init()
+	err := ts.storage.init()
 	if err != nil {
 		return errors.Wrapf(err, "can't decode data")
 	}
@@ -61,18 +61,18 @@ func (ts TagStorage) Init() error {
 }
 
 func (ts TagStorage) GetAll() Tags {
-	return tagStorage.getAll()
+	return ts.storage.getAll()
 }
 
 func (ts TagStorage) Add(name, color string) {
 	t := Tag{Name: name, Color: color}
-	tagStorage.addTag(t)
+	ts.storage.addTag(t)
 }
 
 func (ts TagStorage) Delete(id int) {
-	tagStorage.deleteTag(id)
+	ts.storage.deleteTag(id)
 }
 
 func (ts TagStorage) Change(id int, newName, newColor string) {
-	tagStorage.updateTag(id, newName, newColor)
+	ts.storage.updateTag(id, newName, newColor)
 }
