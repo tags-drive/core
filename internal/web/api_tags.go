@@ -43,7 +43,8 @@ func addTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if tagColor == "" {
-		tagColor = tags.DefaultColor
+		// Default color is white
+		tagColor = "#ffffff"
 	}
 
 	storage.Tags.Add(tags.Tag{Name: tagName, Color: tagColor})

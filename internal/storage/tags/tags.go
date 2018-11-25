@@ -7,11 +7,6 @@ import (
 	"github.com/tags-drive/core/internal/params"
 )
 
-const (
-	// DefaultColor is a white color
-	DefaultColor = "#ffffff"
-)
-
 type Tag struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
