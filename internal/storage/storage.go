@@ -56,12 +56,15 @@ var Files FileStorageInterface = files.FileStorage{}
 // TagStorageInterface provides methods for interactions with tags
 type TagStorageInterface interface {
 	Init() error
-	//
+
+	// GetAll returns all tags
 	GetAll() tags.Tags
+	// Add adds a new tag with passed name and color
 	Add(name, color string)
 	// Change changes a tag with passed id.
 	// If pass empty newName (or newColor), field Name (or Color) won't be changed.
 	Change(id int, newName, newColor string)
+	// Delete deletes a tag with passed id
 	Delete(id int)
 }
 
