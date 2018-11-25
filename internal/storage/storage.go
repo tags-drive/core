@@ -39,7 +39,7 @@ type FileStorageInterface interface {
 	DeleteTagFromFiles(tagID int)
 }
 
-var Files FileStorageInterface
+var Files FileStorageInterface = files.FileStorage{}
 
 // TagStorageInterface provides methods for interactions with tags
 type TagStorageInterface interface {
@@ -53,7 +53,7 @@ type TagStorageInterface interface {
 	Delete(id int)
 }
 
-var Tags TagStorageInterface
+var Tags TagStorageInterface = &tags.TagStorage{}
 
 // Init calls files.Init() and tags.Init()
 func Init() error {

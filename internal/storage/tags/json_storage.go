@@ -9,7 +9,7 @@ import (
 	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
 	"github.com/tags-drive/core/internal/params"
-	"github.com/tags-drive/core/internal/storage/files"
+	// "github.com/tags-drive/core/internal/storage/files"
 )
 
 type jsonTagStorage struct {
@@ -131,6 +131,7 @@ func (jts *jsonTagStorage) deleteTag(id int) {
 
 	jts.write()
 
+	// TODO!
 	// Remove links to deleted tag
-	files.DeleteTag(id)
+	// files.DeleteTag(id)
 }
