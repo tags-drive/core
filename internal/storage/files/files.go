@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/files/resizing"
 )
 
@@ -122,16 +123,20 @@ func (fs FileStorage) Init() error {
 	return nil
 }
 
-func (fs FileStorage) Get(parsedExpr string, s SortMode, search string) []FileInfo {
-	// TODO expr
+func (fs FileStorage) Get(expr string, s SortMode, search string) ([]FileInfo, error) {
+	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
+	if err != nil {
+		return []FileInfo{}, err
+	}
+
 	search = strings.ToLower(search)
 	files := fileStorage.getFiles(parsedExpr, search)
 	sortFiles(s, files)
-	return files
+	return files, nil
 }
 
 func (fs FileStorage) GetRecent(number int) []FileInfo {
-	files := fs.Get("", SortByTimeDesc, "")
+	files, _ := fs.Get("", SortByTimeDesc, "")
 	if len(files) > number {
 		files = files[:number]
 	}

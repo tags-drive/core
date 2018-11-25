@@ -13,7 +13,7 @@ type FileStorageInterface interface {
 	Init() error
 
 	// Get returns all "good" sorted files
-	Get(expr string, s files.SortMode, search string) []files.FileInfo
+	Get(expr string, s files.SortMode, search string) ([]files.FileInfo, error)
 	// GetRecent returns the last uploaded files
 	GetRecent(number int) []files.FileInfo
 	// ArchiveFiles archives passed files and returns io.Reader with archive

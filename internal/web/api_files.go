@@ -90,10 +90,14 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
+	files, err := storage.Files.Get(expr, sortMode, search)
 	if err != nil {
-		Error(w, err.Error(), http.StatusBadRequest)
-		return
+		if err == aggregation.ErrBadSyntax {
+			Error(w, err.Error(), http.StatusBadRequest)
+		} else {
+			Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -102,7 +106,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		enc.SetIndent("", "  ")
 	}
 
-	enc.Encode(storage.Files.Get(parsedExpr, sortMode, search))
+	enc.Encode(files)
 }
 
 // GET /api/files/recent
