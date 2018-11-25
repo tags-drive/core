@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/storage"
 	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
@@ -101,7 +102,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		enc.SetIndent("", "  ")
 	}
 
-	enc.Encode(files.Get(parsedExpr, sortMode, search))
+	enc.Encode(storage.Files.Get(parsedExpr, sortMode, search))
 }
 
 // GET /api/files/recent
@@ -121,7 +122,7 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 		return int(n)
 	}()
 
-	files := files.GetRecent(number)
+	files := storage.Files.GetRecent(number)
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
@@ -147,7 +148,7 @@ func downloadFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := files.ArchiveFiles(filenames)
+	body, err := storage.Files.Archive(filenames)
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -184,7 +185,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		wg.Add(1)
 		go func(header *multipart.FileHeader) {
 			defer wg.Done()
-			err := files.UploadFile(header)
+			err := storage.Files.Upload(header)
 			if err != nil {
 				respChan <- multiplyResponse{Filename: header.Filename, IsError: true, Error: err.Error()}
 			} else {
@@ -229,7 +230,7 @@ func recoverFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, f := range filenames {
-		files.RecoverFile(f)
+		storage.Files.Recover(f)
 	}
 }
 
@@ -255,7 +256,7 @@ func changeFilename(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// We can skip checking of invalid characters, because Go will return an error
-	err := files.RenameFile(filename, newName)
+	err := storage.Files.Rename(filename, newName)
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -292,7 +293,7 @@ func changeFileTags(w http.ResponseWriter, r *http.Request) {
 		return res
 	}()
 
-	err := files.ChangeTags(filename, tags)
+	err := storage.Files.ChangeTags(filename, tags)
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -315,7 +316,7 @@ func changeFileDescription(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newDescription := r.FormValue("description")
-	err := files.ChangeDescription(filename, newDescription)
+	err := storage.Files.ChangeDescription(filename, newDescription)
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -353,14 +354,14 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 			defer wg.Done()
 
 			if !force {
-				err := files.DeleteFile(f)
+				err := storage.Files.Delete(f)
 				if err != nil {
 					respChan <- multiplyResponse{Filename: f, IsError: true, Error: err.Error()}
 				} else {
 					respChan <- multiplyResponse{Filename: f, Status: "added into trash"}
 				}
 			} else {
-				err := files.DeleteFileForce(f)
+				err := storage.Files.DeleteForce(f)
 				if err != nil {
 					respChan <- multiplyResponse{Filename: f, IsError: true, Error: err.Error()}
 				} else {

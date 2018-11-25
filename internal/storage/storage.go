@@ -14,12 +14,12 @@ type FileStorageInterface interface {
 	//
 	Get(expr string, s files.SortMode, search string) []files.FileInfo
 	GetRecent(number int) []files.FileInfo
-	Archive() (io.Reader, error)
+	Archive(filenames []string) (io.Reader, error)
 	//
 	Upload(*multipart.FileHeader) error
 	//
 	Rename(oldName, newName string) error
-	ChangeTags(filename, tags []int) error
+	ChangeTags(filename string, tags []int) error
 	ChangeDescription(filename, newDescription string) error
 	//
 	Delete(filename string) error
@@ -44,10 +44,10 @@ var Tags TagStorageInterface
 
 // Init calls files.Init() and tags.Init()
 func Init() error {
-	err := files.Init()
+	err := Files.Init()
 	if err != nil {
 		return err
 	}
 
-	return tags.Init()
+	return Tags.Init()
 }
