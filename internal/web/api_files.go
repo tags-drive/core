@@ -15,7 +15,6 @@ import (
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage"
 	"github.com/tags-drive/core/internal/storage/files"
-	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
 
 const (
@@ -92,12 +91,12 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 
 	files, err := storage.Files.Get(expr, sortMode, search)
 	if err != nil {
-		if err == aggregation.ErrBadSyntax {
+		if err == storage.ErrBadExpessionSyntax {
 			Error(w, err.Error(), http.StatusBadRequest)
 		} else {
 			Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		return 
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

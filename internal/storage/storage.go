@@ -5,7 +5,17 @@ import (
 	"mime/multipart"
 
 	"github.com/tags-drive/core/internal/storage/files"
+	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/tags"
+)
+
+// Errors
+var (
+	ErrFileIsNotExist   = files.ErrFileIsNotExist
+	ErrAlreadyExist     = files.ErrAlreadyExist
+	ErrFileDeletedAgain = files.ErrFileDeletedAgain
+	//
+	ErrBadExpessionSyntax = aggregation.ErrBadSyntax
 )
 
 // FileStorageInterface provides methods for interactions with files
