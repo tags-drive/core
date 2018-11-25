@@ -96,4 +96,6 @@ func deleteTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	storage.Tags.Delete(id)
+	// Delete refs to tag
+	storage.Files.DeleteTagFromFiles(id)
 }
