@@ -7,7 +7,6 @@ import (
 
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage"
-	"github.com/tags-drive/core/internal/storage/tags"
 )
 
 // GET /api/tags
@@ -47,7 +46,7 @@ func addTag(w http.ResponseWriter, r *http.Request) {
 		tagColor = "#ffffff"
 	}
 
-	storage.Tags.Add(tags.Tag{Name: tagName, Color: tagColor})
+	storage.Tags.Add(tagName, tagColor)
 	w.WriteHeader(http.StatusCreated)
 }
 

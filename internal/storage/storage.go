@@ -56,7 +56,7 @@ type TagStorageInterface interface {
 	Init() error
 	//
 	GetAll() tags.Tags
-	Add(tags.Tag)
+	Add(name, color string)
 	// Change changes a tag with passed id.
 	// If pass empty newName (or newColor), field Name (or Color) won't be changed.
 	Change(id int, newName, newColor string)
