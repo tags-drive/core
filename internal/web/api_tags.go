@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/tags-drive/core/internal/params"
-	"github.com/tags-drive/core/internal/storage/tags"
+	"github.com/tags-drive/core/internal/storage"
 )
 
 // GET /api/tags
@@ -16,7 +16,7 @@ import (
 // Response: json map
 //
 func returnTags(w http.ResponseWriter, r *http.Request) {
-	allTags := tags.GetAllTags()
+	allTags := storage.Tags.GetAll()
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
@@ -42,10 +42,11 @@ func addTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if tagColor == "" {
-		tagColor = tags.DefaultColor
+		// Default color is white
+		tagColor = "#ffffff"
 	}
 
-	tags.AddTag(tags.Tag{Name: tagName, Color: tagColor})
+	storage.Tags.Add(tagName, tagColor)
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -74,7 +75,7 @@ func changeTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tags.Change(id, newName, newColor)
+	storage.Tags.Change(id, newName, newColor)
 }
 
 // DELETE /api/tags
@@ -94,5 +95,7 @@ func deleteTag(w http.ResponseWriter, r *http.Request) {
 		Error(w, "tag id isn't valid", http.StatusBadRequest)
 		return
 	}
-	tags.DeleteTag(id)
+	storage.Tags.Delete(id)
+	// Delete refs to tag
+	storage.Files.DeleteTagFromFiles(id)
 }

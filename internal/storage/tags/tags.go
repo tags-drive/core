@@ -7,11 +7,6 @@ import (
 	"github.com/tags-drive/core/internal/params"
 )
 
-const (
-	// DefaultColor is a white color
-	DefaultColor = "#ffffff"
-)
-
 type Tag struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
@@ -36,19 +31,22 @@ type storage interface {
 	deleteTag(id int)
 }
 
-var tagStorage = struct{ storage }{}
+var tagStorage storage
+
+// TagStorage exposes methods for interactions with files
+type TagStorage struct{}
 
 // Init inits tagStorage
-func Init() error {
+func (ts TagStorage) Init() error {
 	switch params.StorageType {
 	case params.JSONStorage:
-		tagStorage.storage = &jsonTagStorage{
+		tagStorage = &jsonTagStorage{
 			tags:  make(Tags),
 			mutex: new(sync.RWMutex),
 		}
 	default:
 		// Default storage is jsonTagStorage
-		tagStorage.storage = &jsonTagStorage{
+		tagStorage = &jsonTagStorage{
 			tags:  make(Tags),
 			mutex: new(sync.RWMutex),
 		}
@@ -62,20 +60,19 @@ func Init() error {
 	return nil
 }
 
-func GetAllTags() Tags {
+func (ts TagStorage) GetAll() Tags {
 	return tagStorage.getAll()
 }
 
-func AddTag(t Tag) {
+func (ts TagStorage) Add(name, color string) {
+	t := Tag{Name: name, Color: color}
 	tagStorage.addTag(t)
 }
 
-func DeleteTag(id int) {
+func (ts TagStorage) Delete(id int) {
 	tagStorage.deleteTag(id)
 }
 
-// Change changes a tag with passed id.
-// If pass empty newName (or newColor), field Name (or Color) won't be changed.
-func Change(id int, newName, newColor string) {
+func (ts TagStorage) Change(id int, newName, newColor string) {
 	tagStorage.updateTag(id, newName, newColor)
 }

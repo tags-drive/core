@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/files/resizing"
 )
 
@@ -90,19 +91,23 @@ type storage interface {
 	getExpiredDeletedFiles() []string
 }
 
-var fileStorage = struct{ storage }{}
+// internal storage
+var fileStorage storage
+
+// FileStorage exposes methods for interactions with files
+type FileStorage struct{}
 
 // Init inits fileStorage
-func Init() error {
+func (fs FileStorage) Init() error {
 	switch params.StorageType {
 	case params.JSONStorage:
-		fileStorage.storage = &jsonFileStorage{
+		fileStorage = &jsonFileStorage{
 			info:  make(map[string]FileInfo),
 			mutex: new(sync.RWMutex),
 		}
 	default:
 		// Default storage is jsonFileStorage
-		fileStorage.storage = &jsonFileStorage{
+		fileStorage = &jsonFileStorage{
 			info:  make(map[string]FileInfo),
 			mutex: new(sync.RWMutex),
 		}
@@ -113,32 +118,76 @@ func Init() error {
 		return errors.Wrapf(err, "can't init storage")
 	}
 
-	go scheduleDeleting()
+	go fs.scheduleDeleting()
 
 	return nil
 }
 
-// Get returns all files with (or without) passed tags
-func Get(parsedExpr string, s SortMode, search string) []FileInfo {
+func (fs FileStorage) Get(expr string, s SortMode, search string) ([]FileInfo, error) {
+	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
+	if err != nil {
+		return []FileInfo{}, err
+	}
+
 	search = strings.ToLower(search)
 	files := fileStorage.getFiles(parsedExpr, search)
 	sortFiles(s, files)
-	return files
+	return files, nil
 }
 
-// GetRecent returns the last uploaded files
-//
-// Func uses Get("", SortByTimeDesc, "")
-func GetRecent(number int) []FileInfo {
-	files := Get("", SortByTimeDesc, "")
+func (fs FileStorage) GetRecent(number int) []FileInfo {
+	files, _ := fs.Get("", SortByTimeDesc, "")
 	if len(files) > number {
 		files = files[:number]
 	}
 	return files
 }
 
-// UploadFile tries to upload a new file. If it was successful, the function calls Files.add()
-func UploadFile(f *multipart.FileHeader) error {
+func (fs FileStorage) Archive(files []string) (body io.Reader, err error) {
+	buff := bytes.NewBuffer([]byte(""))
+
+	zipWriter := zip.NewWriter(buff)
+	defer zipWriter.Close()
+
+	for _, filename := range files {
+		f, err := os.Open(filename)
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", filename)
+			continue
+		}
+		stat, err := f.Stat()
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", filename)
+			continue
+		}
+
+		header, _ := zip.FileInfoHeader(stat)
+		header.Method = zip.Deflate
+
+		wr, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", filename)
+			f.Close()
+			continue
+		}
+
+		if params.Encrypt {
+			_, err = sio.Decrypt(wr, f, sio.Config{Key: params.Key[:]})
+		} else {
+			_, err = io.Copy(wr, f)
+		}
+
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", filename)
+		}
+
+		f.Close()
+	}
+
+	return buff, nil
+}
+
+func (fs FileStorage) Upload(f *multipart.FileHeader) error {
 	// Uploading //
 	file, err := f.Open()
 	if err != nil {
@@ -222,11 +271,9 @@ func copyToFile(src io.Reader, path string) error {
 	return nil
 }
 
-// RenameFile renames a file
-//
+// Rename renames a file
 // If there was an error during renaming file on a disk, it tries to recover previous filename
-//
-func RenameFile(oldName, newName string) error {
+func (fs FileStorage) Rename(oldName, newName string) error {
 	err := fileStorage.renameFile(oldName, newName)
 	if err != nil {
 		return errors.Wrapf(err, "can't rename file in a storage\"%s\"", oldName)
@@ -248,73 +295,23 @@ func RenameFile(oldName, newName string) error {
 	return nil
 }
 
-// ChangeTags changes the tags
-func ChangeTags(filename string, tags []int) error {
+func (fs FileStorage) ChangeTags(filename string, tags []int) error {
 	return fileStorage.updateFileTags(filename, tags)
 }
 
-// DeleteTag deletes a tag
-func DeleteTag(tagID int) {
+func (fs FileStorage) DeleteTagFromFiles(tagID int) {
 	fileStorage.deleteTagFromFiles(tagID)
 }
 
-// ChangeDescription changes the description of a file
-func ChangeDescription(filename, newDescription string) error {
+func (fs FileStorage) ChangeDescription(filename, newDescription string) error {
 	return fileStorage.updateFileDescription(filename, newDescription)
 }
 
-// ArchiveFiles archives passed files and returns io.Reader
-func ArchiveFiles(files []string) (body io.Reader, err error) {
-	buff := bytes.NewBuffer([]byte(""))
-
-	zipWriter := zip.NewWriter(buff)
-	defer zipWriter.Close()
-
-	for _, filename := range files {
-		f, err := os.Open(filename)
-		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", filename)
-			continue
-		}
-		stat, err := f.Stat()
-		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", filename)
-			continue
-		}
-
-		header, _ := zip.FileInfoHeader(stat)
-		header.Method = zip.Deflate
-
-		wr, err := zipWriter.CreateHeader(header)
-		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", filename)
-			f.Close()
-			continue
-		}
-
-		if params.Encrypt {
-			_, err = sio.Decrypt(wr, f, sio.Config{Key: params.Key[:]})
-		} else {
-			_, err = io.Copy(wr, f)
-		}
-
-		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", filename)
-		}
-
-		f.Close()
-	}
-
-	return buff, nil
-}
-
-// DeleteFile calls fileStorage.deleteFile
-func DeleteFile(filename string) error {
+func (fs FileStorage) Delete(filename string) error {
 	return fileStorage.deleteFile(filename)
 }
 
-// DeleteFileForce deletes file from structure and from disk
-func DeleteFileForce(filename string) error {
+func (fs FileStorage) DeleteForce(filename string) error {
 	file, err := fileStorage.getFile(filename)
 	if err != nil {
 		return err
@@ -345,7 +342,7 @@ func DeleteFileForce(filename string) error {
 
 // scheduleDeleting deletes files with expired TimeToDelete
 // It has to be run in goroutine
-func scheduleDeleting() {
+func (fs FileStorage) scheduleDeleting() {
 	ticker := time.NewTicker(time.Hour * 12)
 
 	for ; true; <-ticker.C {
@@ -353,17 +350,16 @@ func scheduleDeleting() {
 
 		var err error
 		for _, filename := range fileStorage.getExpiredDeletedFiles() {
-			err = DeleteFileForce(filename)
+			err = fs.DeleteForce(filename)
 			if err != nil {
-				log.Errorf("can't delete file \"%s\": %s\n", filename, err)
+				log.Errorf("Can't delete file \"%s\": %s\n", filename, err)
 			} else {
-				log.Infof("file \"%s\" was successfully deleted\n", filename)
+				log.Infof("File \"%s\" was successfully deleted\n", filename)
 			}
 		}
 	}
 }
 
-// RecoverFile "removes" file from Trash
-func RecoverFile(filename string) {
+func (fs FileStorage) Recover(filename string) {
 	fileStorage.recover(filename)
 }
