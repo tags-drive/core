@@ -90,19 +90,19 @@ type storage interface {
 	getExpiredDeletedFiles() []string
 }
 
-var fileStorage = struct{ storage }{}
+var fileStorage storage
 
 // Init inits fileStorage
 func Init() error {
 	switch params.StorageType {
 	case params.JSONStorage:
-		fileStorage.storage = &jsonFileStorage{
+		fileStorage = &jsonFileStorage{
 			info:  make(map[string]FileInfo),
 			mutex: new(sync.RWMutex),
 		}
 	default:
 		// Default storage is jsonFileStorage
-		fileStorage.storage = &jsonFileStorage{
+		fileStorage = &jsonFileStorage{
 			info:  make(map[string]FileInfo),
 			mutex: new(sync.RWMutex),
 		}

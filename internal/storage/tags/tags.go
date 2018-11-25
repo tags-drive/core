@@ -36,19 +36,19 @@ type storage interface {
 	deleteTag(id int)
 }
 
-var tagStorage = struct{ storage }{}
+var tagStorage storage
 
 // Init inits tagStorage
 func Init() error {
 	switch params.StorageType {
 	case params.JSONStorage:
-		tagStorage.storage = &jsonTagStorage{
+		tagStorage = &jsonTagStorage{
 			tags:  make(Tags),
 			mutex: new(sync.RWMutex),
 		}
 	default:
 		// Default storage is jsonTagStorage
-		tagStorage.storage = &jsonTagStorage{
+		tagStorage = &jsonTagStorage{
 			tags:  make(Tags),
 			mutex: new(sync.RWMutex),
 		}
