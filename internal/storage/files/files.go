@@ -245,7 +245,8 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 
 // copyToFile copies data from src to new created file
 func copyToFile(src io.Reader, path string) error {
-	if _, err := os.Open(path); !os.IsNotExist(err) {
+	if f, err := os.Open(path); !os.IsNotExist(err) {
+		f.Close()
 		return ErrAlreadyExist
 	}
 
