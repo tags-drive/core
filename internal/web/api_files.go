@@ -3,11 +3,9 @@ package web
 import (
 	"encoding/json"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
@@ -199,31 +197,20 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respChan := make(chan multiplyResponse, 50)
-	wg := new(sync.WaitGroup)
-
-	for _, f := range r.MultipartForm.File["files"] {
-		wg.Add(1)
-		go func(header *multipart.FileHeader) {
-			defer wg.Done()
-			err := storage.Files.Upload(header, tags)
-			if err != nil {
-				respChan <- multiplyResponse{Filename: header.Filename, IsError: true, Error: err.Error()}
-			} else {
-				respChan <- multiplyResponse{Filename: header.Filename, Status: "uploaded"}
-			}
-		}(f)
-	}
-	wg.Wait()
-	close(respChan)
-
 	var response []multiplyResponse
-	for resp := range respChan {
-		// Log an error
-		if resp.IsError {
-			log.Errorf("Can't load a file %s: %s\n", resp.Filename, resp.Error)
+	for _, header := range r.MultipartForm.File["files"] {
+		err := storage.Files.Upload(header, tags)
+		if err != nil {
+			response = append(response, multiplyResponse{
+				Filename: header.Filename,
+				IsError:  true,
+				Error:    err.Error(),
+			})
+			log.Errorf("Can't load a file %s: %s\n", header.Filename, err)
+		} else {
+			response = append(response, multiplyResponse{Filename: header.Filename, Status: "uploaded"})
 		}
-		response = append(response, resp)
+
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -373,38 +360,35 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		return r.FormValue("force") != ""
 	}()
 
-	respChan := make(chan multiplyResponse, 50)
-	wg := new(sync.WaitGroup)
-
-	for _, filename := range filenames {
-		wg.Add(1)
-		go func(f string) {
-			defer wg.Done()
-
-			if !force {
-				err := storage.Files.Delete(f)
-				if err != nil {
-					respChan <- multiplyResponse{Filename: f, IsError: true, Error: err.Error()}
-				} else {
-					respChan <- multiplyResponse{Filename: f, Status: "added into trash"}
-				}
-			} else {
-				err := storage.Files.DeleteForce(f)
-				if err != nil {
-					respChan <- multiplyResponse{Filename: f, IsError: true, Error: err.Error()}
-				} else {
-					respChan <- multiplyResponse{Filename: f, Status: "deleted"}
-				}
-			}
-		}(filename)
-	}
-
-	wg.Wait()
-	close(respChan)
-
 	var response []multiplyResponse
-	for resp := range respChan {
-		response = append(response, resp)
+	for _, filename := range filenames {
+		if !force {
+			err := storage.Files.Delete(filename)
+			if err != nil {
+				response = append(response, multiplyResponse{
+					Filename: filename,
+					IsError:  true,
+					Error:    err.Error(),
+				})
+			} else {
+				response = append(response, multiplyResponse{
+					Filename: filename,
+					Status:   "added into trash"})
+			}
+		} else {
+			err := storage.Files.DeleteForce(filename)
+			if err != nil {
+				response = append(response, multiplyResponse{
+					Filename: filename,
+					IsError:  true,
+					Error:    err.Error()})
+			} else {
+				response = append(response, multiplyResponse{
+					Filename: filename,
+					Status:   "deleted",
+				})
+			}
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
