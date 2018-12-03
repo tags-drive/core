@@ -76,10 +76,10 @@ func TestMain(m *testing.M) {
 // It was created to not copy originalTokens every time
 func originalTokens() []tokenStruct {
 	return []tokenStruct{
-		tokenStruct{Token: "123"},
-		tokenStruct{Token: "465"},
-		tokenStruct{Token: "789"},
-		tokenStruct{Token: "101"},
+		{Token: "123"},
+		{Token: "465"},
+		{Token: "789"},
+		{Token: "101"},
 	}
 }
 
@@ -88,11 +88,11 @@ func TestAdd(t *testing.T) {
 
 	tt.add("999")
 	answerSlice := []tokenStruct{
-		tokenStruct{Token: "123"},
-		tokenStruct{Token: "465"},
-		tokenStruct{Token: "789"},
-		tokenStruct{Token: "101"},
-		tokenStruct{Token: "999"},
+		{Token: "123"},
+		{Token: "465"},
+		{Token: "789"},
+		{Token: "101"},
+		{Token: "999"},
 	}
 	want := toStringSlice(answerSlice)
 	got := toStringSlice(tt.tokens)
@@ -102,12 +102,12 @@ func TestAdd(t *testing.T) {
 
 	tt.add("15")
 	answerSlice = []tokenStruct{
-		tokenStruct{Token: "123"},
-		tokenStruct{Token: "465"},
-		tokenStruct{Token: "789"},
-		tokenStruct{Token: "101"},
-		tokenStruct{Token: "999"},
-		tokenStruct{Token: "15"},
+		{Token: "123"},
+		{Token: "465"},
+		{Token: "789"},
+		{Token: "101"},
+		{Token: "999"},
+		{Token: "15"},
 	}
 	want = toStringSlice(answerSlice)
 	got = toStringSlice(tt.tokens)
@@ -121,9 +121,9 @@ func TestDelete(t *testing.T) {
 
 	tt.delete("465")
 	answerSlice := []tokenStruct{
-		tokenStruct{Token: "123"},
-		tokenStruct{Token: "789"},
-		tokenStruct{Token: "101"},
+		{Token: "123"},
+		{Token: "789"},
+		{Token: "101"},
 	}
 	want := toStringSlice(answerSlice)
 	got := toStringSlice(tt.tokens)
@@ -133,8 +133,8 @@ func TestDelete(t *testing.T) {
 
 	tt.delete("123")
 	answerSlice = []tokenStruct{
-		tokenStruct{Token: "789"},
-		tokenStruct{Token: "101"},
+		{Token: "789"},
+		{Token: "101"},
 	}
 	want = toStringSlice(answerSlice)
 	got = toStringSlice(tt.tokens)
@@ -144,7 +144,7 @@ func TestDelete(t *testing.T) {
 
 	tt.delete("789")
 	answerSlice = []tokenStruct{
-		tokenStruct{Token: "101"},
+		{Token: "101"},
 	}
 	want = toStringSlice(answerSlice)
 	got = toStringSlice(tt.tokens)
@@ -193,22 +193,22 @@ func TestExpire(t *testing.T) {
 	}{
 		{
 			before: []tokenStruct{
-				tokenStruct{Token: "123", Expires: time.Now().AddDate(0, 0, -1)},
-				tokenStruct{Token: "456", Expires: time.Now().AddDate(0, -2, 0)},
-				tokenStruct{Token: "789", Expires: time.Now().AddDate(0, 0, 1)},
+				{Token: "123", Expires: time.Now().AddDate(0, 0, -1)},
+				{Token: "456", Expires: time.Now().AddDate(0, -2, 0)},
+				{Token: "789", Expires: time.Now().AddDate(0, 0, 1)},
 			},
 			after: []tokenStruct{
-				tokenStruct{Token: "789", Expires: time.Now().AddDate(0, 0, 1)},
+				{Token: "789", Expires: time.Now().AddDate(0, 0, 1)},
 			},
 		},
 		{
 			before: []tokenStruct{
-				tokenStruct{Token: "123", Expires: time.Now().AddDate(1, 2, -1)},
-				tokenStruct{Token: "456", Expires: time.Now().AddDate(0, -2, 0)},
-				tokenStruct{Token: "789", Expires: time.Now().AddDate(-3, 0, 1)},
+				{Token: "123", Expires: time.Now().AddDate(1, 2, -1)},
+				{Token: "456", Expires: time.Now().AddDate(0, -2, 0)},
+				{Token: "789", Expires: time.Now().AddDate(-3, 0, 1)},
 			},
 			after: []tokenStruct{
-				tokenStruct{Token: "123", Expires: time.Now().AddDate(1, 2, -1)},
+				{Token: "123", Expires: time.Now().AddDate(1, 2, -1)},
 			},
 		},
 	}
