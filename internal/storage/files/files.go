@@ -237,7 +237,10 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 	default:
 		// Save a file
 		info.Type = typeFile
-		copyToFile(file, info.Origin)
+		err := copyToFile(file, info.Origin)
+		if err != nil {
+			return err
+		}
 	}
 
 	return fs.storage.addFile(info)
@@ -254,7 +257,6 @@ func copyToFile(src io.Reader, path string) error {
 	if err != nil {
 		return errors.Wrap(err, "can't create a new file")
 	}
-	defer newFile.Close()
 
 	// Write file
 	if params.Encrypt {
@@ -262,6 +264,8 @@ func copyToFile(src io.Reader, path string) error {
 	} else {
 		_, err = io.Copy(newFile, src)
 	}
+
+	newFile.Close()
 
 	if err != nil {
 		// Deleting of the bad file
