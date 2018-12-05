@@ -126,16 +126,20 @@ Use this command to generate self-signed TLS certificate:
   **Response:** json array of:
 
   ```go
-  type FileInfo struct {
-      Filename    string    `json:"filename"`
-      Type        string    `json:"type"`
-      Origin      string    `json:"origin"`
+    type FileInfo struct {
+      Filename string `json:"filename"`
+      Type     string `json:"type"`
+      Origin   string `json:"origin"`
+      Preview  string `json:"preview,omitempty"`
+      //
+      Tags        []int     `json:"tags"`
       Description string    `json:"description"`
       Size        int64     `json:"size"`
-      Tags        []int     `json:"tags"`
       AddTime     time.Time `json:"addTime"`
-      Preview string `json:"preview,omitempty"` // It's not empty, if Type == "iamge"
-  }
+      //
+      Deleted      bool      `json:"deleted"`
+      TimeToDelete time.Time `json:"timeToDelete"`
+    }
   ```
 
 - `GET /api/files/recent`
