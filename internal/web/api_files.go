@@ -16,7 +16,10 @@ import (
 )
 
 const (
-	maxSize = 50000000 // 50MB
+	// It is trade-off between memory and I/O
+	// If maxSize == 50MB, program takes too much memory
+	// If maxSize == 2MB, there're too many I/O-operations
+	maxSize = 10 << 20 // 10MB
 )
 
 var (

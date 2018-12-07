@@ -187,7 +187,13 @@ func (fs FileStorage) Archive(files []string) (body io.Reader, err error) {
 }
 
 func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
-	// Uploading //
+	// At first, check does file exist
+	if f, err := os.Open(params.DataFolder + "/" + f.Filename); !os.IsNotExist(err) {
+		f.Close()
+		return ErrAlreadyExist
+	}
+
+	// Uploading
 	file, err := f.Open()
 	if err != nil {
 		return errors.Wrap(err, "can't open a file")
@@ -221,7 +227,7 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 		if err != nil {
 			return err
 		}
-
+		
 		// Save a resized image
 		// We can ignore errors and only log them because the main file was already saved
 		img = resizing.Resize(img)
