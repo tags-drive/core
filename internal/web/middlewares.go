@@ -57,7 +57,7 @@ func decryptMiddleware(dir http.Dir) http.Handler {
 		}
 		defer f.Close()
 
-		_, err = sio.Decrypt(w, f, sio.Config{Key: params.Key[:]})
+		_, err = sio.Decrypt(w, f, sio.Config{Key: params.PassPhrase[:]})
 		if err != nil {
 			Error(w, err.Error(), http.StatusInternalServerError)
 			return

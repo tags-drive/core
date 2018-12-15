@@ -263,12 +263,13 @@ Use this command to generate self-signed TLS certificate:
 
 ### Environment variables
 
-| Variable   | Default | Description                                      |
-| ---------- | ------- | ------------------------------------------------ |
-| PORT       | 80      | Port for website                                 |
-| TLS        | true    | Should **Tags Drive** use https                  |
-| LOGIN      | user    | Login for login                                  |
-| PSWRD      | qwerty  | Password for login                               |
-| ENCRYPT    | false   | Should the **Tags Drive** encrypt uploaded files |
-| DBG        | false   |                                                  |
-| SKIP_LOGIN | false   | Let use **Tags Drive** without loginning         |
+| Variable    | Default | Description                                                              |
+| ----------- | ------- | ------------------------------------------------------------------------ |
+| PORT        | 80      | Port for website                                                         |
+| TLS         | true    | Should **Tags Drive** use https                                          |
+| LOGIN       | user    | Login for login                                                          |
+| PSWRD       | qwerty  | Password for login                                                       |
+| ENCRYPT     | false   | Should the **Tags Drive** encrypt uploaded files                         |
+| DBG         | false   |                                                                          |
+| SKIP_LOGIN  | false   | Let use **Tags Drive** without loginning                                 |
+| PASS_PHRASE | ""      | Passphrase is used to encrypt files. It can't be empty if `ENCRYPT=true` |

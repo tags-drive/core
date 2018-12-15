@@ -171,7 +171,7 @@ func (fs FileStorage) Archive(files []string) (body io.Reader, err error) {
 		}
 
 		if params.Encrypt {
-			_, err = sio.Decrypt(wr, f, sio.Config{Key: params.Key[:]})
+			_, err = sio.Decrypt(wr, f, sio.Config{Key: params.PassPhrase[:]})
 		} else {
 			_, err = io.Copy(wr, f)
 		}
@@ -266,7 +266,7 @@ func copyToFile(src io.Reader, path string) error {
 
 	// Write file
 	if params.Encrypt {
-		_, err = sio.Encrypt(newFile, src, sio.Config{Key: params.Key[:]})
+		_, err = sio.Encrypt(newFile, src, sio.Config{Key: params.PassPhrase[:]})
 	} else {
 		_, err = io.Copy(newFile, src)
 	}

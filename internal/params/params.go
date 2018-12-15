@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/ShoshinNikita/log"
 )
 
 const (
@@ -42,8 +44,8 @@ var (
 	SkipLogin bool
 	// Encrypt defines, should the program encrypt files. False by default
 	Encrypt bool
-	// Key is used for encrypting of files. Key is a sha256 sum of Password
-	Key [32]byte
+	// PassPhrase is used to encrypt files. Key is a sha256 sum of Password
+	PassPhrase [32]byte
 	// StorageType is a type of storage
 	StorageType string
 )
@@ -106,7 +108,13 @@ func init() {
 		return enc == "true"
 	}()
 
-	Key = sha256.Sum256([]byte(Password))
+	if Encrypt {
+		phrase := os.Getenv("PASS_PHRASE")
+		if phrase == "" {
+			log.Fatalf("wrong env config: PASS_PHRASE can't be empty with ENCRYPT=true\n")
+		}
+		PassPhrase = sha256.Sum256([]byte(phrase))
+	}
 
 	StorageType = func() string {
 		return JSONStorage
