@@ -31,8 +31,8 @@ func init() {
 	globalLogger = NewLogger()
 
 	globalLogger.PrintTime(false)
-	globalLogger.PrintColor(true)
-	globalLogger.PrintErrorLine(true)
+	globalLogger.PrintColor(false)
+	globalLogger.PrintErrorLine(false)
 
 	globalLogger.global = true
 }
@@ -110,7 +110,7 @@ func PrintTime(b bool) {
 var ShowTime = PrintTime
 
 // PrintColor sets printColor
-// printColor is true by default
+// printColor is false by default
 func PrintColor(b bool) {
 	globalLogger.PrintColor(b)
 }
@@ -118,7 +118,7 @@ func PrintColor(b bool) {
 // PrintErrorLine sets PrintErrorLine
 // If PrintErrorLine is true, log.Error(), log.Errorf(), log.Errorln() will print file and line,
 // where functions were called.
-// PrintErrorLine is true by default
+// PrintErrorLine is false by default
 func PrintErrorLine(b bool) {
 	globalLogger.PrintErrorLine(b)
 }
