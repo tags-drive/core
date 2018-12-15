@@ -39,8 +39,12 @@ func paramsToString() (s string) {
 }
 
 func main() {
-	log.ShowTime(false)
 	log.PrintColor(true)
+	log.PrintTime(true)
+
+	if params.Debug {
+		log.PrintErrorLine(true)
+	}
 
 	log.Infoln("Start")
 
