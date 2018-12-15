@@ -98,6 +98,7 @@ func authentication(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{Name: params.AuthCookieName, Value: token, HttpOnly: true, Expires: time.Now().Add(params.MaxTokenLife)})
 }
 
+// extensionHandler servers extensions
 func extensionHandler(dir http.Dir) http.Handler {
 	const blankFilename = "_blank.png"
 
@@ -126,6 +127,10 @@ func extensionHandler(dir http.Dir) http.Handler {
 	})
 }
 
+// setDebugHeaders sets headers:
+//   "Access-Control-Allow-Origin" - "*"
+//   "Access-Control-Allow-Methods" - "POST, GET, OPTIONS, PUT, DELETE"
+//   "Access-Control-Allow-Headers" - "Content-Type"
 func setDebugHeaders(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")

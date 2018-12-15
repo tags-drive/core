@@ -65,6 +65,7 @@ func decryptMiddleware(dir http.Dir) http.Handler {
 	})
 }
 
+// debugMiddleware logs requests and sets debug headers
 func debugMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Don't log favicon.ico
@@ -98,6 +99,7 @@ func debugMiddleware(h http.Handler) http.Handler {
 	})
 }
 
+// cacheMiddleware sets "Cache-Control" header
 func cacheMiddleware(h http.Handler, maxAge int64) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", maxAge))

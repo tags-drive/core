@@ -26,7 +26,7 @@ var (
 	ErrEmptyFilename = errors.New("name of a file can't be empty")
 )
 
-// multiplyResponse is used as response by POST /api/files and DELETE /api/files
+// multiplyResponse is used as a response by POST /api/files and DELETE /api/files
 type multiplyResponse struct {
 	Filename string `json:"filename"`
 	IsError  bool   `json:"isError"`

@@ -15,7 +15,6 @@ import (
 // Start starts the server. It has to be ran in goroutine
 //
 // Functions stops when stopChan is closed. If there's any error, function will send it into errChan
-// After stopping the server function sends http.ErrServerClosed into errChan
 func Start(stopChan chan struct{}, errChan chan<- error) {
 	router := mux.NewRouter()
 
@@ -96,7 +95,7 @@ func Error(w http.ResponseWriter, err string, code int) {
 	if params.Debug {
 		log.Errorf("Request error: %s (code: %d)\n", err, code)
 	} else {
-		// We should to log server errors
+		// We should log server errors
 		if 500 <= code && code < 600 {
 			log.Errorf("Request error: %s (code: %d)\n", err, code)
 		}

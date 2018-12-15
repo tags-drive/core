@@ -11,32 +11,32 @@ import (
 )
 
 const (
-	// DataFolder is a folder, in which all files are kept
+	// DataFolder is a folder where all files are kept
 	DataFolder = "data"
-	// ResizedImagesFolder is a folder, in which all resized images are kept
+	// ResizedImagesFolder is a folder where all resized images are kept
 	ResizedImagesFolder = "data/resized"
-	// Files is a json file with info about the files
+	// Files is a json file with files information
 	Files = "configs/files.json"
 	// TokensFile is a json file with list of tokens
 	TokensFile = "configs/tokens.json"
 	// TagsFile is a json file with list of tags (with name and color)
 	TagsFile = "configs/tags.json"
-	// MaxTokenLife define the max lifetime of token (2 months)
+	// MaxTokenLife defines the max lifetime of a token (2 months)
 	MaxTokenLife = time.Hour * 24 * 60
-	// AuthCookieName defines name of cookie, which contains token
+	// AuthCookieName defines name of cookie that contains token
 	AuthCookieName = "auth"
 	// JSONStorage is used for StorageType
 	JSONStorage = "json"
 )
 
 var (
-	// Port for website
+	// Port of the server
 	Port string
 	// IsTLS defines should the program use https
 	IsTLS bool
-	// Login for login
+	// Login is a user login
 	Login string
-	// Password for login
+	// Password is a user password
 	Password string
 	// Debug defines is debug mode
 	Debug bool
@@ -44,14 +44,14 @@ var (
 	SkipLogin bool
 	// Encrypt defines, should the program encrypt files. False by default
 	Encrypt bool
-	// PassPhrase is used to encrypt files. Key is a sha256 sum of Password
+	// PassPhrase is used to encrypt files. Key is a sha256 sum of env "PASS_PHRASE"
 	PassPhrase [32]byte
 	// StorageType is a type of storage
 	StorageType string
 )
 
 func init() {
-	// Default - :80
+	// Default is ":80"
 	Port = func() string {
 		p := os.Getenv("PORT")
 		if p == "" {
@@ -64,13 +64,13 @@ func init() {
 		return p
 	}()
 
-	// Default - true
+	// Default is "true"
 	IsTLS = func() bool {
 		value := os.Getenv("TLS")
 		return !(strings.ToLower(value) == "false")
 	}()
 
-	// Default - user
+	// Default is "user"
 	Login = func() (login string) {
 		login = os.Getenv("LOGIN")
 		if login == "" {
@@ -79,7 +79,7 @@ func init() {
 		return
 	}()
 
-	// Default - "qwerty"
+	// Default is "qwerty"
 	Password = func() (pswrd string) {
 		pswrd = os.Getenv("PSWRD")
 		if pswrd == "" {
@@ -88,12 +88,13 @@ func init() {
 		return
 	}()
 
-	// Default - false
+	// Default is "false"
 	Debug = func() bool {
 		value := os.Getenv("DBG")
 		return strings.ToLower(value) == "true"
 	}()
 
+	// Default is "false"
 	SkipLogin = func() bool {
 		value := os.Getenv("SKIP_LOGIN")
 		if Debug && strings.ToLower(value) == "true" {
@@ -102,7 +103,7 @@ func init() {
 		return false
 	}()
 
-	// Default - false
+	// Default is "false"
 	Encrypt = func() bool {
 		enc := os.Getenv("ENCRYPT")
 		return enc == "true"
