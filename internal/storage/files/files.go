@@ -135,6 +135,10 @@ func (fs FileStorage) Get(expr string, s SortMode, search string) ([]FileInfo, e
 	return files, nil
 }
 
+func (fs FileStorage) GetFile(id int) (FileInfo, error) {
+	return fs.storage.getFile(id)
+}
+
 func (fs FileStorage) GetRecent(number int) []FileInfo {
 	files, _ := fs.Get("", SortByTimeDesc, "")
 	if len(files) > number {

@@ -26,6 +26,8 @@ type FileStorageInterface interface {
 	//
 	// If expr isn't valid, Get returns ErrBadExpessionSyntax
 	Get(expr string, s files.SortMode, search string) ([]files.FileInfo, error)
+	// GetFile returns a file with passed id
+	GetFile(id int) (files.FileInfo, error)
 	// GetRecent returns the last uploaded files
 	GetRecent(number int) []files.FileInfo
 	// ArchiveFiles archives passed files and returns io.Reader with archive
