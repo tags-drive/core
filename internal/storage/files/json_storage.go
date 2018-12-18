@@ -24,7 +24,7 @@ type jsonFileStorage struct {
 	mutex *sync.RWMutex
 }
 
-func (jfs jsonFileStorage) init() error {
+func (jfs *jsonFileStorage) init() error {
 	// Create folders
 	err := os.MkdirAll(params.DataFolder, 0600)
 	if err != nil {
@@ -64,10 +64,9 @@ func (jfs jsonFileStorage) init() error {
 	}
 
 	// Compute maxID
-	maxID := 0
 	for id := range jfs.files {
-		if id > maxID {
-			maxID = id
+		if id > jfs.maxID {
+			jfs.maxID = id
 		}
 	}
 
@@ -171,7 +170,7 @@ func (jfs *jsonFileStorage) addFile(filename, fileType string, tags []int, size 
 
 	fileInfo.Origin = params.DataFolder + "/" + strconv.FormatInt(int64(fileID), 10)
 	if fileType == typeImage {
-		fileInfo.Origin = params.ResizedImagesFolder + "/" + strconv.FormatInt(int64(fileID), 10)
+		fileInfo.Preview = params.ResizedImagesFolder + "/" + strconv.FormatInt(int64(fileID), 10)
 	}
 
 	jfs.files[jfs.maxID] = fileInfo
