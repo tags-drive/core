@@ -135,7 +135,7 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 // GET /api/files/download
 //
 // Params:
-//   - ids: list of ids of files for downloading (list of ids separated by comma `ids=1,2,54,9`)
+//   - ids: list of ids of files for downloading separated by comma `ids=1,2,54,9`
 //
 // Response: zip archive
 //
@@ -226,7 +226,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 // POST /api/files/recover
 //
 // Params:
-//   - ids: list ids of files for recovering (list of ids separated by comma `ids=1,2,54,9`)
+//   - ids: list ids of files for recovering separated by comma `ids=1,2,54,9`
 //
 // Response: -
 //
@@ -355,7 +355,7 @@ func changeFileDescription(w http.ResponseWriter, r *http.Request) {
 // DELETE /api/files
 //
 // Params:
-//   - ids: list of ids of files for deleting (list of ids separated by comma `ids=1,2,54,9`)
+//   - ids: list of ids of files for deleting separated by comma `ids=1,2,54,9`
 //   - force: should file be deleted right now
 //     (if it isn't empty, file will be deleted right now)
 //
