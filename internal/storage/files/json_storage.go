@@ -165,8 +165,10 @@ func (jfs *jsonFileStorage) addFile(filename, fileType string, tags []int, size 
 
 	jfs.mutex.Lock()
 
+	// Set id
 	jfs.maxID++
 	fileID = jfs.maxID
+	fileInfo.ID = fileID
 
 	fileInfo.Origin = params.DataFolder + "/" + strconv.FormatInt(int64(fileID), 10)
 	if fileType == typeImage {

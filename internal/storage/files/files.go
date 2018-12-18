@@ -36,6 +36,7 @@ var (
 
 // FileInfo contains the information about a file
 type FileInfo struct {
+	ID       int    `json:"id"`
 	Filename string `json:"filename"`
 	Type     string `json:"type"`              // typeImage or typeFile
 	Origin   string `json:"origin"`            // Origin is a path to a file (params.DataFolder/filename)
