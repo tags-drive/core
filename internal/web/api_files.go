@@ -2,7 +2,7 @@ package web
 
 import (
 	"encoding/json"
-	"io"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -136,6 +136,7 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(files)
 }
 
+// TODO
 // GET /api/files/download
 //
 // Params:
@@ -145,23 +146,25 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 // Response: zip archive
 //
 func downloadFiles(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	filenames := r.Form["file"]
-	if len(filenames) == 0 {
-		Error(w, "list of files can't be empty", http.StatusBadRequest)
-		return
-	}
+	mock(w, r)
 
-	body, err := storage.Files.Archive(filenames)
-	if err != nil {
-		Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// r.ParseForm()
+	// filenames := r.Form["file"]
+	// if len(filenames) == 0 {
+	// 	Error(w, "list of files can't be empty", http.StatusBadRequest)
+	// 	return
+	// }
 
-	w.Header().Set("Content-Type", "application/zip")
-	if _, err := io.Copy(w, body); err != nil {
-		log.Errorf("Can't copy zip file to response body: %s\n", err)
-	}
+	// body, err := storage.Files.Archive(filenames)
+	// if err != nil {
+	// 	Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// w.Header().Set("Content-Type", "application/zip")
+	// if _, err := io.Copy(w, body); err != nil {
+	// 	log.Errorf("Can't copy zip file to response body: %s\n", err)
+	// }
 }
 
 // POST /api/files
@@ -213,7 +216,6 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		} else {
 			response = append(response, multiplyResponse{Filename: header.Filename, Status: "uploaded"})
 		}
-
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -227,36 +229,46 @@ func upload(w http.ResponseWriter, r *http.Request) {
 // POST /api/files/recover
 //
 // Params:
-//   - file: file for recovering
-//     (to recover multiple files at a time, use `file` several times:`file=123.jpg&file=hello.png`)
+//   - ids: list ids of files for recovering (list of ids separated by comma `ids=1,2,54,9`)
 //
 // Response: -
 //
 func recoverFile(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	filenames := r.Form["file"]
-	if len(filenames) == 0 {
-		Error(w, "list of files for recovering can't be empty", http.StatusBadRequest)
+	ids := func() (res []int) {
+		strIDs := r.FormValue("ids")
+		for _, strID := range strings.Split(strIDs, ",") {
+			id, err := strconv.ParseInt(strID, 10, 0)
+			if err == nil {
+				res = append(res, int(id))
+			}
+		}
+		return
+	}()
+
+	if len(ids) == 0 {
+		Error(w, "list of ids of files for recovering can't be empty", http.StatusBadRequest)
 		return
 	}
 
-	for _, f := range filenames {
-		storage.Files.Recover(f)
+	for _, id := range ids {
+		storage.Files.Recover(id)
 	}
 }
 
 // PUT /api/files/name
 //
 // Params:
-//   - file: old filename
+//   - id: file id
 //   - new-name: new filename
 //
 //  Response: -
 //
 func changeFilename(w http.ResponseWriter, r *http.Request) {
-	filename := r.FormValue("file")
-	if filename == "" {
-		Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
+	strID := r.FormValue("id")
+	id, err := strconv.ParseInt(strID, 10, 0)
+	if err != nil {
+		Error(w, "bad id syntax", http.StatusBadRequest)
 		return
 	}
 
@@ -267,7 +279,7 @@ func changeFilename(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// We can skip checking of invalid characters, because Go will return an error
-	err := storage.Files.Rename(filename, newName)
+	err = storage.Files.Rename(int(id), newName)
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -277,15 +289,16 @@ func changeFilename(w http.ResponseWriter, r *http.Request) {
 // PUT /api/files/tags
 //
 // Params:
-//   - file: filename
+//   - id: file id
 //   - tags: updated list of tags, separated by comma (`tags=1,2,3`)
 //
 // Response: -
 //
 func changeFileTags(w http.ResponseWriter, r *http.Request) {
-	filename := r.FormValue("file")
-	if filename == "" {
-		Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
+	strID := r.FormValue("id")
+	id, err := strconv.ParseInt(strID, 10, 0)
+	if err != nil {
+		Error(w, "bad id syntax", http.StatusBadRequest)
 		return
 	}
 
@@ -311,7 +324,7 @@ func changeFileTags(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err := storage.Files.ChangeTags(filename, goodTags)
+	err = storage.Files.ChangeTags(int(id), goodTags)
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -321,20 +334,21 @@ func changeFileTags(w http.ResponseWriter, r *http.Request) {
 // PUT /api/files/description
 //
 // Params:
-//   - file: filename
+//   - id: file id
 //   - description: updated description
 //
 // Response: -
 //
 func changeFileDescription(w http.ResponseWriter, r *http.Request) {
-	filename := r.FormValue("file")
-	if filename == "" {
-		Error(w, ErrEmptyFilename.Error(), http.StatusBadRequest)
+	strID := r.FormValue("id")
+	id, err := strconv.ParseInt(strID, 10, 0)
+	if err != nil {
+		Error(w, "bad id syntax", http.StatusBadRequest)
 		return
 	}
 
 	newDescription := r.FormValue("description")
-	err := storage.Files.ChangeDescription(filename, newDescription)
+	err = storage.Files.ChangeDescription(int(id), newDescription)
 	if err != nil {
 		Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -344,8 +358,7 @@ func changeFileDescription(w http.ResponseWriter, r *http.Request) {
 // DELETE /api/files
 //
 // Params:
-//   - file: file for deleting
-//     (to delete multiplefiles at a time, use `file` several times:`file=123.jpg&file=hello.png`)
+//   - ids: list of ids of files for deleting (list of ids separated by comma `ids=1,2,54,9`)
 //   - force: should file be deleted right now
 //     (if it isn't empty, file will be deleted right now)
 //
@@ -353,44 +366,61 @@ func changeFileDescription(w http.ResponseWriter, r *http.Request) {
 //
 func deleteFile(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	filenames := r.Form["file"]
-	if len(filenames) == 0 {
-		Error(w, "list of files for deleting can't be empty", http.StatusBadRequest)
+	ids := func() (res []int) {
+		strIDs := r.FormValue("ids")
+		for _, strID := range strings.Split(strIDs, ",") {
+			id, err := strconv.ParseInt(strID, 10, 0)
+			if err == nil {
+				res = append(res, int(id))
+			}
+		}
 		return
-	}
+	}()
 
 	force := func() bool {
 		return r.FormValue("force") != ""
 	}()
 
 	var response []multiplyResponse
-	for _, filename := range filenames {
-		if !force {
-			err := storage.Files.Delete(filename)
-			if err != nil {
-				response = append(response, multiplyResponse{
-					Filename: filename,
-					IsError:  true,
-					Error:    err.Error(),
-				})
-			} else {
-				response = append(response, multiplyResponse{
-					Filename: filename,
-					Status:   "added into trash"})
+	for _, id := range ids {
+		file, err := storage.Files.GetFile(id)
+		if err != nil {
+			msg := err.Error()
+			if err == storage.ErrFileIsNotExist {
+				msg = fmt.Sprintf("file with id \"%d\" doesn't exist", id)
 			}
+
+			response = append(response, multiplyResponse{
+				Filename: "",
+				IsError:  true,
+				Error:    msg,
+			})
+
+			// We can skip non-existent file
+			continue
+		}
+
+		deleteFunc := storage.Files.Delete
+		// We will use status if deleteFunc returns nil error
+		status := "added into trash"
+		if force {
+			deleteFunc = storage.Files.DeleteForce
+			status = "deleted"
+		}
+
+		err = deleteFunc(id)
+		if err != nil {
+			response = append(response, multiplyResponse{
+				Filename: file.Filename,
+				IsError:  true,
+				Error:    err.Error(),
+			})
 		} else {
-			err := storage.Files.DeleteForce(filename)
-			if err != nil {
-				response = append(response, multiplyResponse{
-					Filename: filename,
-					IsError:  true,
-					Error:    err.Error()})
-			} else {
-				response = append(response, multiplyResponse{
-					Filename: filename,
-					Status:   "deleted",
-				})
-			}
+			// Use pre-defined var status
+			response = append(response, multiplyResponse{
+				Filename: file.Filename,
+				Status:   status,
+			})
 		}
 	}
 
