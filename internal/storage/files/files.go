@@ -1,6 +1,7 @@
 package files
 
 import (
+	"archive/zip"
 	"bytes"
 	"io"
 	"mime/multipart"
@@ -148,48 +149,54 @@ func (fs FileStorage) GetRecent(number int) []FileInfo {
 	return files
 }
 
-// TODO
 func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 	buff := bytes.NewBuffer([]byte(""))
 
-	// zipWriter := zip.NewWriter(buff)
-	// defer zipWriter.Close()
+	zipWriter := zip.NewWriter(buff)
+	defer zipWriter.Close()
 
-	// for _, id := range ids {
-	// 	path := params.DataFolder + "/" + id
-	// 	f, err := os.Open(path)
-	// 	if err != nil {
-	// 		log.Errorf("Can't load file \"%s\"\n", filename)
-	// 		continue
-	// 	}
-	// 	stat, err := f.Stat()
-	// 	if err != nil {
-	// 		log.Errorf("Can't load file \"%s\"\n", filename)
-	// 		continue
-	// 	}
+	for _, id := range ids {
+		fileInfo, err := fs.storage.getFile(id)
+		if err != nil {
+			// Skip non-existent file
+			continue
+		}
 
-	// 	header, _ := zip.FileInfoHeader(stat)
-	// 	header.Method = zip.Deflate
+		path := params.DataFolder + "/" + strconv.FormatInt(int64(id), 10)
+		f, err := os.Open(path)
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			continue
+		}
+		stat, err := f.Stat()
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			continue
+		}
 
-	// 	wr, err := zipWriter.CreateHeader(header)
-	// 	if err != nil {
-	// 		log.Errorf("Can't load file \"%s\"\n", filename)
-	// 		f.Close()
-	// 		continue
-	// 	}
+		header, _ := zip.FileInfoHeader(stat)
+		header.Name = fileInfo.Filename // Set right filename
+		header.Method = zip.Deflate
 
-	// 	if params.Encrypt {
-	// 		_, err = sio.Decrypt(wr, f, sio.Config{Key: params.PassPhrase[:]})
-	// 	} else {
-	// 		_, err = io.Copy(wr, f)
-	// 	}
+		wr, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			f.Close()
+			continue
+		}
 
-	// 	if err != nil {
-	// 		log.Errorf("Can't load file \"%s\"\n", filename)
-	// 	}
+		if params.Encrypt {
+			_, err = sio.Decrypt(wr, f, sio.Config{Key: params.PassPhrase[:]})
+		} else {
+			_, err = io.Copy(wr, f)
+		}
 
-	// 	f.Close()
-	// }
+		if err != nil {
+			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+		}
+
+		f.Close()
+	}
 
 	return buff, nil
 }

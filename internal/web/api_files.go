@@ -3,12 +3,12 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/ShoshinNikita/log"
-	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage"
@@ -20,10 +20,6 @@ const (
 	// If maxSize == 50MB, program takes too much memory
 	// If maxSize == 2MB, there're too many I/O-operations
 	maxSize = 10 << 20 // 10MB
-)
-
-var (
-	ErrEmptyFilename = errors.New("name of a file can't be empty")
 )
 
 // multiplyResponse is used as a response by POST /api/files and DELETE /api/files
@@ -136,35 +132,36 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 	enc.Encode(files)
 }
 
-// TODO
 // GET /api/files/download
 //
 // Params:
-//   - file: file for downloading
-//     (to download multiple files at a time, use `file` several times: `file=123.jp  file=hello.png`)
+//   - ids: list of ids of files for downloading (list of ids separated by comma `ids=1,2,54,9`)
 //
 // Response: zip archive
 //
 func downloadFiles(w http.ResponseWriter, r *http.Request) {
-	mock(w, r)
+	r.ParseForm()
+	ids := func() (res []int) {
+		strIDs := r.FormValue("ids")
+		for _, strID := range strings.Split(strIDs, ",") {
+			id, err := strconv.ParseInt(strID, 10, 0)
+			if err == nil {
+				res = append(res, int(id))
+			}
+		}
+		return
+	}()
 
-	// r.ParseForm()
-	// filenames := r.Form["file"]
-	// if len(filenames) == 0 {
-	// 	Error(w, "list of files can't be empty", http.StatusBadRequest)
-	// 	return
-	// }
+	body, err := storage.Files.Archive(ids)
+	if err != nil {
+		Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	// body, err := storage.Files.Archive(filenames)
-	// if err != nil {
-	// 	Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// w.Header().Set("Content-Type", "application/zip")
-	// if _, err := io.Copy(w, body); err != nil {
-	// 	log.Errorf("Can't copy zip file to response body: %s\n", err)
-	// }
+	w.Header().Set("Content-Type", "application/zip")
+	if _, err := io.Copy(w, body); err != nil {
+		log.Errorf("Can't copy zip file to response body: %s\n", err)
+	}
 }
 
 // POST /api/files
