@@ -29,24 +29,24 @@ type FileStorageInterface interface {
 	// GetRecent returns the last uploaded files
 	GetRecent(number int) []files.FileInfo
 	// ArchiveFiles archives passed files and returns io.Reader with archive
-	Archive(filenames []string) (io.Reader, error)
+	Archive(fileIDs []int) (io.Reader, error)
 
 	// UploadFile uploads a new file
 	Upload(file *multipart.FileHeader, tags []int) error
 
 	// Rename renames a file
-	Rename(oldName, newName string) error
+	Rename(fileID int, newName string) error
 	// ChangeTags changes the tags
-	ChangeTags(filename string, tags []int) error
+	ChangeTags(fileID int, tags []int) error
 	// ChangeDescription changes the description
-	ChangeDescription(filename, newDescription string) error
+	ChangeDescription(fileID int, newDescription string) error
 
 	// Delete "move" a file into Trash
-	Delete(filename string) error
+	Delete(fileID int) error
 	// DeleteForce deletes file from storage and from disk
-	DeleteForce(filename string) error
+	DeleteForce(fileID int) error
 	// Recover "removes" file from Trash
-	Recover(filename string)
+	Recover(fileID int)
 	// DeleteTagFromFiles deletes a tag from files
 	DeleteTagFromFiles(tagID int)
 }
