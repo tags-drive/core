@@ -215,6 +215,9 @@ func (jfs *jsonFileStorage) updateFileTags(id int, changedTagsID []int) error {
 
 	// Update map
 	f := jfs.files[id]
+	if changedTagsID == nil {
+		changedTagsID = []int{} // https://github.com/tags-drive/core/issues/19
+	}
 	f.Tags = changedTagsID
 	jfs.files[id] = f
 
