@@ -55,7 +55,8 @@ Uploaded files can be encrypted. **Tags Drive** uses sha256 sum of the password 
 
     ```json
     {
-      "1.jpg": {
+      "1": {
+        "id": 1,
         "filename": "1.jpg",
         "type": "image",
         "origin": "data/1.jpg",
@@ -65,7 +66,8 @@ Uploaded files can be encrypted. **Tags Drive** uses sha256 sum of the password 
         "addTime": "2018-10-12T20:37:54.5515067+03:00",
         "preview": "data/resized/1.jpg"
       },
-      "file.txt": {
+      "2": {
+        "id": 2,
         "filename": "file.txt",
         "type": "file",
         "origin": "data/file.txt",
@@ -127,6 +129,7 @@ Use this command to generate self-signed TLS certificate:
 
   ```go
     type FileInfo struct {
+      ID       int    `json:"id"`
       Filename string `json:"filename"`
       Type     string `json:"type"`
       Origin   string `json:"origin"`
@@ -152,12 +155,15 @@ Use this command to generate self-signed TLS certificate:
 - `GET /api/files/download`
 
   **Params:**
-  - **file**: file for downloading (to download multiple files at a time, use `file` several times: `file=123.jp  file=hello.png`)
+  - **ids**: list of ids of files for downloading separated by comma `ids=1,2,54,9`
 
   **Response:** zip archive
 
 - `POST /api/files`
   
+  **Params:**
+  - **tags**: tags: list of tags, separated by comma (`tags=1,2,3`)
+
   **Body** must be `multipart/form-data`
 
   **Response:** json array of:
@@ -174,14 +180,14 @@ Use this command to generate self-signed TLS certificate:
 - `POST /api/files/recover`
 
   **Params**:
-  - file: file for recovering (to recover multiple files at a time, use `file` several times:`file=123.jpg&file=hello.png`)
+  - **ids**: list ids of files for recovering (list of ids separated by comma `ids=1,2,54,9`)
 
   **Response**: -
 
 - `PUT /api/files/name`
 
   **Params:**
-  - **file**: old filename
+  - **id**: file id
   - **new-name**: new filename
 
   **Response:** -
@@ -189,7 +195,7 @@ Use this command to generate self-signed TLS certificate:
 - `PUT /api/files/tags`
 
   **Params:**
-  - **file**: filename
+  - **id**: file id
   - **tags**: updated list of tags, separated by comma (`tags=1,2,3`)
 
   **Response:** -
@@ -197,7 +203,7 @@ Use this command to generate self-signed TLS certificate:
 - `PUT /api/files/description`
 
   **Params:**
-  - **file**: filename
+  - **id**: file id
   - **description**: updated description
 
   **Response:** -
@@ -205,7 +211,7 @@ Use this command to generate self-signed TLS certificate:
 - `DELETE /api/files`
 
   **Params:**
-  - **file**: file for deleting (to delete multiplefiles at a time, use `file` several times:`file=123.jpg&file=hello.png`)
+  - **ids**: list of ids of files for deleting separated by comma `ids=1,2,54,9`
   - **force**: should file be deleted right now (if it isn't empty, file will be deleted right now)
 
   **Response:** json array of:
