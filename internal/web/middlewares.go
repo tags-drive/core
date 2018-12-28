@@ -101,8 +101,11 @@ func debugMiddleware(h http.Handler) http.Handler {
 
 // cacheMiddleware sets "Cache-Control" header
 func cacheMiddleware(h http.Handler, maxAge int64) http.Handler {
+	maxAgeString := fmt.Sprintf("max-age=%d", maxAge)
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", maxAge))
+		w.Header().Set("Cache-Control", maxAgeString)
+		w.Header().Add("Cache-Control", "private")
 		h.ServeHTTP(w, r)
 	})
 }

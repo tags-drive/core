@@ -25,7 +25,7 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	// For static files
 	router.PathPrefix("/static/").Handler(staticHandler)
 	// For uploaded files
-	router.PathPrefix("/data/").Handler(cacheMiddleware(uploadedFilesHandler, 3*60)) // cache for 3 minutes
+	router.PathPrefix("/data/").Handler(cacheMiddleware(uploadedFilesHandler, 365*24*60*60)) // cache for 365 days
 	// For exitensions
 	router.PathPrefix("/ext/").Handler(cacheMiddleware(exitensionsHandler, 7*24*60*60)) // cache for 7 days
 
