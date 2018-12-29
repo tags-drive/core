@@ -213,7 +213,7 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 
 	// Define file type
 	switch ext {
-	case ".jpg", ".jpeg", ".png", ".gif":
+	case ".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG", ".gif", ".GIF", "webp", "WEBP":
 		fileType = typeImage
 	default:
 		// Save a file
