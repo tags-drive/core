@@ -30,9 +30,10 @@ const (
 
 // Errors
 var (
-	ErrFileIsNotExist   = errors.New("the file doesn't exist")
-	ErrAlreadyExist     = errors.New("file already exists")
-	ErrFileDeletedAgain = errors.New("file can't be deleted again")
+	ErrFileIsNotExist    = errors.New("the file doesn't exist")
+	ErrAlreadyExist      = errors.New("file already exists")
+	ErrFileDeletedAgain  = errors.New("file can't be deleted again")
+	ErrOffsetOutOfBounds = errors.New("offset is out of bounds")
 )
 
 // FileInfo contains the information about a file
@@ -125,7 +126,7 @@ func (fs *FileStorage) Init() error {
 	return nil
 }
 
-func (fs FileStorage) Get(expr string, s SortMode, search string) ([]FileInfo, error) {
+func (fs FileStorage) Get(expr string, s SortMode, search string, offset int) ([]FileInfo, error) {
 	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
 	if err != nil {
 		return []FileInfo{}, err
@@ -133,8 +134,12 @@ func (fs FileStorage) Get(expr string, s SortMode, search string) ([]FileInfo, e
 
 	search = strings.ToLower(search)
 	files := fs.storage.getFiles(parsedExpr, search)
+	if offset >= len(files) {
+		return []FileInfo{}, ErrOffsetOutOfBounds
+	}
+
 	sortFiles(s, files)
-	return files, nil
+	return files[offset:], nil
 }
 
 func (fs FileStorage) GetFile(id int) (FileInfo, error) {
@@ -142,7 +147,7 @@ func (fs FileStorage) GetFile(id int) (FileInfo, error) {
 }
 
 func (fs FileStorage) GetRecent(number int) []FileInfo {
-	files, _ := fs.Get("", SortByTimeDesc, "")
+	files, _ := fs.Get("", SortByTimeDesc, "", 0)
 	if len(files) > number {
 		files = files[:number]
 	}
