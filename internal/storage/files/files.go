@@ -126,7 +126,7 @@ func (fs *FileStorage) Init() error {
 	return nil
 }
 
-func (fs FileStorage) Get(expr string, s SortMode, search string, offset int) ([]FileInfo, error) {
+func (fs FileStorage) Get(expr string, s SortMode, search string, offset, count int) ([]FileInfo, error) {
 	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
 	if err != nil {
 		return []FileInfo{}, err
@@ -139,7 +139,12 @@ func (fs FileStorage) Get(expr string, s SortMode, search string, offset int) ([
 	}
 
 	sortFiles(s, files)
-	return files[offset:], nil
+
+	if count == 0 || offset+count > len(files) {
+		count = len(files) - offset
+	}
+
+	return files[offset : offset+count], nil
 }
 
 func (fs FileStorage) GetFile(id int) (FileInfo, error) {
@@ -147,10 +152,7 @@ func (fs FileStorage) GetFile(id int) (FileInfo, error) {
 }
 
 func (fs FileStorage) GetRecent(number int) []FileInfo {
-	files, _ := fs.Get("", SortByTimeDesc, "", 0)
-	if len(files) > number {
-		files = files[:number]
-	}
+	files, _ := fs.Get("", SortByTimeDesc, "", 0, number)
 	return files
 }
 
