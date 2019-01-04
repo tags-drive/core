@@ -51,6 +51,8 @@ func getParam(def, passed string, options ...string) (s string) {
 //   - search: text for search
 //   - sort: name | size | time
 //   - order: asc | desc
+//   - offset: lower bound [offset:]
+//   - count: number of returned files ([offset:offset+count]). If count == 0, all files will be returned. Default is 0
 //
 // Response: json array
 //
@@ -60,8 +62,40 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		expr   = r.FormValue("expr")
 		search = r.FormValue("search")
 
+		offset   = 0
+		count    = 0
 		sortMode = files.SortByNameAsc
 	)
+
+	// Get offset
+	offset = func() int {
+		param := r.FormValue("offset")
+		if param == "" {
+			return 0
+		}
+
+		r, err := strconv.ParseInt(param, 10, 0)
+		if err != nil || r < 0 {
+			return 0
+		}
+
+		return int(r)
+	}()
+
+	// Get offset
+	count = func() int {
+		param := r.FormValue("count")
+		if param == "" {
+			return 0
+		}
+
+		r, err := strconv.ParseInt(param, 10, 0)
+		if err != nil || r < 0 {
+			return 0
+		}
+
+		return int(r)
+	}()
 
 	// Set sortMode
 	// Can skip default
@@ -86,9 +120,9 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	files, err := storage.Files.Get(expr, sortMode, search)
+	files, err := storage.Files.Get(expr, sortMode, search, offset, count)
 	if err != nil {
-		if err == storage.ErrBadExpessionSyntax {
+		if err == storage.ErrBadExpessionSyntax || err == storage.ErrOffsetOutOfBounds {
 			Error(w, err.Error(), http.StatusBadRequest)
 		} else {
 			Error(w, err.Error(), http.StatusInternalServerError)

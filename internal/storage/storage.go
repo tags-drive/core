@@ -11,9 +11,10 @@ import (
 
 // Errors
 var (
-	ErrFileIsNotExist   = files.ErrFileIsNotExist
-	ErrAlreadyExist     = files.ErrAlreadyExist
-	ErrFileDeletedAgain = files.ErrFileDeletedAgain
+	ErrFileIsNotExist    = files.ErrFileIsNotExist
+	ErrAlreadyExist      = files.ErrAlreadyExist
+	ErrFileDeletedAgain  = files.ErrFileDeletedAgain
+	ErrOffsetOutOfBounds = files.ErrOffsetOutOfBounds
 	//
 	ErrBadExpessionSyntax = aggregation.ErrBadSyntax
 )
@@ -25,7 +26,8 @@ type FileStorageInterface interface {
 	// Get returns all "good" sorted files
 	//
 	// If expr isn't valid, Get returns ErrBadExpessionSyntax
-	Get(expr string, s files.SortMode, search string) ([]files.FileInfo, error)
+	// count must be greater than 0, else all files will be returned ([offset:])
+	Get(expr string, s files.SortMode, search string, offset, count int) ([]files.FileInfo, error)
 	// GetFile returns a file with passed id
 	GetFile(id int) (files.FileInfo, error)
 	// GetRecent returns the last uploaded files

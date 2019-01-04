@@ -124,6 +124,8 @@ Use this command to generate self-signed TLS certificate:
   - **search**: text for search
   - **sort**: name | size | time
   - **order**: asc | desc
+  - **offset**: lower bound `[offset:]`
+  - **count**: number of returned files (`[offset:offset+count]`). If count == 0, all files will be returned. Default is 0
 
   **Response:** json array of:
 
