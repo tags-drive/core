@@ -87,8 +87,8 @@ func Start(ctx context.Context) error {
 	return nil
 }
 
-// Error is a wrapper over http.Error
-func Error(w http.ResponseWriter, err string, code int) {
+// processError is a wrapper over http.Error
+func processError(w http.ResponseWriter, err string, code int) {
 	if params.Debug {
 		log.Errorf("Request error: %s (code: %d)\n", err, code)
 	} else {
