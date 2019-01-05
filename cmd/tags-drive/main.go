@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -62,23 +63,19 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	stopChan := make(chan struct{})
-	errChan := make(chan error, 1)
-	termChan := make(chan os.Signal, 1)
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		term := make(chan os.Signal)
+		signal.Notify(term, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+		<-term
 
-	go web.Start(stopChan, errChan)
-	signal.Notify(termChan, syscall.SIGTERM, syscall.SIGINT)
+		log.Warnln("Interrupt signal")
 
-	select {
-	case err := <-errChan:
-		// Server is down
-		log.Fatalln(err)
-	case <-termChan:
-		// We got SIGTERM, SIGKILL or SIGINT
-		close(stopChan)
-	}
+		cancel()
+	}()
 
-	if err := <-errChan; err != nil {
+	err = web.Start(ctx)
+	if err != nil {
 		log.Fatalln(err)
 	}
 

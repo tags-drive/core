@@ -14,8 +14,8 @@ import (
 
 // Start starts the server. It has to be ran in goroutine
 //
-// Functions stops when stopChan is closed. If there's any error, function will send it into errChan
-func Start(stopChan chan struct{}, errChan chan<- error) {
+// Server stops when ctx.Done()
+func Start(ctx context.Context) error {
 	router := mux.NewRouter()
 
 	staticHandler := http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/")))
@@ -55,39 +55,36 @@ func Start(stopChan chan struct{}, errChan chan<- error) {
 	}
 
 	server := &http.Server{Addr: params.Port, Handler: handler}
-	localErrChan := make(chan error)
+
 	go func() {
-		log.Infoln("Start web server")
+		<-ctx.Done()
 
-		listenAndServe := server.ListenAndServe
-		if params.IsTLS {
-			listenAndServe = func() error {
-				return server.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key")
-			}
-		}
+		log.Infoln("Stopping web server")
 
-		// http.ErrServerClosed is a valid error
-		if err := listenAndServe(); err != nil && err != http.ErrServerClosed {
-			localErrChan <- err
+		shutdown, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+
+		server.SetKeepAlivesEnabled(false)
+		if err := server.Shutdown(shutdown); err != nil {
+			log.Errorf("can't gracefully shutdown server: %s\n", err)
 		}
 	}()
 
-	select {
-	case err := <-localErrChan:
-		close(localErrChan)
-		errChan <- err
-		// We don't have to shutdown server gracefully because it is down
-		return
-	case <-stopChan:
-		// We have to shutdown server gracefully
+	log.Infoln("Start web server")
+
+	listenAndServe := server.ListenAndServe
+	if params.IsTLS {
+		listenAndServe = func() error {
+			return server.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key")
+		}
 	}
 
-	log.Infoln("Stopping web server")
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
+	// http.ErrServerClosed is a valid error
+	if err := listenAndServe(); err != nil && err != http.ErrServerClosed {
+		return err
+	}
 
-	server.SetKeepAlivesEnabled(false)
-	errChan <- server.Shutdown(ctx)
+	return nil
 }
 
 // Error is a wrapper over http.Error
