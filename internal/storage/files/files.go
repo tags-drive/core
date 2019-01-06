@@ -275,12 +275,8 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 
 // copyToFile copies data from src to new created file
 func copyToFile(src io.Reader, path string) error {
-	if f, err := os.Open(path); !os.IsNotExist(err) {
-		f.Close()
-		return ErrAlreadyExist
-	}
-
-	newFile, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
+	// We trunc file, if it already exists
+	newFile, err := os.Create(path)
 	if err != nil {
 		return errors.Wrap(err, "can't create a new file")
 	}
