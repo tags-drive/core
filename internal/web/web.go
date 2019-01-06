@@ -20,6 +20,8 @@ type Server struct {
 	authService cmd.AuthService
 
 	logger *log.Logger
+
+	httpServer *http.Server
 }
 
 type route struct {
@@ -50,7 +52,7 @@ func NewWebServer(fs cmd.FileStorageInterface, ts cmd.TagStorageInterface, lg *l
 // Start starts the server. It has to be ran in goroutine
 //
 // Server stops when ctx.Done()
-func (s Server) Start(ctx context.Context) error {
+func (s *Server) Start() error {
 	// Init routes
 	var routes = []route{
 		{"/", "GET", s.index, true},
@@ -124,28 +126,14 @@ func (s Server) Start(ctx context.Context) error {
 		handler = debugMiddleware(router)
 	}
 
-	server := &http.Server{Addr: params.Port, Handler: handler}
-
-	go func() {
-		<-ctx.Done()
-
-		s.logger.Infoln("Stopping web server")
-
-		shutdown, cancel := context.WithTimeout(context.Background(), time.Second*10)
-		defer cancel()
-
-		server.SetKeepAlivesEnabled(false)
-		if err := server.Shutdown(shutdown); err != nil {
-			s.logger.Errorf("can't gracefully shutdown server: %s\n", err)
-		}
-	}()
+	s.httpServer = &http.Server{Addr: params.Port, Handler: handler}
 
 	s.logger.Infoln("Start web server")
 
-	listenAndServe := server.ListenAndServe
+	listenAndServe := s.httpServer.ListenAndServe
 	if params.IsTLS {
 		listenAndServe = func() error {
-			return server.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key")
+			return s.httpServer.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key")
 		}
 	}
 
@@ -155,6 +143,22 @@ func (s Server) Start(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (s Server) Shutdown() error {
+	shutdown, release := context.WithTimeout(context.Background(), time.Second*10)
+	defer release()
+
+	s.httpServer.SetKeepAlivesEnabled(false)
+
+	serverErr := s.httpServer.Shutdown(shutdown)
+
+	// Shutdown auth service
+	if err := s.authService.Shutdown(); err != nil {
+		s.logger.Warnf("can't shutdown authService gracefully: %s\n", err)
+	}
+
+	return serverErr
 }
 
 // processError is a wrapper over http.Error

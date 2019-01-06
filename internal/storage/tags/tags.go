@@ -94,3 +94,7 @@ func (ts TagStorage) Delete(id int) {
 func (ts TagStorage) Check(id int) bool {
 	return ts.storage.check(id)
 }
+
+func (ts TagStorage) Shutdown() error {
+	return nil
+}

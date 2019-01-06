@@ -393,3 +393,7 @@ func (fs FileStorage) scheduleDeleting() {
 func (fs FileStorage) Recover(id int) {
 	fs.storage.recover(id)
 }
+
+func (fs FileStorage) Shutdown() error {
+	return nil
+}

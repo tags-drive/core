@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"io"
 	"mime/multipart"
 
@@ -11,7 +10,10 @@ import (
 
 // Server provides methods for interactions web server
 type Server interface {
-	Start(ctx context.Context) error
+	Start() error
+
+	// Shutdown gracefully shutdown server
+	Shutdown() error
 }
 
 // FileStorageInterface provides methods for interactions with files
@@ -46,6 +48,9 @@ type FileStorageInterface interface {
 	Recover(fileID int)
 	// DeleteTagFromFiles deletes a tag from files
 	DeleteTagFromFiles(tagID int)
+
+	// Shutdown gracefully shutdown FileStorage
+	Shutdown() error
 }
 
 // TagStorageInterface provides methods for interactions with tags
@@ -65,6 +70,9 @@ type TagStorageInterface interface {
 
 	// Check checks is there tag with passed id
 	Check(id int) bool
+
+	// Shutdown gracefully shutdown TagStorage
+	Shutdown() error
 }
 
 // AuthService provides methods for auth users
@@ -80,4 +88,7 @@ type AuthService interface {
 
 	// DeleteToken deletes token from a storage
 	DeleteToken(token string)
+
+	// Shutdown gracefully shutdown FileStorage
+	Shutdown() error
 }

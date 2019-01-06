@@ -88,3 +88,7 @@ func (a *Auth) DeleteToken(token string) {
 func (a Auth) CheckToken(token string) bool {
 	return a.check(token)
 }
+
+func (a Auth) Shutdown() error {
+	return nil
+}

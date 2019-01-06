@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -62,21 +61,43 @@ func main() {
 		lg.Fatalf("can't init WebServer: %s", err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	shutdowned := make(chan struct{})
+
 	go func() {
 		term := make(chan os.Signal)
 		signal.Notify(term, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 		<-term
 
-		lg.Warnln("Interrupt signal")
+		lg.Warnln("interrupt signal")
 
-		cancel()
+		// Shutdowns. Server must be first
+		lg.Infoln("shutdown WebServer")
+		err := app.Server.Shutdown()
+		if err != nil {
+			log.Warnf("can't shutdown server gracefully: %s\n", err)
+		}
+
+		lg.Infoln("shutdown FileStorage")
+		err = app.FileStorage.Shutdown()
+		if err != nil {
+			log.Warnf("can't shutdown FileStorage gracefully: %s\n", err)
+		}
+
+		lg.Infoln("shutdown TagStorage")
+		err = app.TagStorage.Shutdown()
+		if err != nil {
+			log.Warnf("can't shutdown TagStorage gracefully: %s\n", err)
+		}
+
+		close(shutdowned)
 	}()
 
-	err = app.Server.Start(ctx)
+	err = app.Server.Start()
 	if err != nil {
-		lg.Fatalln(err)
+		lg.Errorf("server error: %s\n", err)
 	}
+
+	<-shutdowned
 
 	lg.Infoln("Stop")
 }
