@@ -52,13 +52,17 @@ type FileStorageInterface interface {
 type TagStorageInterface interface {
 	// GetAll returns all tags
 	GetAll() tags.Tags
+
 	// Add adds a new tag with passed name and color
 	Add(name, color string)
+
 	// Change changes a tag with passed id.
 	// If pass empty newName (or newColor), field Name (or Color) won't be changed.
 	Change(id int, newName, newColor string)
+
 	// Delete deletes a tag with passed id
 	Delete(id int)
+
 	// Check checks is there tag with passed id
 	Check(id int) bool
 }
@@ -67,10 +71,13 @@ type TagStorageInterface interface {
 type AuthService interface {
 	// GenerateToken generates a new token. GenerateToken doesn't add new token, just return it!
 	GenerateToken() string
+
 	// AddToken adds passed token into storage
 	AddToken(token string)
+
 	// CheckToken returns true if token is in storage
 	CheckToken(token string) bool
+
 	// DeleteToken deletes token from a storage
 	DeleteToken(token string)
 }
