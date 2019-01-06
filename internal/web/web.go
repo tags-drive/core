@@ -89,7 +89,7 @@ func (s Server) Start(ctx context.Context) error {
 	router := mux.NewRouter()
 
 	staticHandler := http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/")))
-	uploadedFilesHandler := http.StripPrefix("/data/", decryptMiddleware(http.Dir(params.DataFolder+"/")))
+	uploadedFilesHandler := http.StripPrefix("/data/", s.decryptMiddleware(http.Dir(params.DataFolder+"/")))
 	exitensionsHandler := http.StripPrefix("/ext/", s.extensionHandler(http.Dir("./web/static/ext/48px/")))
 
 	// For static files
@@ -157,16 +157,14 @@ func (s Server) Start(ctx context.Context) error {
 	return nil
 }
 
-// TODO
-
 // processError is a wrapper over http.Error
-func processError(w http.ResponseWriter, err string, code int) {
+func (s Server) processError(w http.ResponseWriter, err string, code int) {
 	if params.Debug {
-		log.Errorf("Request error: %s (code: %d)\n", err, code)
+		s.logger.Errorf("Request error: %s (code: %d)\n", err, code)
 	} else {
 		// We should log server errors
 		if 500 <= code && code < 600 {
-			log.Errorf("Request error: %s (code: %d)\n", err, code)
+			s.logger.Errorf("Request error: %s (code: %d)\n", err, code)
 		}
 	}
 

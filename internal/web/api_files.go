@@ -121,9 +121,9 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 	files, err := s.fileStorage.Get(expr, sortMode, search, offset, count)
 	if err != nil {
 		if err == storage.ErrBadExpessionSyntax || err == storage.ErrOffsetOutOfBounds {
-			processError(w, err.Error(), http.StatusBadRequest)
+			s.processError(w, err.Error(), http.StatusBadRequest)
 		} else {
-			processError(w, err.Error(), http.StatusInternalServerError)
+			s.processError(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
@@ -186,7 +186,7 @@ func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
 
 	body, err := s.fileStorage.Archive(ids)
 	if err != nil {
-		processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -225,9 +225,9 @@ func (s Server) upload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case http.ErrNotMultipart:
-			processError(w, err.Error(), http.StatusBadRequest)
+			s.processError(w, err.Error(), http.StatusBadRequest)
 		default:
-			processError(w, err.Error(), http.StatusInternalServerError)
+			s.processError(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
@@ -276,7 +276,7 @@ func (s Server) recoverFile(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	if len(ids) == 0 {
-		processError(w, "list of ids of files for recovering can't be empty", http.StatusBadRequest)
+		s.processError(w, "list of ids of files for recovering can't be empty", http.StatusBadRequest)
 		return
 	}
 
@@ -297,20 +297,20 @@ func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 	strID := r.FormValue("id")
 	id, err := strconv.ParseInt(strID, 10, 0)
 	if err != nil {
-		processError(w, "bad id syntax", http.StatusBadRequest)
+		s.processError(w, "bad id syntax", http.StatusBadRequest)
 		return
 	}
 
 	newName := r.FormValue("new-name")
 	if newName == "" {
-		processError(w, "new-name param can't be empty", http.StatusBadRequest)
+		s.processError(w, "new-name param can't be empty", http.StatusBadRequest)
 		return
 	}
 
 	// We can skip checking of invalid characters, because Go will return an error
 	err = s.fileStorage.Rename(int(id), newName)
 	if err != nil {
-		processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -327,7 +327,7 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 	strID := r.FormValue("id")
 	id, err := strconv.ParseInt(strID, 10, 0)
 	if err != nil {
-		processError(w, "bad id syntax", http.StatusBadRequest)
+		s.processError(w, "bad id syntax", http.StatusBadRequest)
 		return
 	}
 
@@ -356,7 +356,7 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 
 	err = s.fileStorage.ChangeTags(int(id), goodTags)
 	if err != nil {
-		processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -373,14 +373,14 @@ func (s Server) changeFileDescription(w http.ResponseWriter, r *http.Request) {
 	strID := r.FormValue("id")
 	id, err := strconv.ParseInt(strID, 10, 0)
 	if err != nil {
-		processError(w, "bad id syntax", http.StatusBadRequest)
+		s.processError(w, "bad id syntax", http.StatusBadRequest)
 		return
 	}
 
 	newDescription := r.FormValue("description")
 	err = s.fileStorage.ChangeDescription(int(id), newDescription)
 	if err != nil {
-		processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

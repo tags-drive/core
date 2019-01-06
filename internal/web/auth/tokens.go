@@ -5,8 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/ShoshinNikita/log"
-
 	"github.com/tags-drive/core/internal/params"
 )
 
@@ -82,7 +80,7 @@ func (a *Auth) expire() {
 		if now.Before(tok.Expires) {
 			freshTokens = append(freshTokens, tok)
 		} else {
-			log.Infof("Token \"%s\" expired\n", tok.Token)
+			a.logger.Infof("Token \"%s\" expired\n", tok.Token)
 		}
 	}
 

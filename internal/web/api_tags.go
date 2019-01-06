@@ -37,7 +37,7 @@ func (s Server) addTag(w http.ResponseWriter, r *http.Request) {
 	tagName := r.FormValue("name")
 	tagColor := r.FormValue("color")
 	if tagName == "" {
-		processError(w, "tag is empty", http.StatusBadRequest)
+		s.processError(w, "tag is empty", http.StatusBadRequest)
 		return
 	}
 	if tagColor == "" {
@@ -70,7 +70,7 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 		err error
 	)
 	if id, err = strconv.Atoi(tagID); err != nil {
-		processError(w, "tag id isn't valid", http.StatusBadRequest)
+		s.processError(w, "tag id isn't valid", http.StatusBadRequest)
 		return
 	}
 
@@ -91,7 +91,7 @@ func (s Server) deleteTag(w http.ResponseWriter, r *http.Request) {
 		err error
 	)
 	if id, err = strconv.Atoi(tagID); err != nil {
-		processError(w, "tag id isn't valid", http.StatusBadRequest)
+		s.processError(w, "tag id isn't valid", http.StatusBadRequest)
 		return
 	}
 	s.tagStorage.Delete(id)

@@ -14,7 +14,7 @@ import (
 func (s Server) index(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open("./web/index.html")
 	if err != nil {
-		processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -35,7 +35,7 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 
 	f, err := os.Open("./web/login.html")
 	if err != nil {
-		processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -79,9 +79,9 @@ func (s Server) authentication(w http.ResponseWriter, r *http.Request) {
 
 	if password != encrypt(params.Password) || login != params.Login {
 		if login != params.Login {
-			processError(w, "invalid login", http.StatusBadRequest)
+			s.processError(w, "invalid login", http.StatusBadRequest)
 		} else {
-			processError(w, "invalid password", http.StatusBadRequest)
+			s.processError(w, "invalid password", http.StatusBadRequest)
 		}
 
 		s.logger.Warnf("%s tried to login with \"%s\" and \"%s\"\n", r.RemoteAddr, login, password)

@@ -30,7 +30,7 @@ func (s Server) authMiddleware(h http.Handler) http.Handler {
 		if !validToken {
 			// Redirect won't help
 			if r.Method != "GET" {
-				processError(w, "need auth", http.StatusForbidden)
+				s.processError(w, "need auth", http.StatusForbidden)
 				return
 			}
 
@@ -42,7 +42,7 @@ func (s Server) authMiddleware(h http.Handler) http.Handler {
 	})
 }
 
-func decryptMiddleware(dir http.Dir) http.Handler {
+func (s Server) decryptMiddleware(dir http.Dir) http.Handler {
 	if !params.Encrypt {
 		return http.FileServer(dir)
 	}
@@ -51,14 +51,14 @@ func decryptMiddleware(dir http.Dir) http.Handler {
 		fileName := r.URL.Path
 		f, err := dir.Open(fileName)
 		if err != nil {
-			processError(w, err.Error(), http.StatusBadRequest)
+			s.processError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		defer f.Close()
 
 		_, err = sio.Decrypt(w, f, sio.Config{Key: params.PassPhrase[:]})
 		if err != nil {
-			processError(w, err.Error(), http.StatusInternalServerError)
+			s.processError(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	})
