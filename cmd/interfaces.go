@@ -9,6 +9,7 @@ import (
 	"github.com/tags-drive/core/internal/storage/tags"
 )
 
+// Server provides methods for interactions web server
 type Server interface {
 	Start(ctx context.Context) error
 }
@@ -64,8 +65,12 @@ type TagStorageInterface interface {
 
 // AuthService provides methods for auth users
 type AuthService interface {
+	// GenerateToken generates a new token. GenerateToken doesn't add new token, just return it!
 	GenerateToken() string
+	// AddToken adds passed token into storage
 	AddToken(token string)
+	// CheckToken returns true if token is in storage
 	CheckToken(token string) bool
+	// DeleteToken deletes token from a storage
 	DeleteToken(token string)
 }
