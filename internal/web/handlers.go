@@ -11,8 +11,13 @@ import (
 	"github.com/tags-drive/core/internal/params"
 )
 
+const (
+	indexPath = "./web/index.html"
+	loginPath = "./web/login.html"
+)
+
 func (s Server) index(w http.ResponseWriter, r *http.Request) {
-	f, err := os.Open("./web/index.html")
+	f, err := os.Open(indexPath)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -20,7 +25,7 @@ func (s Server) index(w http.ResponseWriter, r *http.Request) {
 
 	_, err = io.Copy(w, f)
 	if err != nil {
-		s.logger.Errorf("Can't io.Copy() %s: %s\n", f.Name(), err)
+		s.logger.Errorf("can't io.Copy() %s: %s\n", f.Name(), err)
 	}
 	f.Close()
 }
@@ -33,7 +38,7 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := os.Open("./web/login.html")
+	f, err := os.Open(loginPath)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -41,7 +46,7 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 
 	_, err = io.Copy(w, f)
 	if err != nil {
-		s.logger.Errorf("Can't io.Copy() %s: %s\n", f.Name(), err)
+		s.logger.Errorf("can't io.Copy() %s: %s\n", f.Name(), err)
 	}
 	f.Close()
 }
