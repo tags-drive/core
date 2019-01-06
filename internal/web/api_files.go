@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/tags-drive/core/internal/params"
-	"github.com/tags-drive/core/internal/storage"
-	"github.com/tags-drive/core/internal/storage/files"
+	filesPck "github.com/tags-drive/core/internal/storage/files"
+	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
 
 const (
@@ -62,7 +62,7 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 
 		offset   = 0
 		count    = 0
-		sortMode = files.SortByNameAsc
+		sortMode = filesPck.SortByNameAsc
 	)
 
 	// Get offset
@@ -100,27 +100,27 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 	switch r.FormValue("sort") {
 	case "name":
 		if order == "asc" {
-			sortMode = files.SortByNameAsc
+			sortMode = filesPck.SortByNameAsc
 		} else {
-			sortMode = files.SortByNameDesc
+			sortMode = filesPck.SortByNameDesc
 		}
 	case "size":
 		if order == "asc" {
-			sortMode = files.SortBySizeAsc
+			sortMode = filesPck.SortBySizeAsc
 		} else {
-			sortMode = files.SortBySizeDecs
+			sortMode = filesPck.SortBySizeDecs
 		}
 	case "time":
 		if order == "asc" {
-			sortMode = files.SortByTimeAsc
+			sortMode = filesPck.SortByTimeAsc
 		} else {
-			sortMode = files.SortByTimeDesc
+			sortMode = filesPck.SortByTimeDesc
 		}
 	}
 
 	files, err := s.fileStorage.Get(expr, sortMode, search, offset, count)
 	if err != nil {
-		if err == storage.ErrBadExpessionSyntax || err == storage.ErrOffsetOutOfBounds {
+		if err == aggregation.ErrBadSyntax || err == filesPck.ErrOffsetOutOfBounds {
 			s.processError(w, err.Error(), http.StatusBadRequest)
 		} else {
 			s.processError(w, err.Error(), http.StatusInternalServerError)
@@ -416,7 +416,7 @@ func (s Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 		file, err := s.fileStorage.GetFile(id)
 		if err != nil {
 			msg := err.Error()
-			if err == storage.ErrFileIsNotExist {
+			if err == filesPck.ErrFileIsNotExist {
 				msg = fmt.Sprintf("file with id \"%d\" doesn't exist", id)
 			}
 
