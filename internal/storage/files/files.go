@@ -53,7 +53,7 @@ type FileInfo struct {
 	TimeToDelete time.Time `json:"timeToDelete"`
 }
 
-type Storage interface {
+type storage interface {
 	init() error
 
 	// getFile returns a file with passed filename
@@ -95,14 +95,23 @@ type Storage interface {
 
 // FileStorage exposes methods for interactions with files
 type FileStorage struct {
-	storage Storage
+	storage storage
 	logger  *log.Logger
 }
 
 // NewFileStorage creates new FileStorage
-// If st == nil, jsonStorage will be used
-func NewFileStorage(st Storage, lg *log.Logger) (*FileStorage, error) {
-	if st == nil {
+func NewFileStorage(lg *log.Logger) (*FileStorage, error) {
+	var st storage
+
+	switch params.StorageType {
+	case params.JSONStorage:
+		st = &jsonFileStorage{
+			maxID:  0,
+			files:  make(map[int]FileInfo),
+			mutex:  new(sync.RWMutex),
+			logger: lg,
+		}
+	default:
 		st = &jsonFileStorage{
 			maxID:  0,
 			files:  make(map[int]FileInfo),

@@ -5,6 +5,8 @@ import (
 
 	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
+
+	"github.com/tags-drive/core/internal/params"
 )
 
 type Tag struct {
@@ -15,7 +17,7 @@ type Tag struct {
 
 type Tags map[int]Tag
 
-type Storage interface {
+type storage interface {
 	init() error
 
 	// getAll returns all tags
@@ -36,14 +38,22 @@ type Storage interface {
 
 // TagStorage exposes methods for interactions with files
 type TagStorage struct {
-	storage Storage
+	storage storage
 	logger  *log.Logger
 }
 
 // NewTagStorage creates new FileStorage
-// If st == nil, jsonStorage will be used
-func NewTagStorage(st Storage, lg *log.Logger) (*TagStorage, error) {
-	if st == nil {
+func NewTagStorage(lg *log.Logger) (*TagStorage, error) {
+	var st storage
+
+	switch params.StorageType {
+	case params.JSONStorage:
+		st = &jsonTagStorage{
+			tags:   make(Tags),
+			mutex:  new(sync.RWMutex),
+			logger: lg,
+		}
+	default:
 		st = &jsonTagStorage{
 			tags:   make(Tags),
 			mutex:  new(sync.RWMutex),

@@ -71,12 +71,12 @@ func main() {
 	app := new(App)
 	app.Logger = lg
 
-	app.FileStorage, err = files.NewFileStorage(nil, lg)
+	app.FileStorage, err = files.NewFileStorage(lg)
 	if err != nil {
 		lg.Fatalf("can't create new FileStorage: %s\n", err)
 	}
 
-	app.TagStorage, err = tags.NewTagStorage(nil, lg)
+	app.TagStorage, err = tags.NewTagStorage(lg)
 	if err != nil {
 		lg.Fatalf("can't create new TagStorage: %s\n", err)
 	}
