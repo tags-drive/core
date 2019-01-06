@@ -16,30 +16,6 @@ import (
 	"github.com/tags-drive/core/internal/web"
 )
 
-func paramsToString() (s string) {
-	vars := []struct {
-		name string
-		v    interface{}
-	}{
-		{"Port", params.Port},
-		{"Login", params.Login},
-		{"Password", "******"},
-		{"TLS", params.IsTLS},
-		{"Encrypt", params.Encrypt},
-		{"StorageType", params.StorageType},
-		{"Debug", params.Debug},
-		{"SkipLogin", params.SkipLogin},
-	}
-
-	for _, v := range vars {
-		// "[INFO] " == 7 chars
-		s += fmt.Sprintf("       * %s: %v\n", v.name, v.v)
-	}
-
-	// Remove the last '\n'
-	return s[:len(s)-1]
-}
-
 type App struct {
 	Server      cmd.Server
 	FileStorage cmd.FileStorageInterface
@@ -103,4 +79,28 @@ func main() {
 	}
 
 	lg.Infoln("Stop")
+}
+
+func paramsToString() (s string) {
+	vars := []struct {
+		name string
+		v    interface{}
+	}{
+		{"Port", params.Port},
+		{"Login", params.Login},
+		{"Password", "******"},
+		{"TLS", params.IsTLS},
+		{"Encrypt", params.Encrypt},
+		{"StorageType", params.StorageType},
+		{"Debug", params.Debug},
+		{"SkipLogin", params.SkipLogin},
+	}
+
+	for _, v := range vars {
+		// "[INFO] " == 7 chars
+		s += fmt.Sprintf("       * %s: %v\n", v.name, v.v)
+	}
+
+	// Remove the last '\n'
+	return s[:len(s)-1]
 }

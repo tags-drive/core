@@ -83,12 +83,12 @@ func (ts TagStorage) Add(name, color string) {
 	ts.storage.addTag(t)
 }
 
-func (ts TagStorage) Delete(id int) {
-	ts.storage.deleteTag(id)
-}
-
 func (ts TagStorage) Change(id int, newName, newColor string) {
 	ts.storage.updateTag(id, newName, newColor)
+}
+
+func (ts TagStorage) Delete(id int) {
+	ts.storage.deleteTag(id)
 }
 
 func (ts TagStorage) Check(id int) bool {

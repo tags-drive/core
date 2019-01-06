@@ -328,10 +328,6 @@ func (fs FileStorage) ChangeTags(id int, tags []int) error {
 	return fs.storage.updateFileTags(id, tags)
 }
 
-func (fs FileStorage) DeleteTagFromFiles(tagID int) {
-	fs.storage.deleteTagFromFiles(tagID)
-}
-
 func (fs FileStorage) ChangeDescription(id int, newDescription string) error {
 	return fs.storage.updateFileDescription(id, newDescription)
 }
@@ -367,6 +363,10 @@ func (fs FileStorage) DeleteForce(id int) error {
 	}
 
 	return nil
+}
+
+func (fs FileStorage) DeleteTagFromFiles(tagID int) {
+	fs.storage.deleteTagFromFiles(tagID)
 }
 
 // scheduleDeleting deletes files with expired TimeToDelete
