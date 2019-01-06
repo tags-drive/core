@@ -143,6 +143,11 @@ func (fs FileStorage) Get(expr string, s SortMode, search string, offset, count 
 
 	search = strings.ToLower(search)
 	files := fs.storage.getFiles(parsedExpr, search)
+	if len(files) == 0 && offset == 0 {
+		// We don't return error, when there're no files and offset isn't set
+		return []FileInfo{}, nil
+	}
+
 	if offset >= len(files) {
 		return []FileInfo{}, ErrOffsetOutOfBounds
 	}
