@@ -123,7 +123,7 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = router
 	if params.Debug {
-		handler = debugMiddleware(router)
+		handler = s.debugMiddleware(router)
 	}
 
 	s.httpServer = &http.Server{Addr: params.Port, Handler: handler}

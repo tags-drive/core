@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/minio/sio"
 
@@ -65,15 +66,17 @@ func (s Server) decryptMiddleware(dir http.Dir) http.Handler {
 }
 
 // debugMiddleware logs requests and sets debug headers
-func debugMiddleware(h http.Handler) http.Handler {
+func (s Server) debugMiddleware(h http.Handler) http.Handler {
+	const layout = "01.02.2006 15:04:05"
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Don't log favicon.ico
 		if !strings.HasSuffix(r.URL.Path, "favicon.ico") {
-			fmt.Printf("%s %s\n", r.Method, r.URL.Path)
+			logMsg := fmt.Sprintf("%s %s %s\n", time.Now().Format(layout), r.Method, r.URL.Path)
 
 			r.ParseForm()
 			if len(r.Form) > 0 {
-				prefix := strings.Repeat(" ", len(r.Method))
+				prefix := strings.Repeat(" ", len(layout)+len(r.Method)+1)
 
 				space := 0
 				for k := range r.Form {
@@ -83,13 +86,12 @@ func debugMiddleware(h http.Handler) http.Handler {
 				}
 
 				for k, v := range r.Form {
-					fmt.Printf("%s %v: ", prefix, k)
-					for i := 0; i < space-len(k); i++ {
-						fmt.Print(" ")
-					}
-					fmt.Println(v)
+					p := strings.Repeat(" ", space-len(k))
+					logMsg += fmt.Sprintf("%s %v: %s%s\n", prefix, k, p, v)
 				}
 			}
+
+			s.logger.Print(logMsg)
 		}
 
 		setDebugHeaders(w, r)
