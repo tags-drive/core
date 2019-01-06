@@ -34,26 +34,27 @@ func NewAuthService(lg *log.Logger) (*Auth, error) {
 
 	f, err := os.Open(params.TokensFile)
 	if err != nil {
-		// Have to create a new file
-		if os.IsNotExist(err) {
-			lg.Infof("File %s doesn't exist. Need to create a new file\n", params.TokensFile)
-			f, err = os.OpenFile(params.TokensFile, os.O_CREATE|os.O_RDWR, 0600)
-			if err != nil {
-				return nil, errors.Wrap(err, "can't create a new file")
-			}
-			// Write empty structure
-			json.NewEncoder(f).Encode(service.tokens)
-			// Can exit because we don't need to decode files from the file
-			f.Close()
-			return nil, nil
+		if !os.IsNotExist(err) {
+			return nil, errors.Wrapf(err, "can't open file %s", params.TokensFile)
 		}
 
-		return nil, errors.Wrapf(err, "can't open file %s", params.TokensFile)
-	}
+		// Have to create a new file
+		lg.Infof("File %s doesn't exist. Need to create a new file\n", params.TokensFile)
+		f, err = os.OpenFile(params.TokensFile, os.O_CREATE|os.O_RDWR, 0600)
+		if err != nil {
+			return nil, errors.Wrap(err, "can't create a new file")
+		}
+		// Write empty structure
+		json.NewEncoder(f).Encode(service.tokens)
+		// Can exit because we don't need to decode files from the file
+		f.Close()
+	} else {
+		err = json.NewDecoder(f).Decode(&service.tokens)
+		if err != nil {
+			return nil, errors.Wrap(err, "can't decode allToken.tokens")
+		}
 
-	err = json.NewDecoder(f).Decode(&service.tokens)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't decode allToken.tokens")
+		f.Close()
 	}
 
 	// Expiration function
