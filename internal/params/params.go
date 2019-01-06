@@ -3,11 +3,10 @@ package params
 
 import (
 	"crypto/sha256"
+	"errors"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/ShoshinNikita/log"
 )
 
 const (
@@ -50,7 +49,8 @@ var (
 	StorageType string
 )
 
-func init() {
+// Parse parses env vars
+func Parse() error {
 	// Default is ":80"
 	Port = func() string {
 		p := os.Getenv("PORT")
@@ -112,7 +112,7 @@ func init() {
 	if Encrypt {
 		phrase := os.Getenv("PASS_PHRASE")
 		if phrase == "" {
-			log.Fatalf("wrong env config: PASS_PHRASE can't be empty with ENCRYPT=true\n")
+			return errors.New("wrong env config: PASS_PHRASE can't be empty with ENCRYPT=true")
 		}
 		PassPhrase = sha256.Sum256([]byte(phrase))
 	}
@@ -120,4 +120,6 @@ func init() {
 	StorageType = func() string {
 		return JSONStorage
 	}()
+
+	return nil
 }

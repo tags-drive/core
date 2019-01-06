@@ -52,6 +52,10 @@ func main() {
 	lg.PrintColor(true)
 	lg.PrintTime(true)
 
+	if err := params.Parse(); err != nil {
+		lg.Fatalln(err)
+	}
+
 	if params.Debug {
 		lg.PrintErrorLine(true)
 	}
