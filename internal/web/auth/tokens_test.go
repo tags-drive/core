@@ -38,6 +38,14 @@ func toStringSlice(t []tokenStruct) (s []string) {
 	return
 }
 
+func newAuth() *Auth {
+	return &Auth{
+		mutex:  new(sync.RWMutex),
+		tokens: originalTokens(),
+		logger: log.NewLogger(),
+	}
+}
+
 func TestMain(m *testing.M) {
 	// Create tokens.json file in folder web/auth/configs. This file is used for test tokens.write()
 	err := os.Mkdir("configs", 0666)
@@ -84,7 +92,7 @@ func originalTokens() []tokenStruct {
 }
 
 func TestAdd(t *testing.T) {
-	tt := tokens{mutex: new(sync.RWMutex), tokens: originalTokens()}
+	tt := newAuth()
 
 	tt.add("999")
 	answerSlice := []tokenStruct{
@@ -117,7 +125,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	tt := tokens{mutex: new(sync.RWMutex), tokens: originalTokens()}
+	tt := newAuth()
 
 	tt.delete("465")
 	answerSlice := []tokenStruct{
@@ -170,7 +178,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestCheck(t *testing.T) {
-	tt := tokens{mutex: new(sync.RWMutex), tokens: originalTokens()}
+	tt := newAuth()
 
 	res := tt.check("15")
 	answerBool := false
@@ -186,7 +194,7 @@ func TestCheck(t *testing.T) {
 }
 
 func TestExpire(t *testing.T) {
-	testTokens := tokens{mutex: new(sync.RWMutex), tokens: originalTokens()}
+	testTokens := newAuth()
 	tests := []struct {
 		before []tokenStruct
 		after  []tokenStruct
