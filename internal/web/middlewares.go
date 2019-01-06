@@ -8,10 +8,9 @@ import (
 	"github.com/minio/sio"
 
 	"github.com/tags-drive/core/internal/params"
-	"github.com/tags-drive/core/internal/web/auth"
 )
 
-func authMiddleware(h http.Handler) http.Handler {
+func (s Server) authMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if params.SkipLogin {
 			h.ServeHTTP(w, r)
@@ -25,7 +24,7 @@ func authMiddleware(h http.Handler) http.Handler {
 			}
 
 			token := c.Value
-			return auth.CheckToken(token)
+			return s.authService.CheckToken(token)
 		}()
 
 		if !validToken {

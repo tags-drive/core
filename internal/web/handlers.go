@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/tags-drive/core/internal/params"
-	"github.com/tags-drive/core/internal/web/auth"
 )
 
 func (s Server) index(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +28,7 @@ func (s Server) index(w http.ResponseWriter, r *http.Request) {
 func (s Server) login(w http.ResponseWriter, r *http.Request) {
 	// Redirect to / if user is authorized
 	c, err := r.Cookie(params.AuthCookieName)
-	if err == nil && auth.CheckToken(c.Value) {
+	if err == nil && s.authService.CheckToken(c.Value) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
@@ -56,7 +55,7 @@ func (s Server) logout(w http.ResponseWriter, r *http.Request) {
 	s.logger.Warnf("%s logged out\n", r.RemoteAddr)
 
 	token := c.Value
-	auth.DeleteToken(token)
+	s.authService.DeleteToken(token)
 	// Delete cookie
 	http.SetCookie(w, &http.Cookie{Name: params.AuthCookieName, Expires: time.Unix(0, 0)})
 }
@@ -91,8 +90,8 @@ func (s Server) authentication(w http.ResponseWriter, r *http.Request) {
 
 	s.logger.Warnf("%s successfully logged in\n", r.RemoteAddr)
 
-	token := auth.GenerateToken()
-	auth.AddToken(token)
+	token := s.authService.GenerateToken()
+	s.authService.AddToken(token)
 	http.SetCookie(w, &http.Cookie{Name: params.AuthCookieName, Value: token, HttpOnly: true, Expires: time.Now().Add(params.MaxTokenLife)})
 }
 

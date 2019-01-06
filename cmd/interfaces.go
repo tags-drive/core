@@ -61,3 +61,11 @@ type TagStorageInterface interface {
 	// Check checks is there tag with passed id
 	Check(id int) bool
 }
+
+// AuthService provides methods for auth users
+type AuthService interface {
+	GenerateToken() string
+	AddToken(token string)
+	CheckToken(token string) bool
+	DeleteToken(token string)
+}

@@ -11,11 +11,13 @@ import (
 
 	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/web/auth"
 )
 
 type Server struct {
 	fileStorage cmd.FileStorageInterface
 	tagStorage  cmd.TagStorageInterface
+	authService cmd.AuthService
 
 	logger *log.Logger
 }
@@ -28,12 +30,21 @@ type route struct {
 }
 
 // NewWebServer just creates new Web struct. It doesn't call any Init functions
-func NewWebServer(fs cmd.FileStorageInterface, ts cmd.TagStorageInterface, lg *log.Logger) *Server {
-	return &Server{
+func NewWebServer(fs cmd.FileStorageInterface, ts cmd.TagStorageInterface, lg *log.Logger) (*Server, error) {
+	s := &Server{
 		fileStorage: fs,
 		tagStorage:  ts,
 		logger:      lg,
 	}
+
+	var err error
+
+	s.authService, err = auth.NewAuthService(lg)
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
 // Start starts the server. It has to be ran in goroutine
@@ -92,7 +103,7 @@ func (s Server) Start(ctx context.Context) error {
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {
-			handler = authMiddleware(r.handler)
+			handler = s.authMiddleware(r.handler)
 		}
 		router.Path(r.path).Methods(r.methods).Handler(handler)
 	}
@@ -102,7 +113,7 @@ func (s Server) Start(ctx context.Context) error {
 		for _, r := range debugRoutes {
 			var handler http.Handler = r.handler
 			if r.needAuth {
-				handler = authMiddleware(r.handler)
+				handler = s.authMiddleware(r.handler)
 			}
 			router.Path(r.path).Methods(r.methods).Handler(handler)
 		}

@@ -14,7 +14,6 @@ import (
 	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/tags"
 	"github.com/tags-drive/core/internal/web"
-	"github.com/tags-drive/core/internal/web/auth"
 )
 
 func paramsToString() (s string) {
@@ -78,12 +77,10 @@ func main() {
 		lg.Fatalf("can't create new TagStorage: %s\n", err)
 	}
 
-	err = auth.Init()
+	app.Server, err = web.NewWebServer(app.FileStorage, app.TagStorage, lg)
 	if err != nil {
-		lg.Fatalf("can't init auth: %s", err)
+		lg.Fatalf("can't init WebServer: %s", err)
 	}
-
-	app.Server = web.NewWebServer(app.FileStorage, app.TagStorage, lg)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
