@@ -3,8 +3,8 @@ package tags
 import (
 	"sync"
 
+	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
-	"github.com/tags-drive/core/internal/params"
 )
 
 type Tag struct {
@@ -15,7 +15,7 @@ type Tag struct {
 
 type Tags map[int]Tag
 
-type storage interface {
+type Storage interface {
 	init() error
 
 	// getAll returns all tags
@@ -36,31 +36,32 @@ type storage interface {
 
 // TagStorage exposes methods for interactions with files
 type TagStorage struct {
-	storage storage
+	storage Storage
+	logger  *log.Logger
 }
 
-// Init inits ts.storage
-func (ts *TagStorage) Init() error {
-	switch params.StorageType {
-	case params.JSONStorage:
-		ts.storage = &jsonTagStorage{
-			tags:  make(Tags),
-			mutex: new(sync.RWMutex),
+// NewTagStorage creates new FileStorage
+// If st == nil, jsonStorage will be used
+func NewTagStorage(st Storage, lg *log.Logger) (*TagStorage, error) {
+	if st == nil {
+		st = &jsonTagStorage{
+			tags:   make(Tags),
+			mutex:  new(sync.RWMutex),
+			logger: lg,
 		}
-	default:
-		// Default storage is jsonTagStorage
-		ts.storage = &jsonTagStorage{
-			tags:  make(Tags),
-			mutex: new(sync.RWMutex),
-		}
+	}
+
+	ts := &TagStorage{
+		storage: st,
+		logger:  lg,
 	}
 
 	err := ts.storage.init()
 	if err != nil {
-		return errors.Wrapf(err, "can't decode data")
+		return nil, errors.Wrapf(err, "can't init tags storage")
 	}
 
-	return nil
+	return ts, nil
 }
 
 func (ts TagStorage) GetAll() Tags {

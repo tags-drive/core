@@ -22,6 +22,8 @@ type jsonFileStorage struct {
 	maxID int
 	files map[int]FileInfo
 	mutex *sync.RWMutex
+
+	logger *log.Logger
 }
 
 func (jfs *jsonFileStorage) init() error {
@@ -40,7 +42,7 @@ func (jfs *jsonFileStorage) init() error {
 	if err != nil {
 		// Have to create a new file
 		if os.IsNotExist(err) {
-			log.Infof("File %s doesn't exist. Need to create a new file\n", params.Files)
+			jfs.logger.Infof("File %s doesn't exist. Need to create a new file\n", params.Files)
 			f, err = os.OpenFile(params.Files, os.O_CREATE|os.O_RDWR, 0600)
 			if err != nil {
 				return errors.Wrap(err, "can't create a new file")
@@ -80,7 +82,7 @@ func (jfs jsonFileStorage) write() {
 
 	f, err := os.OpenFile(params.Files, os.O_TRUNC|os.O_RDWR, 0600)
 	if err != nil {
-		log.Errorf("Can't open file %s: %s\n", params.Files, err)
+		jfs.logger.Errorf("Can't open file %s: %s\n", params.Files, err)
 		return
 	}
 

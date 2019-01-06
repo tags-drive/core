@@ -53,7 +53,7 @@ type FileInfo struct {
 	TimeToDelete time.Time `json:"timeToDelete"`
 }
 
-type storage interface {
+type Storage interface {
 	init() error
 
 	// getFile returns a file with passed filename
@@ -95,35 +95,35 @@ type storage interface {
 
 // FileStorage exposes methods for interactions with files
 type FileStorage struct {
-	storage storage
+	storage Storage
+	logger  *log.Logger
 }
 
-// Init inits fs.storage
-func (fs *FileStorage) Init() error {
-	switch params.StorageType {
-	case params.JSONStorage:
-		fs.storage = &jsonFileStorage{
-			maxID: 0,
-			files: make(map[int]FileInfo),
-			mutex: new(sync.RWMutex),
+// NewFileStorage creates new FileStorage
+// If st == nil, jsonStorage will be used
+func NewFileStorage(st Storage, lg *log.Logger) (*FileStorage, error) {
+	if st == nil {
+		st = &jsonFileStorage{
+			maxID:  0,
+			files:  make(map[int]FileInfo),
+			mutex:  new(sync.RWMutex),
+			logger: lg,
 		}
-	default:
-		// Default storage is jsonFileStorage
-		fs.storage = &jsonFileStorage{
-			maxID: 0,
-			files: make(map[int]FileInfo),
-			mutex: new(sync.RWMutex),
-		}
+	}
+
+	fs := &FileStorage{
+		storage: st,
+		logger:  lg,
 	}
 
 	err := fs.storage.init()
 	if err != nil {
-		return errors.Wrapf(err, "can't init storage")
+		return nil, errors.Wrapf(err, "can't init files storage")
 	}
 
 	go fs.scheduleDeleting()
 
-	return nil
+	return fs, nil
 }
 
 func (fs FileStorage) Get(expr string, s SortMode, search string, offset, count int) ([]FileInfo, error) {
@@ -172,12 +172,12 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 		path := params.DataFolder + "/" + strconv.FormatInt(int64(id), 10)
 		f, err := os.Open(path)
 		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
 			continue
 		}
 		stat, err := f.Stat()
 		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
 			continue
 		}
 
@@ -187,7 +187,7 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 
 		wr, err := zipWriter.CreateHeader(header)
 		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
 			f.Close()
 			continue
 		}
@@ -199,7 +199,7 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 		}
 
 		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
 		}
 
 		f.Close()
@@ -255,12 +255,12 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 		img = resizing.Resize(img)
 		r, err = resizing.Encode(img, ext)
 		if err != nil {
-			log.Errorf("Can't encode a resized image %s: %s\n", f.Filename, err)
+			fs.logger.Errorf("Can't encode a resized image %s: %s\n", f.Filename, err)
 			break
 		}
 		err = copyToFile(r, previewPath)
 		if err != nil {
-			log.Errorf("Can't save a resized image %s: %s\n", f.Filename, err)
+			fs.logger.Errorf("Can't save a resized image %s: %s\n", f.Filename, err)
 		}
 	default:
 		// Save a file
@@ -352,7 +352,7 @@ func (fs FileStorage) DeleteForce(id int) error {
 		err = os.Remove(file.Preview)
 		if err != nil {
 			// Only log error
-			log.Errorf("Can't delete a resized image %s: %s", file.Filename, err)
+			fs.logger.Errorf("Can't delete a resized image %s: %s", file.Filename, err)
 		}
 	}
 
@@ -365,16 +365,16 @@ func (fs FileStorage) scheduleDeleting() {
 	ticker := time.NewTicker(time.Hour * 12)
 
 	for ; true; <-ticker.C {
-		log.Infoln("Delete old files")
+		fs.logger.Infoln("Delete old files")
 
 		var err error
 		for _, id := range fs.storage.getExpiredDeletedFiles() {
 			file, _ := fs.storage.getFile(id)
 			err = fs.DeleteForce(id)
 			if err != nil {
-				log.Errorf("Can't delete file \"%s\": %s\n", file.Filename, err)
+				fs.logger.Errorf("Can't delete file \"%s\": %s\n", file.Filename, err)
 			} else {
-				log.Infof("File \"%s\" was successfully deleted\n", file.Filename)
+				fs.logger.Infof("File \"%s\" was successfully deleted\n", file.Filename)
 			}
 		}
 	}

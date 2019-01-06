@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ShoshinNikita/log"
-
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage"
 	"github.com/tags-drive/core/internal/storage/files"
@@ -56,7 +54,7 @@ func getParam(def, passed string, options ...string) (s string) {
 //
 // Response: json array
 //
-func returnFiles(w http.ResponseWriter, r *http.Request) {
+func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 	var (
 		order  = getParam("asc", r.FormValue("order"), "asc", "desc")
 		expr   = r.FormValue("expr")
@@ -120,7 +118,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	files, err := storage.Files.Get(expr, sortMode, search, offset, count)
+	files, err := s.fileStorage.Get(expr, sortMode, search, offset, count)
 	if err != nil {
 		if err == storage.ErrBadExpessionSyntax || err == storage.ErrOffsetOutOfBounds {
 			processError(w, err.Error(), http.StatusBadRequest)
@@ -146,7 +144,7 @@ func returnFiles(w http.ResponseWriter, r *http.Request) {
 //
 // Response: same as `GET /api/files`
 //
-func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
+func (s Server) returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 	number := func() int {
 		s := r.FormValue("number")
 		n, err := strconv.ParseUint(s, 10, 32)
@@ -156,7 +154,7 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 		return int(n)
 	}()
 
-	files := storage.Files.GetRecent(number)
+	files := s.fileStorage.GetRecent(number)
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
@@ -173,7 +171,7 @@ func returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 //
 // Response: zip archive
 //
-func downloadFiles(w http.ResponseWriter, r *http.Request) {
+func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	ids := func() (res []int) {
 		strIDs := r.FormValue("ids")
@@ -186,7 +184,7 @@ func downloadFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}()
 
-	body, err := storage.Files.Archive(ids)
+	body, err := s.fileStorage.Archive(ids)
 	if err != nil {
 		processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -194,7 +192,7 @@ func downloadFiles(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/zip")
 	if _, err := io.Copy(w, body); err != nil {
-		log.Errorf("Can't copy zip file to response body: %s\n", err)
+		s.logger.Errorf("Can't copy zip file to response body: %s\n", err)
 	}
 }
 
@@ -207,7 +205,7 @@ func downloadFiles(w http.ResponseWriter, r *http.Request) {
 //
 // Response: json array
 //
-func upload(w http.ResponseWriter, r *http.Request) {
+func (s Server) upload(w http.ResponseWriter, r *http.Request) {
 	tags := func() []int {
 		t := r.FormValue("tags")
 		if t == "" {
@@ -236,14 +234,14 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	var response []multiplyResponse
 	for _, header := range r.MultipartForm.File["files"] {
-		err := storage.Files.Upload(header, tags)
+		err := s.fileStorage.Upload(header, tags)
 		if err != nil {
 			response = append(response, multiplyResponse{
 				Filename: header.Filename,
 				IsError:  true,
 				Error:    err.Error(),
 			})
-			log.Errorf("Can't load a file %s: %s\n", header.Filename, err)
+			s.logger.Errorf("Can't load a file %s: %s\n", header.Filename, err)
 		} else {
 			response = append(response, multiplyResponse{Filename: header.Filename, Status: "uploaded"})
 		}
@@ -264,7 +262,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 //
 // Response: -
 //
-func recoverFile(w http.ResponseWriter, r *http.Request) {
+func (s Server) recoverFile(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	ids := func() (res []int) {
 		strIDs := r.FormValue("ids")
@@ -283,7 +281,7 @@ func recoverFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, id := range ids {
-		storage.Files.Recover(id)
+		s.fileStorage.Recover(id)
 	}
 }
 
@@ -295,7 +293,7 @@ func recoverFile(w http.ResponseWriter, r *http.Request) {
 //
 //  Response: -
 //
-func changeFilename(w http.ResponseWriter, r *http.Request) {
+func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 	strID := r.FormValue("id")
 	id, err := strconv.ParseInt(strID, 10, 0)
 	if err != nil {
@@ -310,7 +308,7 @@ func changeFilename(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// We can skip checking of invalid characters, because Go will return an error
-	err = storage.Files.Rename(int(id), newName)
+	err = s.fileStorage.Rename(int(id), newName)
 	if err != nil {
 		processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -325,7 +323,7 @@ func changeFilename(w http.ResponseWriter, r *http.Request) {
 //
 // Response: -
 //
-func changeFileTags(w http.ResponseWriter, r *http.Request) {
+func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 	strID := r.FormValue("id")
 	id, err := strconv.ParseInt(strID, 10, 0)
 	if err != nil {
@@ -350,12 +348,13 @@ func changeFileTags(w http.ResponseWriter, r *http.Request) {
 
 	var goodTags []int
 	for _, id := range tags {
-		if storage.Tags.Check(id) {
+
+		if s.tagStorage.Check(id) {
 			goodTags = append(goodTags, id)
 		}
 	}
 
-	err = storage.Files.ChangeTags(int(id), goodTags)
+	err = s.fileStorage.ChangeTags(int(id), goodTags)
 	if err != nil {
 		processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -370,7 +369,7 @@ func changeFileTags(w http.ResponseWriter, r *http.Request) {
 //
 // Response: -
 //
-func changeFileDescription(w http.ResponseWriter, r *http.Request) {
+func (s Server) changeFileDescription(w http.ResponseWriter, r *http.Request) {
 	strID := r.FormValue("id")
 	id, err := strconv.ParseInt(strID, 10, 0)
 	if err != nil {
@@ -379,7 +378,7 @@ func changeFileDescription(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newDescription := r.FormValue("description")
-	err = storage.Files.ChangeDescription(int(id), newDescription)
+	err = s.fileStorage.ChangeDescription(int(id), newDescription)
 	if err != nil {
 		processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -395,7 +394,7 @@ func changeFileDescription(w http.ResponseWriter, r *http.Request) {
 //
 // Response: json array
 //
-func deleteFile(w http.ResponseWriter, r *http.Request) {
+func (s Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	ids := func() (res []int) {
 		strIDs := r.FormValue("ids")
@@ -414,7 +413,7 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 
 	var response []multiplyResponse
 	for _, id := range ids {
-		file, err := storage.Files.GetFile(id)
+		file, err := s.fileStorage.GetFile(id)
 		if err != nil {
 			msg := err.Error()
 			if err == storage.ErrFileIsNotExist {
@@ -431,11 +430,11 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		deleteFunc := storage.Files.Delete
+		deleteFunc := s.fileStorage.Delete
 		// We will use status if deleteFunc returns nil error
 		status := "added into trash"
 		if force {
-			deleteFunc = storage.Files.DeleteForce
+			deleteFunc = s.fileStorage.DeleteForce
 			status = "deleted"
 		}
 

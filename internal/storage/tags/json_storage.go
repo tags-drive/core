@@ -12,8 +12,9 @@ import (
 )
 
 type jsonTagStorage struct {
-	tags  Tags
-	mutex *sync.RWMutex
+	tags   Tags
+	mutex  *sync.RWMutex
+	logger *log.Logger
 }
 
 func (jts jsonTagStorage) init() error {
@@ -21,7 +22,7 @@ func (jts jsonTagStorage) init() error {
 	if err != nil {
 		// Have to create a new file
 		if os.IsNotExist(err) {
-			log.Infof("File %s doesn't exist. Need to create a new file\n", params.TagsFile)
+			jts.logger.Infof("File %s doesn't exist. Need to create a new file\n", params.TagsFile)
 			f, err = os.OpenFile(params.TagsFile, os.O_CREATE|os.O_RDWR, 0600)
 			if err != nil {
 				return errors.Wrap(err, "can't create a new file")
@@ -46,7 +47,7 @@ func (jts jsonTagStorage) write() {
 
 	f, err := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0600)
 	if err != nil {
-		log.Errorf("Can't open file %s: %s\n", params.TagsFile, err)
+		jts.logger.Errorf("Can't open file %s: %s\n", params.TagsFile, err)
 		return
 	}
 

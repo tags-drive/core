@@ -9,8 +9,10 @@ import (
 
 	"github.com/ShoshinNikita/log"
 
+	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
-	"github.com/tags-drive/core/internal/storage"
+	"github.com/tags-drive/core/internal/storage/files"
+	"github.com/tags-drive/core/internal/storage/tags"
 	"github.com/tags-drive/core/internal/web"
 	"github.com/tags-drive/core/internal/web/auth"
 )
@@ -39,29 +41,49 @@ func paramsToString() (s string) {
 	return s[:len(s)-1]
 }
 
+type App struct {
+	Server      cmd.Server
+	FileStorage cmd.FileStorageInterface
+	TagStorage  cmd.TagStorageInterface
+	Logger      *log.Logger
+}
+
 func main() {
-	log.PrintColor(true)
-	log.PrintTime(true)
+	lg := log.NewLogger()
+	lg.PrintColor(true)
+	lg.PrintTime(true)
 
 	if params.Debug {
-		log.PrintErrorLine(true)
+		lg.PrintErrorLine(true)
 	}
 
-	log.Infoln("Start")
+	lg.Infoln("Start")
 
 	// Print params
-	log.Infoln("Params:")
-	log.Println(paramsToString())
+	lg.Infoln("Params:")
+	lg.Println(paramsToString())
 
-	err := storage.Init()
+	var err error
+
+	app := new(App)
+	app.Logger = lg
+
+	app.FileStorage, err = files.NewFileStorage(nil, lg)
 	if err != nil {
-		log.Fatalln(err)
+		lg.Fatalf("can't create new FileStorage: %s\n", err)
+	}
+
+	app.TagStorage, err = tags.NewTagStorage(nil, lg)
+	if err != nil {
+		lg.Fatalf("can't create new TagStorage: %s\n", err)
 	}
 
 	err = auth.Init()
 	if err != nil {
-		log.Fatalln(err)
+		lg.Fatalf("can't init auth: %s", err)
 	}
+
+	app.Server = web.NewWebServer(app.FileStorage, app.TagStorage, lg)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
@@ -69,15 +91,15 @@ func main() {
 		signal.Notify(term, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 		<-term
 
-		log.Warnln("Interrupt signal")
+		lg.Warnln("Interrupt signal")
 
 		cancel()
 	}()
 
-	err = web.Start(ctx)
+	err = app.Server.Start(ctx)
 	if err != nil {
-		log.Fatalln(err)
+		lg.Fatalln(err)
 	}
 
-	log.Infoln("Stop")
+	lg.Infoln("Stop")
 }

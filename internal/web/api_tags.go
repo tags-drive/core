@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/tags-drive/core/internal/params"
-	"github.com/tags-drive/core/internal/storage"
 )
 
 // GET /api/tags
@@ -15,8 +14,8 @@ import (
 //
 // Response: json map
 //
-func returnTags(w http.ResponseWriter, r *http.Request) {
-	allTags := storage.Tags.GetAll()
+func (s Server) returnTags(w http.ResponseWriter, r *http.Request) {
+	allTags := s.tagStorage.GetAll()
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
@@ -34,7 +33,7 @@ func returnTags(w http.ResponseWriter, r *http.Request) {
 //
 // Response: -
 //
-func addTag(w http.ResponseWriter, r *http.Request) {
+func (s Server) addTag(w http.ResponseWriter, r *http.Request) {
 	tagName := r.FormValue("name")
 	tagColor := r.FormValue("color")
 	if tagName == "" {
@@ -46,7 +45,7 @@ func addTag(w http.ResponseWriter, r *http.Request) {
 		tagColor = "#ffffff"
 	}
 
-	storage.Tags.Add(tagName, tagColor)
+	s.tagStorage.Add(tagName, tagColor)
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -59,7 +58,7 @@ func addTag(w http.ResponseWriter, r *http.Request) {
 //
 // Response: -
 //
-func changeTag(w http.ResponseWriter, r *http.Request) {
+func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 	var (
 		tagID    = r.FormValue("id")
 		newName  = r.FormValue("name")
@@ -75,7 +74,7 @@ func changeTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	storage.Tags.Change(id, newName, newColor)
+	s.tagStorage.Change(id, newName, newColor)
 }
 
 // DELETE /api/tags
@@ -85,7 +84,7 @@ func changeTag(w http.ResponseWriter, r *http.Request) {
 //
 // Response: -
 //
-func deleteTag(w http.ResponseWriter, r *http.Request) {
+func (s Server) deleteTag(w http.ResponseWriter, r *http.Request) {
 	tagID := r.FormValue("id")
 	var (
 		id  int
@@ -95,7 +94,7 @@ func deleteTag(w http.ResponseWriter, r *http.Request) {
 		processError(w, "tag id isn't valid", http.StatusBadRequest)
 		return
 	}
-	storage.Tags.Delete(id)
+	s.tagStorage.Delete(id)
 	// Delete refs to tag
-	storage.Files.DeleteTagFromFiles(id)
+	s.fileStorage.DeleteTagFromFiles(id)
 }
