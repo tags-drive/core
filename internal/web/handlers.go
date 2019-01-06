@@ -115,7 +115,7 @@ func (s Server) extensionHandler(dir http.Dir) http.Handler {
 			}
 			_, err = io.Copy(w, f)
 			if err != nil {
-				s.logger.Errorf("Can't io.Copy() %s.png: %s\n", ext, err)
+				s.logger.Errorf("can't io.Copy() %s.png: %s\n", ext, err)
 			}
 			f.Close()
 			return
@@ -123,7 +123,7 @@ func (s Server) extensionHandler(dir http.Dir) http.Handler {
 
 		io.Copy(w, f)
 		if err != nil {
-			s.logger.Errorf("Can't io.Copy() %s.png: %s\n", ext, err)
+			s.logger.Errorf("can't io.Copy() %s.png: %s\n", ext, err)
 		}
 		f.Close()
 	})

@@ -35,10 +35,10 @@ func main() {
 		lg.PrintErrorLine(true)
 	}
 
-	lg.Infoln("Start")
+	lg.Infoln("start")
 
 	// Print params
-	lg.Infoln("Params:")
+	lg.Infoln("params:")
 	lg.Println(paramsToString())
 
 	var err error
@@ -99,7 +99,7 @@ func main() {
 
 	<-shutdowned
 
-	lg.Infoln("Stop")
+	lg.Infoln("stop")
 }
 
 func paramsToString() (s string) {

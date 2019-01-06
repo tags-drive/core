@@ -14,7 +14,7 @@ func (a Auth) write() {
 
 	f, err := os.OpenFile(params.TokensFile, os.O_TRUNC|os.O_RDWR, 0600)
 	if err != nil {
-		a.logger.Errorf("Can't open file %s: %s\n", params.TokensFile, err)
+		a.logger.Errorf("can't open file %s: %s\n", params.TokensFile, err)
 		return
 	}
 
@@ -80,7 +80,7 @@ func (a *Auth) expire() {
 		if now.Before(tok.Expires) {
 			freshTokens = append(freshTokens, tok)
 		} else {
-			a.logger.Infof("Token \"%s\" expired\n", tok.Token)
+			a.logger.Infof("token \"%s\" expired\n", tok.Token)
 		}
 	}
 

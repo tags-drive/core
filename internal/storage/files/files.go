@@ -186,12 +186,12 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 		path := params.DataFolder + "/" + strconv.FormatInt(int64(id), 10)
 		f, err := os.Open(path)
 		if err != nil {
-			fs.logger.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("can't load file \"%s\"\n", fileInfo.Filename)
 			continue
 		}
 		stat, err := f.Stat()
 		if err != nil {
-			fs.logger.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("can't load file \"%s\"\n", fileInfo.Filename)
 			continue
 		}
 
@@ -201,7 +201,7 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 
 		wr, err := zipWriter.CreateHeader(header)
 		if err != nil {
-			fs.logger.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("can't load file \"%s\"\n", fileInfo.Filename)
 			f.Close()
 			continue
 		}
@@ -213,7 +213,7 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 		}
 
 		if err != nil {
-			fs.logger.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("can't load file \"%s\"\n", fileInfo.Filename)
 		}
 
 		f.Close()
@@ -269,12 +269,12 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 		img = resizing.Resize(img)
 		r, err = resizing.Encode(img, ext)
 		if err != nil {
-			fs.logger.Errorf("Can't encode a resized image %s: %s\n", f.Filename, err)
+			fs.logger.Errorf("can't encode a resized image %s: %s\n", f.Filename, err)
 			break
 		}
 		err = copyToFile(r, previewPath)
 		if err != nil {
-			fs.logger.Errorf("Can't save a resized image %s: %s\n", f.Filename, err)
+			fs.logger.Errorf("can't save a resized image %s: %s\n", f.Filename, err)
 		}
 	default:
 		// Save a file
@@ -358,7 +358,7 @@ func (fs FileStorage) DeleteForce(id int) error {
 		err = os.Remove(file.Preview)
 		if err != nil {
 			// Only log error
-			fs.logger.Errorf("Can't delete a resized image %s: %s", file.Filename, err)
+			fs.logger.Errorf("can't delete a resized image %s: %s", file.Filename, err)
 		}
 	}
 
@@ -375,16 +375,16 @@ func (fs FileStorage) scheduleDeleting() {
 	ticker := time.NewTicker(time.Hour * 12)
 
 	for ; true; <-ticker.C {
-		fs.logger.Infoln("Delete old files")
+		fs.logger.Infoln("delete old files")
 
 		var err error
 		for _, id := range fs.storage.getExpiredDeletedFiles() {
 			file, _ := fs.storage.getFile(id)
 			err = fs.DeleteForce(id)
 			if err != nil {
-				fs.logger.Errorf("Can't delete file \"%s\": %s\n", file.Filename, err)
+				fs.logger.Errorf("can't delete file \"%s\": %s\n", file.Filename, err)
 			} else {
-				fs.logger.Infof("File \"%s\" was successfully deleted\n", file.Filename)
+				fs.logger.Infof("file \"%s\" was successfully deleted\n", file.Filename)
 			}
 		}
 	}

@@ -39,7 +39,7 @@ func NewAuthService(lg *log.Logger) (*Auth, error) {
 		}
 
 		// Have to create a new file
-		lg.Infof("File %s doesn't exist. Need to create a new file\n", params.TokensFile)
+		lg.Infof("file %s doesn't exist. Need to create a new file\n", params.TokensFile)
 		f, err = os.OpenFile(params.TokensFile, os.O_CREATE|os.O_RDWR, 0600)
 		if err != nil {
 			return nil, errors.Wrap(err, "can't create a new file")
@@ -61,7 +61,7 @@ func NewAuthService(lg *log.Logger) (*Auth, error) {
 	go func() {
 		ticker := time.NewTicker(time.Hour * 6)
 		for ; true; <-ticker.C {
-			lg.Infoln("Check expired tokens")
+			lg.Infoln("check expired tokens")
 			service.expire()
 		}
 	}()

@@ -192,7 +192,7 @@ func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/zip")
 	if _, err := io.Copy(w, body); err != nil {
-		s.logger.Errorf("Can't copy zip file to response body: %s\n", err)
+		s.logger.Errorf("can't copy zip file to response body: %s\n", err)
 	}
 }
 
@@ -241,7 +241,7 @@ func (s Server) upload(w http.ResponseWriter, r *http.Request) {
 				IsError:  true,
 				Error:    err.Error(),
 			})
-			s.logger.Errorf("Can't load a file %s: %s\n", header.Filename, err)
+			s.logger.Errorf("can't load a file %s: %s\n", header.Filename, err)
 		} else {
 			response = append(response, multiplyResponse{Filename: header.Filename, Status: "uploaded"})
 		}

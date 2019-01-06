@@ -128,7 +128,7 @@ func (s *Server) Start() error {
 
 	s.httpServer = &http.Server{Addr: params.Port, Handler: handler}
 
-	s.logger.Infoln("Start web server")
+	s.logger.Infoln("start web server")
 
 	listenAndServe := s.httpServer.ListenAndServe
 	if params.IsTLS {
@@ -164,11 +164,11 @@ func (s Server) Shutdown() error {
 // processError is a wrapper over http.Error
 func (s Server) processError(w http.ResponseWriter, err string, code int) {
 	if params.Debug {
-		s.logger.Errorf("Request error: %s (code: %d)\n", err, code)
+		s.logger.Errorf("request error: %s (code: %d)\n", err, code)
 	} else {
 		// We should log server errors
 		if 500 <= code && code < 600 {
-			s.logger.Errorf("Request error: %s (code: %d)\n", err, code)
+			s.logger.Errorf("request error: %s (code: %d)\n", err, code)
 		}
 	}
 
