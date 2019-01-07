@@ -17,6 +17,7 @@ type Tag struct {
 
 type Tags map[int]Tag
 
+// storage for tags metadata
 type storage interface {
 	init() error
 
@@ -34,6 +35,8 @@ type storage interface {
 
 	// check returns true, if there's tag with passed it, else - false
 	check(id int) bool
+
+	shutdown() error
 }
 
 // TagStorage exposes methods for interactions with files
@@ -96,5 +99,5 @@ func (ts TagStorage) Check(id int) bool {
 }
 
 func (ts TagStorage) Shutdown() error {
-	return nil
+	return ts.storage.shutdown()
 }

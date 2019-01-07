@@ -354,3 +354,16 @@ func (jfs *jsonFileStorage) getExpiredDeletedFiles() []int {
 
 	return filesForDeleting
 }
+
+func (jfs jsonFileStorage) shutdown() error {
+	// We have not to do any special operations because we update json file on every change.
+	// Also there are no any requests because server is already down. But it's better to check the mutex
+	// just in case.
+
+	jfs.mutex.Lock()
+	jfs.mutex.Unlock()
+
+	// There will be no any new requests.
+
+	return nil
+}

@@ -53,6 +53,7 @@ type FileInfo struct {
 	TimeToDelete time.Time `json:"timeToDelete"`
 }
 
+// storage for files metadata
 type storage interface {
 	init() error
 
@@ -91,6 +92,8 @@ type storage interface {
 
 	// getExpiredDeletedFiles returns names of files with expired TimeToDelete
 	getExpiredDeletedFiles() []int
+
+	shutdown() error
 }
 
 // FileStorage exposes methods for interactions with files
@@ -395,5 +398,5 @@ func (fs FileStorage) Recover(id int) {
 }
 
 func (fs FileStorage) Shutdown() error {
-	return nil
+	return fs.storage.shutdown()
 }
