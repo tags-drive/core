@@ -103,12 +103,12 @@ func TestAdd(t *testing.T) {
 	testStorage := newStorage()
 
 	tags := []Tag{
-		Tag{Name: "test1", Color: "#fffff0"},
-		Tag{Name: "test2", Color: "#ffff0f"},
-		Tag{Name: "test3", Color: "#fff0ff"},
-		Tag{Name: "test4", Color: "#ff0fff"},
-		Tag{Name: "test5", Color: "#f0ffff"},
-		Tag{Name: "test6", Color: "#0fffff"},
+		{Name: "test1", Color: "#fffff0"},
+		{Name: "test2", Color: "#ffff0f"},
+		{Name: "test3", Color: "#fff0ff"},
+		{Name: "test4", Color: "#ff0fff"},
+		{Name: "test5", Color: "#f0ffff"},
+		{Name: "test6", Color: "#0fffff"},
 	}
 
 	answer := Tags{
@@ -136,12 +136,12 @@ func TestDelete(t *testing.T) {
 
 	// Default tags
 	startTags := []Tag{
-		Tag{Name: "test1", Color: "#fffff0"},
-		Tag{Name: "test2", Color: "#ffff0f"},
-		Tag{Name: "test3", Color: "#fff0ff"},
-		Tag{Name: "test4", Color: "#ff0fff"},
-		Tag{Name: "test5", Color: "#f0ffff"},
-		Tag{Name: "test6", Color: "#0fffff"},
+		{Name: "test1", Color: "#fffff0"},
+		{Name: "test2", Color: "#ffff0f"},
+		{Name: "test3", Color: "#fff0ff"},
+		{Name: "test4", Color: "#ff0fff"},
+		{Name: "test5", Color: "#f0ffff"},
+		{Name: "test6", Color: "#0fffff"},
 	}
 	for _, tag := range startTags {
 		testStorage.addTag(tag)
@@ -165,9 +165,9 @@ func TestDelete(t *testing.T) {
 
 	// Add new Tags
 	newTags := []Tag{
-		Tag{Name: "123", Color: "#ff0000"},
-		Tag{Name: "456", Color: "#00ff00"},
-		Tag{Name: "789", Color: "#0000ff"},
+		{Name: "123", Color: "#ff0000"},
+		{Name: "456", Color: "#00ff00"},
+		{Name: "789", Color: "#0000ff"},
 	}
 	for _, tag := range newTags {
 		testStorage.addTag(tag)
@@ -189,12 +189,12 @@ func TestDelete(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	startTags := []Tag{
-		Tag{Name: "test1", Color: "#fffff0"},
-		Tag{Name: "test2", Color: "#ffff0f"},
-		Tag{Name: "test3", Color: "#fff0ff"},
-		Tag{Name: "test4", Color: "#ff0fff"},
-		Tag{Name: "test5", Color: "#f0ffff"},
-		Tag{Name: "test6", Color: "#0fffff"},
+		{Name: "test1", Color: "#fffff0"},
+		{Name: "test2", Color: "#ffff0f"},
+		{Name: "test3", Color: "#fff0ff"},
+		{Name: "test4", Color: "#ff0fff"},
+		{Name: "test5", Color: "#f0ffff"},
+		{Name: "test6", Color: "#0fffff"},
 	}
 
 	type toUpdate struct {
