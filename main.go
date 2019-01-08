@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/ShoshinNikita/log"
@@ -109,7 +110,7 @@ func paramsToString() (s string) {
 	}{
 		{"Port", params.Port},
 		{"Login", params.Login},
-		{"Password", "******"},
+		{"Password", strings.Repeat("*", len(params.Password))},
 		{"TLS", params.IsTLS},
 		{"Encrypt", params.Encrypt},
 		{"StorageType", params.StorageType},
@@ -118,8 +119,7 @@ func paramsToString() (s string) {
 	}
 
 	for _, v := range vars {
-		// "[INFO] " == 7 chars
-		s += fmt.Sprintf("       * %s: %v\n", v.name, v.v)
+		s += fmt.Sprintf("\t* %-11s %v\n", v.name, v.v)
 	}
 
 	// Remove the last '\n'
