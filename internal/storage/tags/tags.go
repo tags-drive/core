@@ -3,7 +3,9 @@ package tags
 import (
 	"sync"
 
+	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
+
 	"github.com/tags-drive/core/internal/params"
 )
 
@@ -15,6 +17,7 @@ type Tag struct {
 
 type Tags map[int]Tag
 
+// storage for tags metadata
 type storage interface {
 	init() error
 
@@ -32,35 +35,46 @@ type storage interface {
 
 	// check returns true, if there's tag with passed it, else - false
 	check(id int) bool
+
+	shutdown() error
 }
 
 // TagStorage exposes methods for interactions with files
 type TagStorage struct {
 	storage storage
+	logger  *log.Logger
 }
 
-// Init inits ts.storage
-func (ts *TagStorage) Init() error {
+// NewTagStorage creates new FileStorage
+func NewTagStorage(lg *log.Logger) (*TagStorage, error) {
+	var st storage
+
 	switch params.StorageType {
 	case params.JSONStorage:
-		ts.storage = &jsonTagStorage{
-			tags:  make(Tags),
-			mutex: new(sync.RWMutex),
+		st = &jsonTagStorage{
+			tags:   make(Tags),
+			mutex:  new(sync.RWMutex),
+			logger: lg,
 		}
 	default:
-		// Default storage is jsonTagStorage
-		ts.storage = &jsonTagStorage{
-			tags:  make(Tags),
-			mutex: new(sync.RWMutex),
+		st = &jsonTagStorage{
+			tags:   make(Tags),
+			mutex:  new(sync.RWMutex),
+			logger: lg,
 		}
+	}
+
+	ts := &TagStorage{
+		storage: st,
+		logger:  lg,
 	}
 
 	err := ts.storage.init()
 	if err != nil {
-		return errors.Wrapf(err, "can't decode data")
+		return nil, errors.Wrapf(err, "can't init tags storage")
 	}
 
-	return nil
+	return ts, nil
 }
 
 func (ts TagStorage) GetAll() Tags {
@@ -72,14 +86,18 @@ func (ts TagStorage) Add(name, color string) {
 	ts.storage.addTag(t)
 }
 
-func (ts TagStorage) Delete(id int) {
-	ts.storage.deleteTag(id)
-}
-
 func (ts TagStorage) Change(id int, newName, newColor string) {
 	ts.storage.updateTag(id, newName, newColor)
 }
 
+func (ts TagStorage) Delete(id int) {
+	ts.storage.deleteTag(id)
+}
+
 func (ts TagStorage) Check(id int) bool {
 	return ts.storage.check(id)
+}
+
+func (ts TagStorage) Shutdown() error {
+	return ts.storage.shutdown()
 }

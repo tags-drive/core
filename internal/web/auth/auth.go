@@ -13,62 +13,82 @@ import (
 
 const maxTokenSize = 30
 
-var allTokens = tokens{mutex: new(sync.RWMutex)}
+type Auth struct {
+	tokens []tokenStruct // we can use array instead of map because number of tokens is small and O(n) is enough
+	mutex  *sync.RWMutex
 
-// Init inits allTokens and run in goroutine function for token expiring
-func Init() error {
-	f, err := os.Open(params.TokensFile)
-	if err != nil {
-		// Have to create a new file
-		if os.IsNotExist(err) {
-			log.Infof("File %s doesn't exist. Need to create a new file\n", params.TokensFile)
-			f, err = os.OpenFile(params.TokensFile, os.O_CREATE|os.O_RDWR, 0600)
-			if err != nil {
-				return errors.Wrap(err, "can't create a new file")
-			}
-			// Write empty structure
-			json.NewEncoder(f).Encode(allTokens.tokens)
-			// Can exit because we don't need to decode files from the file
-			f.Close()
-			return nil
-		}
+	logger *log.Logger
+}
 
-		return errors.Wrapf(err, "can't open file %s", params.TokensFile)
+type tokenStruct struct {
+	Token   string    `json:"token"`
+	Expires time.Time `json:"expire"`
+}
+
+// NewAuthService create new Auth and inits tokens
+func NewAuthService(lg *log.Logger) (*Auth, error) {
+	service := &Auth{
+		mutex:  new(sync.RWMutex),
+		logger: lg,
 	}
 
-	err = json.NewDecoder(f).Decode(&allTokens.tokens)
+	f, err := os.Open(params.TokensFile)
 	if err != nil {
-		return errors.Wrap(err, "can't decode allToken.tokens")
+		if !os.IsNotExist(err) {
+			return nil, errors.Wrapf(err, "can't open file %s", params.TokensFile)
+		}
+
+		// Have to create a new file
+		lg.Infof("file %s doesn't exist. Need to create a new file\n", params.TokensFile)
+		f, err = os.OpenFile(params.TokensFile, os.O_CREATE|os.O_RDWR, 0600)
+		if err != nil {
+			return nil, errors.Wrap(err, "can't create a new file")
+		}
+		// Write empty structure
+		json.NewEncoder(f).Encode(service.tokens)
+		// Can exit because we don't need to decode files from the file
+		f.Close()
+	} else {
+		err = json.NewDecoder(f).Decode(&service.tokens)
+		if err != nil {
+			return nil, errors.Wrap(err, "can't decode allToken.tokens")
+		}
+
+		f.Close()
 	}
 
 	// Expiration function
 	go func() {
 		ticker := time.NewTicker(time.Hour * 6)
 		for ; true; <-ticker.C {
-			log.Infoln("Check expired tokens")
-			allTokens.expire()
+			lg.Infoln("check expired tokens")
+			service.expire()
 		}
 	}()
 
-	return nil
+	return service, nil
 }
 
 // GenerateToken generates a new token
-func GenerateToken() string {
+func (a Auth) GenerateToken() string {
 	return generate(maxTokenSize)
 }
 
 // AddToken adds new generated token
-func AddToken(token string) {
-	allTokens.add(token)
+func (a *Auth) AddToken(token string) {
+	a.add(token)
 }
 
 // DeleteToken deletes token
-func DeleteToken(token string) {
-	allTokens.delete(token)
+func (a *Auth) DeleteToken(token string) {
+	a.delete(token)
 }
 
 // CheckToken return true, if there's a passed token
-func CheckToken(token string) bool {
-	return allTokens.check(token)
+func (a Auth) CheckToken(token string) bool {
+	return a.check(token)
+}
+
+func (a Auth) Shutdown() error {
+	return nil
 }

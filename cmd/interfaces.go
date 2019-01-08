@@ -1,28 +1,23 @@
-package storage
+package cmd
 
 import (
 	"io"
 	"mime/multipart"
 
 	"github.com/tags-drive/core/internal/storage/files"
-	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/tags"
 )
 
-// Errors
-var (
-	ErrFileIsNotExist    = files.ErrFileIsNotExist
-	ErrAlreadyExist      = files.ErrAlreadyExist
-	ErrFileDeletedAgain  = files.ErrFileDeletedAgain
-	ErrOffsetOutOfBounds = files.ErrOffsetOutOfBounds
-	//
-	ErrBadExpessionSyntax = aggregation.ErrBadSyntax
-)
+// Server provides methods for interactions web server
+type Server interface {
+	Start() error
+
+	// Shutdown gracefully shutdown server
+	Shutdown() error
+}
 
 // FileStorageInterface provides methods for interactions with files
 type FileStorageInterface interface {
-	Init() error
-
 	// Get returns all "good" sorted files
 	//
 	// If expr isn't valid, Get returns ErrBadExpessionSyntax
@@ -53,35 +48,47 @@ type FileStorageInterface interface {
 	Recover(fileID int)
 	// DeleteTagFromFiles deletes a tag from files
 	DeleteTagFromFiles(tagID int)
-}
 
-var Files FileStorageInterface = &files.FileStorage{}
+	// Shutdown gracefully shutdown FileStorage
+	Shutdown() error
+}
 
 // TagStorageInterface provides methods for interactions with tags
 type TagStorageInterface interface {
-	Init() error
-
 	// GetAll returns all tags
 	GetAll() tags.Tags
+
 	// Add adds a new tag with passed name and color
 	Add(name, color string)
+
 	// Change changes a tag with passed id.
 	// If pass empty newName (or newColor), field Name (or Color) won't be changed.
 	Change(id int, newName, newColor string)
+
 	// Delete deletes a tag with passed id
 	Delete(id int)
+
 	// Check checks is there tag with passed id
 	Check(id int) bool
+
+	// Shutdown gracefully shutdown TagStorage
+	Shutdown() error
 }
 
-var Tags TagStorageInterface = &tags.TagStorage{}
+// AuthService provides methods for auth users
+type AuthService interface {
+	// GenerateToken generates a new token. GenerateToken doesn't add new token, just return it!
+	GenerateToken() string
 
-// Init calls files.Init() and tags.Init()
-func Init() error {
-	err := Files.Init()
-	if err != nil {
-		return err
-	}
+	// AddToken adds passed token into storage
+	AddToken(token string)
 
-	return Tags.Init()
+	// CheckToken returns true if token is in storage
+	CheckToken(token string) bool
+
+	// DeleteToken deletes token from a storage
+	DeleteToken(token string)
+
+	// Shutdown gracefully shutdown FileStorage
+	Shutdown() error
 }

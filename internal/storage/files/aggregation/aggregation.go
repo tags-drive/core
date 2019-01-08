@@ -7,16 +7,6 @@ import (
 	"strconv"
 )
 
-func has(tags []int, tag int) bool {
-	for i := range tags {
-		if tags[i] == tag {
-			return true
-		}
-	}
-
-	return false
-}
-
 // IsGoodFile runs expression for file tags
 //
 // expr is a logical expression in reverse Polish notation received from ParseLogicalExpr()
@@ -70,4 +60,14 @@ func IsGoodFile(expr string, fileTags []int) (res bool) {
 	}
 
 	return steps.pop()
+}
+
+func has(tags []int, tag int) bool {
+	for i := range tags {
+		if tags[i] == tag {
+			return true
+		}
+	}
+
+	return false
 }

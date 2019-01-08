@@ -53,6 +53,7 @@ type FileInfo struct {
 	TimeToDelete time.Time `json:"timeToDelete"`
 }
 
+// storage for files metadata
 type storage interface {
 	init() error
 
@@ -91,39 +92,50 @@ type storage interface {
 
 	// getExpiredDeletedFiles returns names of files with expired TimeToDelete
 	getExpiredDeletedFiles() []int
+
+	shutdown() error
 }
 
 // FileStorage exposes methods for interactions with files
 type FileStorage struct {
 	storage storage
+	logger  *log.Logger
 }
 
-// Init inits fs.storage
-func (fs *FileStorage) Init() error {
+// NewFileStorage creates new FileStorage
+func NewFileStorage(lg *log.Logger) (*FileStorage, error) {
+	var st storage
+
 	switch params.StorageType {
 	case params.JSONStorage:
-		fs.storage = &jsonFileStorage{
-			maxID: 0,
-			files: make(map[int]FileInfo),
-			mutex: new(sync.RWMutex),
+		st = &jsonFileStorage{
+			maxID:  0,
+			files:  make(map[int]FileInfo),
+			mutex:  new(sync.RWMutex),
+			logger: lg,
 		}
 	default:
-		// Default storage is jsonFileStorage
-		fs.storage = &jsonFileStorage{
-			maxID: 0,
-			files: make(map[int]FileInfo),
-			mutex: new(sync.RWMutex),
+		st = &jsonFileStorage{
+			maxID:  0,
+			files:  make(map[int]FileInfo),
+			mutex:  new(sync.RWMutex),
+			logger: lg,
 		}
+	}
+
+	fs := &FileStorage{
+		storage: st,
+		logger:  lg,
 	}
 
 	err := fs.storage.init()
 	if err != nil {
-		return errors.Wrapf(err, "can't init storage")
+		return nil, errors.Wrapf(err, "can't init files storage")
 	}
 
 	go fs.scheduleDeleting()
 
-	return nil
+	return fs, nil
 }
 
 func (fs FileStorage) Get(expr string, s SortMode, search string, offset, count int) ([]FileInfo, error) {
@@ -134,6 +146,11 @@ func (fs FileStorage) Get(expr string, s SortMode, search string, offset, count 
 
 	search = strings.ToLower(search)
 	files := fs.storage.getFiles(parsedExpr, search)
+	if len(files) == 0 && offset == 0 {
+		// We don't return error, when there're no files and offset isn't set
+		return []FileInfo{}, nil
+	}
+
 	if offset >= len(files) {
 		return []FileInfo{}, ErrOffsetOutOfBounds
 	}
@@ -172,12 +189,12 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 		path := params.DataFolder + "/" + strconv.FormatInt(int64(id), 10)
 		f, err := os.Open(path)
 		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("can't load file \"%s\"\n", fileInfo.Filename)
 			continue
 		}
 		stat, err := f.Stat()
 		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("can't load file \"%s\"\n", fileInfo.Filename)
 			continue
 		}
 
@@ -187,7 +204,7 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 
 		wr, err := zipWriter.CreateHeader(header)
 		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("can't load file \"%s\"\n", fileInfo.Filename)
 			f.Close()
 			continue
 		}
@@ -199,7 +216,7 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 		}
 
 		if err != nil {
-			log.Errorf("Can't load file \"%s\"\n", fileInfo.Filename)
+			fs.logger.Errorf("can't load file \"%s\"\n", fileInfo.Filename)
 		}
 
 		f.Close()
@@ -255,12 +272,12 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 		img = resizing.Resize(img)
 		r, err = resizing.Encode(img, ext)
 		if err != nil {
-			log.Errorf("Can't encode a resized image %s: %s\n", f.Filename, err)
+			fs.logger.Errorf("can't encode a resized image %s: %s\n", f.Filename, err)
 			break
 		}
 		err = copyToFile(r, previewPath)
 		if err != nil {
-			log.Errorf("Can't save a resized image %s: %s\n", f.Filename, err)
+			fs.logger.Errorf("can't save a resized image %s: %s\n", f.Filename, err)
 		}
 	default:
 		// Save a file
@@ -275,12 +292,8 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 
 // copyToFile copies data from src to new created file
 func copyToFile(src io.Reader, path string) error {
-	if f, err := os.Open(path); !os.IsNotExist(err) {
-		f.Close()
-		return ErrAlreadyExist
-	}
-
-	newFile, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
+	// We trunc file, if it already exists
+	newFile, err := os.Create(path)
 	if err != nil {
 		return errors.Wrap(err, "can't create a new file")
 	}
@@ -318,10 +331,6 @@ func (fs FileStorage) ChangeTags(id int, tags []int) error {
 	return fs.storage.updateFileTags(id, tags)
 }
 
-func (fs FileStorage) DeleteTagFromFiles(tagID int) {
-	fs.storage.deleteTagFromFiles(tagID)
-}
-
 func (fs FileStorage) ChangeDescription(id int, newDescription string) error {
 	return fs.storage.updateFileDescription(id, newDescription)
 }
@@ -352,11 +361,15 @@ func (fs FileStorage) DeleteForce(id int) error {
 		err = os.Remove(file.Preview)
 		if err != nil {
 			// Only log error
-			log.Errorf("Can't delete a resized image %s: %s", file.Filename, err)
+			fs.logger.Errorf("can't delete a resized image %s: %s", file.Filename, err)
 		}
 	}
 
 	return nil
+}
+
+func (fs FileStorage) DeleteTagFromFiles(tagID int) {
+	fs.storage.deleteTagFromFiles(tagID)
 }
 
 // scheduleDeleting deletes files with expired TimeToDelete
@@ -365,16 +378,16 @@ func (fs FileStorage) scheduleDeleting() {
 	ticker := time.NewTicker(time.Hour * 12)
 
 	for ; true; <-ticker.C {
-		log.Infoln("Delete old files")
+		fs.logger.Infoln("delete old files")
 
 		var err error
 		for _, id := range fs.storage.getExpiredDeletedFiles() {
 			file, _ := fs.storage.getFile(id)
 			err = fs.DeleteForce(id)
 			if err != nil {
-				log.Errorf("Can't delete file \"%s\": %s\n", file.Filename, err)
+				fs.logger.Errorf("can't delete file \"%s\": %s\n", file.Filename, err)
 			} else {
-				log.Infof("File \"%s\" was successfully deleted\n", file.Filename)
+				fs.logger.Infof("file \"%s\" was successfully deleted\n", file.Filename)
 			}
 		}
 	}
@@ -382,4 +395,8 @@ func (fs FileStorage) scheduleDeleting() {
 
 func (fs FileStorage) Recover(id int) {
 	fs.storage.recover(id)
+}
+
+func (fs FileStorage) Shutdown() error {
+	return fs.storage.shutdown()
 }
