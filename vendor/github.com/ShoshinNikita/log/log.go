@@ -18,24 +18,14 @@ package log
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/fatih/color"
 )
 
 const (
-	timeLayout = "01.02.2006 15:04:05"
+	DefaultTimeLayout = "01.02.2006 15:04:05"
 )
-
-// init inits globalLogger with NewLogger()
-func init() {
-	globalLogger = NewLogger()
-
-	globalLogger.PrintTime(false)
-	globalLogger.PrintColor(false)
-	globalLogger.PrintErrorLine(false)
-
-	globalLogger.global = true
-}
 
 type textStruct struct {
 	text string
@@ -57,24 +47,29 @@ type Logger struct {
 
 	printChan chan textStruct
 	global    bool
+
+	output     io.Writer
+	timeLayout string
 }
 
 // NewLogger creates *Logger and run goroutine (Logger.printer())
 func NewLogger() *Logger {
 	l := new(Logger)
-	l.printChan = make(chan textStruct)
+	l.output = color.Output
+	l.timeLayout = DefaultTimeLayout
+	l.printChan = make(chan textStruct, 200)
 	go l.printer()
 	return l
 }
 
-func (l Logger) printer() {
+func (l *Logger) printer() {
 	for text := range l.printChan {
-		fmt.Fprint(color.Output, text.text)
+		fmt.Fprint(l.output, text.text)
 		text.done()
 	}
 }
 
-func (l Logger) printText(text string) {
+func (l *Logger) printText(text string) {
 	t := newText(text)
 	l.printChan <- t
 	<-t.ch
@@ -95,130 +90,14 @@ func (l *Logger) PrintErrorLine(b bool) {
 	l.printErrorLine = b
 }
 
-var globalLogger *Logger
-
-// PrintTime sets globalLogger.PrintTime
-// Time isn't printed by default
-func PrintTime(b bool) {
-	globalLogger.PrintTime(b)
+// ChangeOutput changes Logger.output writer.
+// Default Logger.output is github.com/fatih/color.Output
+func (l *Logger) ChangeOutput(w io.Writer) {
+	l.output = w
 }
 
-// ShowTime sets printTime
-// Time isn't printed by default
-//
-// It was left for backwards compatibility
-var ShowTime = PrintTime
-
-// PrintColor sets printColor
-// printColor is false by default
-func PrintColor(b bool) {
-	globalLogger.PrintColor(b)
-}
-
-// PrintErrorLine sets PrintErrorLine
-// If PrintErrorLine is true, log.Error(), log.Errorf(), log.Errorln() will print file and line,
-// where functions were called.
-// PrintErrorLine is false by default
-func PrintErrorLine(b bool) {
-	globalLogger.PrintErrorLine(b)
-}
-
-/* Print */
-
-// Print prints msg
-// Output pattern: (?time) msg
-func Print(v ...interface{}) {
-	globalLogger.Print(v...)
-}
-
-// Printf prints msg
-// Output pattern: (?time) msg
-func Printf(format string, v ...interface{}) {
-	globalLogger.Printf(format, v...)
-}
-
-// Println prints msg
-// Output pattern: (?time) msg
-func Println(v ...interface{}) {
-	globalLogger.Println(v...)
-}
-
-/* Info */
-
-// Info prints info message
-// Output pattern: (?time) [INFO] msg
-func Info(v ...interface{}) {
-	globalLogger.Info(v...)
-}
-
-// Infof prints info message
-// Output pattern: (?time) [INFO] msg
-func Infof(format string, v ...interface{}) {
-	globalLogger.Infof(format, v...)
-}
-
-// Infoln prints info message
-// Output pattern: (?time) [INFO] msg
-func Infoln(v ...interface{}) {
-	globalLogger.Infoln(v...)
-}
-
-/* Warn */
-
-// Warn prints warning
-// Output pattern: (?time) [WARN] warning
-func Warn(v ...interface{}) {
-	globalLogger.Warn(v...)
-}
-
-// Warnf prints warning
-// Output pattern: (?time) [WARN] warning
-func Warnf(format string, v ...interface{}) {
-	globalLogger.Warnf(format, v...)
-}
-
-// Warnln prints warning
-// Output pattern: (?time) [WARN] warning
-func Warnln(v ...interface{}) {
-	globalLogger.Warnln(v...)
-}
-
-/* Error */
-
-// Error prints error
-// Output pattern: (?time) [ERR] (?file:line) error
-func Error(v ...interface{}) {
-	globalLogger.Error(v...)
-}
-
-// Errorf prints error
-// Output pattern: (?time) [ERR] (?file:line) error
-func Errorf(format string, v ...interface{}) {
-	globalLogger.Errorf(format, v...)
-}
-
-// Errorln prints error
-// Output pattern: (?time) [ERR] (?file:line) error
-func Errorln(v ...interface{}) {
-	globalLogger.Errorln(v...)
-}
-
-/* Fatal */
-
-// Fatal prints error and call os.Exit(1)
-// Output pattern: (?time) [FATAL] (?file:line) error
-func Fatal(v ...interface{}) {
-	globalLogger.Fatal(v...)
-}
-
-// Fatalf prints error and call os.Exit(1)
-// Output pattern: (?time) [FATAL] (?file:line) error
-func Fatalf(format string, v ...interface{}) {
-	globalLogger.Fatalf(format, v...)
-}
-
-// Fatalln prints error and call os.Exit(1)
-// Output pattern: (?time) [FATAL] (?file:line) error
-func Fatalln(v ...interface{}) {
-	globalLogger.Fatalln(v...)
+// ChangeTimeLayout changes Logger.timeLayout
+// Default Logger.timeLayout is DefaultTimeLayout
+func (l *Logger) ChangeTimeLayout(layout string) {
+	l.timeLayout = layout
 }

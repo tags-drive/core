@@ -7,41 +7,17 @@ import (
 // Error prints error
 // Output pattern: (?time) [ERR] (?file:line) error
 func (l Logger) Error(v ...interface{}) {
-	text := ""
-	if l.printTime {
-		text = l.getTime()
-	}
-	text += l.getErrMsg()
-	if l.printErrorLine {
-		text += l.getCaller()
-	}
-	l.printText(text + fmt.Sprint(v...))
+	l.printText(addPrefixes(fmt.Sprint(v...), l.getTime, l.getErrMsg, l.getCaller))
 }
 
 // Errorf prints error
 // Output pattern: (?time) [ERR] (?file:line) error
 func (l Logger) Errorf(format string, v ...interface{}) {
-	text := ""
-	if l.printTime {
-		text = l.getTime()
-	}
-	text += l.getErrMsg()
-	if l.printErrorLine {
-		text += l.getCaller()
-	}
-	l.printText(text + fmt.Sprintf(format, v...))
+	l.printText(addPrefixes(fmt.Sprintf(format, v...), l.getTime, l.getErrMsg, l.getCaller))
 }
 
 // Errorln prints error
 // Output pattern: (?time) [ERR] (?file:line) error
 func (l Logger) Errorln(v ...interface{}) {
-	text := ""
-	if l.printTime {
-		text = l.getTime()
-	}
-	text += l.getErrMsg()
-	if l.printErrorLine {
-		text += l.getCaller()
-	}
-	l.printText(text + fmt.Sprintln(v...))
+	l.printText(addPrefixes(fmt.Sprintln(v...), l.getTime, l.getErrMsg, l.getCaller))
 }
