@@ -64,12 +64,19 @@ func main() {
 
 	shutdowned := make(chan struct{})
 
+	// fatalErr is used when server went down
+	fatalServerErr := make(chan struct{})
+
 	go func() {
 		term := make(chan os.Signal)
 		signal.Notify(term, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-		<-term
 
-		lg.Warnln("interrupt signal")
+		select {
+		case <-term:
+			lg.Warnln("interrupt signal")
+		case <-fatalServerErr:
+			// Nothing
+		}
 
 		// Shutdowns. Server must be first
 		lg.Infoln("shutdown WebServer")
@@ -96,6 +103,7 @@ func main() {
 	err = app.Server.Start()
 	if err != nil {
 		lg.Errorf("server error: %s\n", err)
+		close(fatalServerErr)
 	}
 
 	<-shutdowned
