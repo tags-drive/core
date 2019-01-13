@@ -25,11 +25,7 @@ func areTagsEqual(a, b Tags) bool {
 }
 
 func newStorage() *jsonTagStorage {
-	return &jsonTagStorage{
-		tags:   make(Tags),
-		mutex:  new(sync.RWMutex),
-		logger: log.NewLogger(),
-	}
+	return newJsonTagStorage(log.NewLogger())
 }
 
 func TestMain(m *testing.M) {

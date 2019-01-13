@@ -1,23 +1,35 @@
 package tags
 
 import (
-	"encoding/json"
 	"io"
 	"os"
 	"sync"
 
 	"github.com/ShoshinNikita/log"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
+
 	"github.com/tags-drive/core/internal/params"
 )
 
 type jsonTagStorage struct {
-	tags   Tags
-	mutex  *sync.RWMutex
+	tags  Tags
+	mutex *sync.RWMutex
+
 	logger *log.Logger
+	json   jsoniter.API
 }
 
-func (jts jsonTagStorage) init() error {
+func newJsonTagStorage(lg *log.Logger) *jsonTagStorage {
+	return &jsonTagStorage{
+		tags:   make(Tags),
+		mutex:  new(sync.RWMutex),
+		logger: lg,
+		json:   jsoniter.ConfigCompatibleWithStandardLibrary,
+	}
+}
+
+func (jts *jsonTagStorage) init() error {
 	f, err := os.OpenFile(params.TagsFile, os.O_RDWR, 0600)
 	if err != nil {
 		// Have to create a new file
@@ -51,7 +63,7 @@ func (jts jsonTagStorage) write() {
 		return
 	}
 
-	enc := json.NewEncoder(f)
+	enc := jts.json.NewEncoder(f)
 	if params.Debug {
 		enc.SetIndent("", "  ")
 	}
@@ -61,7 +73,7 @@ func (jts jsonTagStorage) write() {
 }
 
 func (jts *jsonTagStorage) decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(&jts.tags)
+	return jts.json.NewDecoder(r).Decode(&jts.tags)
 }
 
 func (jts jsonTagStorage) getAll() Tags {
