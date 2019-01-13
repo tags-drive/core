@@ -8,11 +8,14 @@ import (
 
 	"github.com/ShoshinNikita/log"
 	"github.com/gorilla/mux"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/web/auth"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type Server struct {
 	fileStorage cmd.FileStorageInterface
