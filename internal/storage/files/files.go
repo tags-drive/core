@@ -15,6 +15,7 @@ import (
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
+	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/files/resizing"
@@ -35,34 +36,17 @@ var (
 	ErrOffsetOutOfBounds = errors.New("offset is out of bounds")
 )
 
-// FileInfo contains the information about a file
-type FileInfo struct {
-	ID       int    `json:"id"`
-	Filename string `json:"filename"`
-	Type     string `json:"type"`              // typeImage or typeFile
-	Origin   string `json:"origin"`            // Origin is a path to a file (params.DataFolder/filename)
-	Preview  string `json:"preview,omitempty"` // Preview is a path to a resized image (only if Type == TypeImage)
-	//
-	Tags        []int     `json:"tags"`
-	Description string    `json:"description"`
-	Size        int64     `json:"size"`
-	AddTime     time.Time `json:"addTime"`
-	//
-	Deleted      bool      `json:"deleted"`
-	TimeToDelete time.Time `json:"timeToDelete"`
-}
-
 // storage for files metadata
 type storage interface {
 	init() error
 
 	// getFile returns a file with passed filename
-	getFile(id int) (FileInfo, error)
+	getFile(id int) (cmd.FileInfo, error)
 
 	// getFiles returns files
 	//     expr - parsed logical expression
 	//     search - string, which filename has to contain (lower case)
-	getFiles(expr, search string) (files []FileInfo)
+	getFiles(expr, search string) (files []cmd.FileInfo)
 
 	// add adds a file
 	addFile(filename, fileType string, tags []int, size int64, addTime time.Time) (id int)
@@ -127,21 +111,21 @@ func NewFileStorage(lg *log.Logger) (*FileStorage, error) {
 	return fs, nil
 }
 
-func (fs FileStorage) Get(expr string, s SortMode, search string, offset, count int) ([]FileInfo, error) {
+func (fs FileStorage) Get(expr string, s cmd.FilesSortMode, search string, offset, count int) ([]cmd.FileInfo, error) {
 	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
 	if err != nil {
-		return []FileInfo{}, err
+		return []cmd.FileInfo{}, err
 	}
 
 	search = strings.ToLower(search)
 	files := fs.storage.getFiles(parsedExpr, search)
 	if len(files) == 0 && offset == 0 {
 		// We don't return error, when there're no files and offset isn't set
-		return []FileInfo{}, nil
+		return []cmd.FileInfo{}, nil
 	}
 
 	if offset >= len(files) {
-		return []FileInfo{}, ErrOffsetOutOfBounds
+		return []cmd.FileInfo{}, ErrOffsetOutOfBounds
 	}
 
 	sortFiles(s, files)
@@ -153,12 +137,12 @@ func (fs FileStorage) Get(expr string, s SortMode, search string, offset, count 
 	return files[offset : offset+count], nil
 }
 
-func (fs FileStorage) GetFile(id int) (FileInfo, error) {
+func (fs FileStorage) GetFile(id int) (cmd.FileInfo, error) {
 	return fs.storage.getFile(id)
 }
 
-func (fs FileStorage) GetRecent(number int) []FileInfo {
-	files, _ := fs.Get("", SortByTimeDesc, "", 0, number)
+func (fs FileStorage) GetRecent(number int) []cmd.FileInfo {
+	files, _ := fs.Get("", cmd.SortByTimeDesc, "", 0, number)
 	return files
 }
 

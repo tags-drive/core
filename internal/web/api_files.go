@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	filesPck "github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
@@ -61,7 +62,7 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 
 		offset   = 0
 		count    = 0
-		sortMode = filesPck.SortByNameAsc
+		sortMode = cmd.SortByNameAsc
 	)
 
 	// Get offset
@@ -99,21 +100,21 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 	switch r.FormValue("sort") {
 	case "name":
 		if order == "asc" {
-			sortMode = filesPck.SortByNameAsc
+			sortMode = cmd.SortByNameAsc
 		} else {
-			sortMode = filesPck.SortByNameDesc
+			sortMode = cmd.SortByNameDesc
 		}
 	case "size":
 		if order == "asc" {
-			sortMode = filesPck.SortBySizeAsc
+			sortMode = cmd.SortBySizeAsc
 		} else {
-			sortMode = filesPck.SortBySizeDecs
+			sortMode = cmd.SortBySizeDecs
 		}
 	case "time":
 		if order == "asc" {
-			sortMode = filesPck.SortByTimeAsc
+			sortMode = cmd.SortByTimeAsc
 		} else {
-			sortMode = filesPck.SortByTimeDesc
+			sortMode = cmd.SortByTimeDesc
 		}
 	}
 

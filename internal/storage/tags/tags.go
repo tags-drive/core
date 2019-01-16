@@ -4,26 +4,19 @@ import (
 	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
 
+	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 )
-
-type Tag struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Color string `json:"color"`
-}
-
-type Tags map[int]Tag
 
 // storage for tags metadata
 type storage interface {
 	init() error
 
 	// getAll returns all tags
-	getAll() Tags
+	getAll() cmd.Tags
 
 	// addTag adds a new tag
-	addTag(tag Tag)
+	addTag(tag cmd.Tag)
 
 	// updateTag updates name and color of tag with id == tagID
 	updateTag(id int, newName, newColor string)
@@ -67,12 +60,12 @@ func NewTagStorage(lg *log.Logger) (*TagStorage, error) {
 	return ts, nil
 }
 
-func (ts TagStorage) GetAll() Tags {
+func (ts TagStorage) GetAll() cmd.Tags {
 	return ts.storage.getAll()
 }
 
 func (ts TagStorage) Add(name, color string) {
-	t := Tag{Name: name, Color: color}
+	t := cmd.Tag{Name: name, Color: color}
 	ts.storage.addTag(t)
 }
 

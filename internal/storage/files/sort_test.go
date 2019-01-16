@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/storage/files"
 )
 
@@ -16,7 +17,7 @@ func TestSortFiles(t *testing.T) {
 		return tm
 	}
 
-	isEqual := func(a, b []files.FileInfo) bool {
+	isEqual := func(a, b []cmd.FileInfo) bool {
 		if len(a) != len(b) {
 			return false
 		}
@@ -32,75 +33,75 @@ func TestSortFiles(t *testing.T) {
 	}
 
 	tests := []struct {
-		s     files.SortMode
-		files []files.FileInfo
-		res   []files.FileInfo
+		s     cmd.FilesSortMode
+		files []cmd.FileInfo
+		res   []cmd.FileInfo
 	}{
-		{files.SortByNameAsc,
-			[]files.FileInfo{
+		{cmd.SortByNameAsc,
+			[]cmd.FileInfo{
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "aaa"},
 				{Filename: "fer"},
 			},
-			[]files.FileInfo{
+			[]cmd.FileInfo{
 				{Filename: "aaa"},
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "fer"},
 			},
 		},
-		{files.SortByNameDesc,
-			[]files.FileInfo{
+		{cmd.SortByNameDesc,
+			[]cmd.FileInfo{
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "aaa"},
 				{Filename: "fer"},
 			},
-			[]files.FileInfo{
+			[]cmd.FileInfo{
 				{Filename: "fer"},
 				{Filename: "cbd"},
 				{Filename: "abc"},
 				{Filename: "aaa"},
 			},
 		},
-		{files.SortByTimeAsc,
-			[]files.FileInfo{
+		{cmd.SortByTimeAsc,
+			[]cmd.FileInfo{
 				{AddTime: getTime("05-05-2018 15:45:35")},
 				{AddTime: getTime("05-05-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:16:35")},
 				{AddTime: getTime("05-04-2018 15:22:35")},
 			},
-			[]files.FileInfo{
+			[]cmd.FileInfo{
 				{AddTime: getTime("05-04-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:16:35")},
 				{AddTime: getTime("05-05-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:45:35")},
-			},
-		},
-		{files.SortByTimeDesc,
-			[]files.FileInfo{
-				{AddTime: getTime("05-05-2018 15:45:35")},
-				{AddTime: getTime("05-05-2018 15:22:35")},
-				{AddTime: getTime("05-05-2018 15:16:35")},
-				{AddTime: getTime("05-04-2018 15:22:35")},
-			},
-			[]files.FileInfo{
-				{AddTime: getTime("05-05-2018 15:45:35")},
-				{AddTime: getTime("05-05-2018 15:22:35")},
-				{AddTime: getTime("05-05-2018 15:16:35")},
-				{AddTime: getTime("05-04-2018 15:22:35")},
 			},
 		},
-		{files.SortBySizeAsc,
-			[]files.FileInfo{
+		{cmd.SortByTimeDesc,
+			[]cmd.FileInfo{
+				{AddTime: getTime("05-05-2018 15:45:35")},
+				{AddTime: getTime("05-05-2018 15:22:35")},
+				{AddTime: getTime("05-05-2018 15:16:35")},
+				{AddTime: getTime("05-04-2018 15:22:35")},
+			},
+			[]cmd.FileInfo{
+				{AddTime: getTime("05-05-2018 15:45:35")},
+				{AddTime: getTime("05-05-2018 15:22:35")},
+				{AddTime: getTime("05-05-2018 15:16:35")},
+				{AddTime: getTime("05-04-2018 15:22:35")},
+			},
+		},
+		{cmd.SortBySizeAsc,
+			[]cmd.FileInfo{
 				{Size: 15},
 				{Size: 1515},
 				{Size: 1885},
 				{Size: 1365},
 				{Size: 1551561651},
 			},
-			[]files.FileInfo{
+			[]cmd.FileInfo{
 				{Size: 15},
 				{Size: 1365},
 				{Size: 1515},
@@ -108,15 +109,15 @@ func TestSortFiles(t *testing.T) {
 				{Size: 1551561651},
 			},
 		},
-		{files.SortBySizeDecs,
-			[]files.FileInfo{
+		{cmd.SortBySizeDecs,
+			[]cmd.FileInfo{
 				{Size: 15},
 				{Size: 1515},
 				{Size: 1885},
 				{Size: 1365},
 				{Size: 1551561651},
 			},
-			[]files.FileInfo{
+			[]cmd.FileInfo{
 				{Size: 1551561651},
 				{Size: 1885},
 				{Size: 1515},

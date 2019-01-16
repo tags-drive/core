@@ -9,11 +9,12 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 
+	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 )
 
 type jsonTagStorage struct {
-	tags  Tags
+	tags  cmd.Tags
 	mutex *sync.RWMutex
 
 	logger *log.Logger
@@ -22,7 +23,7 @@ type jsonTagStorage struct {
 
 func newJsonTagStorage(lg *log.Logger) *jsonTagStorage {
 	return &jsonTagStorage{
-		tags:   make(Tags),
+		tags:   make(cmd.Tags),
 		mutex:  new(sync.RWMutex),
 		logger: lg,
 		json:   jsoniter.ConfigCompatibleWithStandardLibrary,
@@ -76,14 +77,14 @@ func (jts *jsonTagStorage) decode(r io.Reader) error {
 	return jts.json.NewDecoder(r).Decode(&jts.tags)
 }
 
-func (jts jsonTagStorage) getAll() Tags {
+func (jts jsonTagStorage) getAll() cmd.Tags {
 	jts.mutex.RLock()
 	defer jts.mutex.RUnlock()
 
 	return jts.tags
 }
 
-func (jts *jsonTagStorage) addTag(tag Tag) {
+func (jts *jsonTagStorage) addTag(tag cmd.Tag) {
 	jts.mutex.Lock()
 
 	// Get max ID (max)

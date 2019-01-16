@@ -12,16 +12,17 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 
+	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
 
 // jsonFileStorage implements files.storage interface.
-// It is a map (id: FileInfo) with RWMutex
+// It is a map (id: cmd.FileInfo) with RWMutex
 type jsonFileStorage struct {
 	// maxID is max id of current files. It is computed in init() method
 	maxID int
-	files map[int]FileInfo
+	files map[int]cmd.FileInfo
 	mutex *sync.RWMutex
 
 	logger *log.Logger
@@ -31,7 +32,7 @@ type jsonFileStorage struct {
 func newJsonFileStorage(lg *log.Logger) *jsonFileStorage {
 	return &jsonFileStorage{
 		maxID:  0,
-		files:  make(map[int]FileInfo),
+		files:  make(map[int]cmd.FileInfo),
 		mutex:  new(sync.RWMutex),
 		logger: lg,
 		json:   jsoniter.ConfigCompatibleWithStandardLibrary,
@@ -121,19 +122,19 @@ func (jfs jsonFileStorage) checkFile(id int) bool {
 	return ok
 }
 
-func (jfs jsonFileStorage) getFile(id int) (FileInfo, error) {
+func (jfs jsonFileStorage) getFile(id int) (cmd.FileInfo, error) {
 	jfs.mutex.RLock()
 	defer jfs.mutex.RUnlock()
 
 	f, ok := jfs.files[id]
 	if !ok {
-		return FileInfo{}, ErrFileIsNotExist
+		return cmd.FileInfo{}, ErrFileIsNotExist
 	}
 	return f, nil
 }
 
-// getFiles returns slice of FileInfo. If parsedExpr == "", it returns all files
-func (jfs jsonFileStorage) getFiles(parsedExpr, search string) (files []FileInfo) {
+// getFiles returns slice of cmd.FileInfo. If parsedExpr == "", it returns all files
+func (jfs jsonFileStorage) getFiles(parsedExpr, search string) (files []cmd.FileInfo) {
 	jfs.mutex.RLock()
 
 	for _, v := range jfs.files {
@@ -149,7 +150,7 @@ func (jfs jsonFileStorage) getFiles(parsedExpr, search string) (files []FileInfo
 	}
 
 	// Need to remove files with incorrect name
-	var goodFiles []FileInfo
+	var goodFiles []cmd.FileInfo
 	for _, f := range files {
 		if strings.Contains(strings.ToLower(f.Filename), search) {
 			goodFiles = append(goodFiles, f)
@@ -160,10 +161,10 @@ func (jfs jsonFileStorage) getFiles(parsedExpr, search string) (files []FileInfo
 }
 
 // addFile adds an element into js.files and call js.write()
-// It also defines FileInfo.Origin and FileInfo.Preview (if file is image) as
+// It also defines cmd.FileInfo.Origin and cmd.FileInfo.Preview (if file is image) as
 // `params.DataFolder + "/" + id` and `params.ResizedImagesFolder + "/" + id`
 func (jfs *jsonFileStorage) addFile(filename, fileType string, tags []int, size int64, addTime time.Time) (id int) {
-	fileInfo := FileInfo{Filename: filename,
+	fileInfo := cmd.FileInfo{Filename: filename,
 		Type:    fileType,
 		Tags:    tags,
 		Size:    size,

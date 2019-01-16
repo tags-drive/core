@@ -3,9 +3,6 @@ package cmd
 import (
 	"io"
 	"mime/multipart"
-
-	"github.com/tags-drive/core/internal/storage/files"
-	"github.com/tags-drive/core/internal/storage/tags"
 )
 
 // Server provides methods for interactions web server
@@ -22,11 +19,11 @@ type FileStorageInterface interface {
 	//
 	// If expr isn't valid, Get returns ErrBadExpessionSyntax
 	// count must be greater than 0, else all files will be returned ([offset:])
-	Get(expr string, s files.SortMode, search string, offset, count int) ([]files.FileInfo, error)
+	Get(expr string, s FilesSortMode, search string, offset, count int) ([]FileInfo, error)
 	// GetFile returns a file with passed id
-	GetFile(id int) (files.FileInfo, error)
+	GetFile(id int) (FileInfo, error)
 	// GetRecent returns the last uploaded files
-	GetRecent(number int) []files.FileInfo
+	GetRecent(number int) []FileInfo
 	// ArchiveFiles archives passed files and returns io.Reader with archive
 	Archive(fileIDs []int) (io.Reader, error)
 
@@ -56,7 +53,7 @@ type FileStorageInterface interface {
 // TagStorageInterface provides methods for interactions with tags
 type TagStorageInterface interface {
 	// GetAll returns all tags
-	GetAll() tags.Tags
+	GetAll() Tags
 
 	// Add adds a new tag with passed name and color
 	Add(name, color string)
