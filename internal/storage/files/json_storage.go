@@ -1,7 +1,6 @@
 package files
 
 import (
-	"encoding/json"
 	"io"
 	"os"
 	"strconv"
@@ -10,7 +9,9 @@ import (
 	"time"
 
 	"github.com/ShoshinNikita/log"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
+
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
@@ -24,6 +25,17 @@ type jsonFileStorage struct {
 	mutex *sync.RWMutex
 
 	logger *log.Logger
+	json   jsoniter.API
+}
+
+func newJsonFileStorage(lg *log.Logger) *jsonFileStorage {
+	return &jsonFileStorage{
+		maxID:  0,
+		files:  make(map[int]FileInfo),
+		mutex:  new(sync.RWMutex),
+		logger: lg,
+		json:   jsoniter.ConfigCompatibleWithStandardLibrary,
+	}
 }
 
 func (jfs *jsonFileStorage) init() error {
@@ -86,7 +98,7 @@ func (jfs jsonFileStorage) write() {
 		return
 	}
 
-	enc := json.NewEncoder(f)
+	enc := jfs.json.NewEncoder(f)
 	if params.Debug {
 		enc.SetIndent("", "  ")
 	}
@@ -97,7 +109,7 @@ func (jfs jsonFileStorage) write() {
 
 // decode decodes js.info
 func (jfs *jsonFileStorage) decode(r io.Reader) error {
-	return json.NewDecoder(r).Decode(&jfs.files)
+	return jfs.json.NewDecoder(r).Decode(&jfs.files)
 }
 
 // checkFile return true if file with passed filename exists

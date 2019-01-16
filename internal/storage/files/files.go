@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/ShoshinNikita/log"
@@ -108,19 +107,9 @@ func NewFileStorage(lg *log.Logger) (*FileStorage, error) {
 
 	switch params.StorageType {
 	case params.JSONStorage:
-		st = &jsonFileStorage{
-			maxID:  0,
-			files:  make(map[int]FileInfo),
-			mutex:  new(sync.RWMutex),
-			logger: lg,
-		}
+		st = newJsonFileStorage(lg)
 	default:
-		st = &jsonFileStorage{
-			maxID:  0,
-			files:  make(map[int]FileInfo),
-			mutex:  new(sync.RWMutex),
-			logger: lg,
-		}
+		st = newJsonFileStorage(lg)
 	}
 
 	fs := &FileStorage{

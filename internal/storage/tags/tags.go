@@ -1,8 +1,6 @@
 package tags
 
 import (
-	"sync"
-
 	"github.com/ShoshinNikita/log"
 	"github.com/pkg/errors"
 
@@ -51,17 +49,9 @@ func NewTagStorage(lg *log.Logger) (*TagStorage, error) {
 
 	switch params.StorageType {
 	case params.JSONStorage:
-		st = &jsonTagStorage{
-			tags:   make(Tags),
-			mutex:  new(sync.RWMutex),
-			logger: lg,
-		}
+		st = newJsonTagStorage(lg)
 	default:
-		st = &jsonTagStorage{
-			tags:   make(Tags),
-			mutex:  new(sync.RWMutex),
-			logger: lg,
-		}
+		st = newJsonTagStorage(lg)
 	}
 
 	ts := &TagStorage{
