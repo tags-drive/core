@@ -12,7 +12,7 @@ func (a Auth) write() {
 	a.mutex.RLock()
 	defer a.mutex.RUnlock()
 
-	f, err := os.OpenFile(params.TokensFile, os.O_TRUNC|os.O_RDWR, 0600)
+	f, err := os.OpenFile(params.TokensFile, os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
 		a.logger.Errorf("can't open file %s: %s\n", params.TokensFile, err)
 		return

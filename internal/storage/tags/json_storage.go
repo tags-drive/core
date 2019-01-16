@@ -31,12 +31,12 @@ func newJsonTagStorage(lg *log.Logger) *jsonTagStorage {
 }
 
 func (jts *jsonTagStorage) init() error {
-	f, err := os.OpenFile(params.TagsFile, os.O_RDWR, 0600)
+	f, err := os.OpenFile(params.TagsFile, os.O_RDWR, 0666)
 	if err != nil {
 		// Have to create a new file
 		if os.IsNotExist(err) {
 			jts.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.TagsFile)
-			f, err = os.OpenFile(params.TagsFile, os.O_CREATE|os.O_RDWR, 0600)
+			f, err = os.OpenFile(params.TagsFile, os.O_CREATE|os.O_RDWR, 0666)
 			if err != nil {
 				return errors.Wrap(err, "can't create a new file")
 			}
@@ -58,7 +58,7 @@ func (jts jsonTagStorage) write() {
 	jts.mutex.RLock()
 	defer jts.mutex.RUnlock()
 
-	f, err := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0600)
+	f, err := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
 		jts.logger.Errorf("can't open file %s: %s\n", params.TagsFile, err)
 		return

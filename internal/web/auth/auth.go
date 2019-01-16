@@ -40,7 +40,7 @@ func NewAuthService(lg *log.Logger) (*Auth, error) {
 
 		// Have to create a new file
 		lg.Infof("file %s doesn't exist. Need to create a new file\n", params.TokensFile)
-		f, err = os.OpenFile(params.TokensFile, os.O_CREATE|os.O_RDWR, 0600)
+		f, err = os.OpenFile(params.TokensFile, os.O_CREATE|os.O_RDWR, 0666)
 		if err != nil {
 			return nil, errors.Wrap(err, "can't create a new file")
 		}

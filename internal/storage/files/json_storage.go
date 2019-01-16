@@ -41,22 +41,22 @@ func newJsonFileStorage(lg *log.Logger) *jsonFileStorage {
 
 func (jfs *jsonFileStorage) init() error {
 	// Create folders
-	err := os.MkdirAll(params.DataFolder, 0600)
+	err := os.MkdirAll(params.DataFolder, 0666)
 	if err != nil {
 		return errors.Wrapf(err, "can't create a folder %s", params.DataFolder)
 	}
 
-	err = os.MkdirAll(params.ResizedImagesFolder, 0600)
+	err = os.MkdirAll(params.ResizedImagesFolder, 0666)
 	if err != nil {
 		return errors.Wrapf(err, "can't create a folder %s", params.ResizedImagesFolder)
 	}
 
-	f, err := os.OpenFile(params.Files, os.O_RDWR, 0600)
+	f, err := os.OpenFile(params.Files, os.O_RDWR, 0666)
 	if err != nil {
 		// Have to create a new file
 		if os.IsNotExist(err) {
 			jfs.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.Files)
-			f, err = os.OpenFile(params.Files, os.O_CREATE|os.O_RDWR, 0600)
+			f, err = os.OpenFile(params.Files, os.O_CREATE|os.O_RDWR, 0666)
 			if err != nil {
 				return errors.Wrap(err, "can't create a new file")
 			}
@@ -93,7 +93,7 @@ func (jfs jsonFileStorage) write() {
 	jfs.mutex.RLock()
 	defer jfs.mutex.RUnlock()
 
-	f, err := os.OpenFile(params.Files, os.O_TRUNC|os.O_RDWR, 0600)
+	f, err := os.OpenFile(params.Files, os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
 		jfs.logger.Errorf("can't open file %s: %s\n", params.Files, err)
 		return
