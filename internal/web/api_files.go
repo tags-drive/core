@@ -348,7 +348,6 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 
 	var goodTags []int
 	for _, id := range tags {
-
 		if s.tagStorage.Check(id) {
 			goodTags = append(goodTags, id)
 		}
@@ -389,26 +388,70 @@ func (s Server) changeFileDescription(w http.ResponseWriter, r *http.Request) {
 //
 // Params:
 //   - files: file ids (list of ids separated by ',')
-//   - tags: tags for adding (list of tags ids seaparated by ',')
+//   - tags: tags for adding (list of tags ids separated by ',')
 //
 // Response: -
 //
 func (s Server) addTagsToFiles(w http.ResponseWriter, r *http.Request) {
-	// TODO
-	mock(w, r)
+	filesIDs := func() (res []int) {
+		strIDs := r.FormValue("files")
+		for _, strID := range strings.Split(strIDs, ",") {
+			id, err := strconv.ParseInt(strID, 10, 0)
+			if err == nil {
+				res = append(res, int(id))
+			}
+		}
+		return res
+	}()
+
+	tagsIDs := func() (res []int) {
+		strIDs := r.FormValue("tags")
+		for _, strID := range strings.Split(strIDs, ",") {
+			id, err := strconv.Atoi(strID)
+			// Add only valid tags
+			if err == nil && s.tagStorage.Check(id) {
+				res = append(res, int(id))
+			}
+		}
+		return res
+	}()
+
+	s.fileStorage.AddTagsToFiles(filesIDs, tagsIDs)
 }
 
 // DELETE /api/files/tags
 //
 // Params:
 //   - files: file ids (list of ids separated by ',')
-//   - tags: tags for deleting (list of tags ids seaparated by ',')
+//   - tags: tags for deleting (list of tags ids separated by ',')
 //
 // Response: -
 //
 func (s Server) removeTagsFromFiles(w http.ResponseWriter, r *http.Request) {
-	// TODO
-	mock(w, r)
+	filesIDs := func() (res []int) {
+		strIDs := r.FormValue("files")
+		for _, strID := range strings.Split(strIDs, ",") {
+			id, err := strconv.ParseInt(strID, 10, 0)
+			if err == nil {
+				res = append(res, int(id))
+			}
+		}
+		return res
+	}()
+
+	tagsIDs := func() (res []int) {
+		strIDs := r.FormValue("tags")
+		for _, strID := range strings.Split(strIDs, ",") {
+			id, err := strconv.Atoi(strID)
+			// Add only valid tags
+			if err == nil && s.tagStorage.Check(id) {
+				res = append(res, int(id))
+			}
+		}
+		return res
+	}()
+
+	s.fileStorage.RemoveTagsFromFiles(filesIDs, tagsIDs)
 }
 
 // DELETE /api/files
