@@ -326,6 +326,98 @@ func (jfs *jsonFileStorage) recover(id int) {
 	jfs.write()
 }
 
+func (jfs *jsonFileStorage) addTagsToFiles(filesIDs, tagsID []int) {
+	merge := func(a, b []int) []int {
+		t := make(map[int]struct{}, len(a)+len(b))
+		for i := range a {
+			t[a[i]] = struct{}{}
+		}
+		for i := range b {
+			t[b[i]] = struct{}{}
+		}
+
+		res := make([]int, 0, len(a)+len(b))
+		for k := range t {
+			res = append(res, k)
+		}
+
+		return res
+	}
+
+	goodID := func(id int) bool {
+		for i := range filesIDs {
+			if filesIDs[i] == id {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	jfs.mutex.Lock()
+
+	for id, f := range jfs.files {
+		if !goodID(id) {
+			continue
+		}
+
+		f.Tags = merge(f.Tags, tagsID)
+
+		jfs.files[id] = f
+	}
+
+	jfs.mutex.Unlock()
+
+	jfs.write()
+}
+
+func (jfs *jsonFileStorage) removeTagsFromFiles(filesIDs, tagsID []int) {
+	exclude := func(a, b []int) []int {
+		t := make(map[int]bool, len(a)+len(b))
+		for i := range a {
+			t[a[i]] = true
+		}
+		for i := range b {
+			t[b[i]] = false
+		}
+
+		res := make([]int, 0, len(a)+len(b))
+		for k, v := range t {
+			if v {
+				res = append(res, k)
+			}
+		}
+
+		return res
+	}
+
+	goodID := func(id int) bool {
+		for i := range filesIDs {
+			if filesIDs[i] == id {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	jfs.mutex.Lock()
+
+	for id, f := range jfs.files {
+		if !goodID(id) {
+			continue
+		}
+
+		f.Tags = exclude(f.Tags, tagsID)
+
+		jfs.files[id] = f
+	}
+
+	jfs.mutex.Unlock()
+
+	jfs.write()
+}
+
 func (jfs *jsonFileStorage) deleteTagFromFiles(tagID int) {
 	jfs.mutex.Lock()
 

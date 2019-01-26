@@ -43,6 +43,12 @@ type FileStorageInterface interface {
 	DeleteForce(fileID int) error
 	// Recover "removes" file from Trash
 	Recover(fileID int)
+
+	// AddTagsToFiles adds a tag to files
+	AddTagsToFiles(filesIDs, tagsIDs []int)
+	// RemoveTagsFromFiles
+	RemoveTagsFromFiles(filesIDs, tagsIDs []int)
+
 	// DeleteTagFromFiles deletes a tag from files
 	DeleteTagFromFiles(tagID int)
 

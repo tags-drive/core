@@ -70,7 +70,13 @@ type storage interface {
 	// recover removes file from Trash
 	recover(id int)
 
-	// deleteTagFromFiles deletes a tag (it's called when user deletes a tag)
+	// addTagsToFiles adds a tag to files
+	addTagsToFiles(filesIDs, tagsID []int)
+
+	// removeTagsFromFiles removes tags from selected files
+	removeTagsFromFiles(filesIDs, tagsID []int)
+
+	// deleteTagFromFiles deletes a tag
 	deleteTagFromFiles(tagID int)
 
 	// getExpiredDeletedFiles returns names of files with expired TimeToDelete
@@ -339,6 +345,14 @@ func (fs FileStorage) DeleteForce(id int) error {
 	}
 
 	return nil
+}
+
+func (fs FileStorage) AddTagsToFiles(filesIDs, tagsIDs []int) {
+	fs.storage.addTagsToFiles(filesIDs, tagsIDs)
+}
+
+func (fs FileStorage) RemoveTagsFromFiles(filesIDs, tagsIDs []int) {
+	fs.storage.removeTagsFromFiles(filesIDs, tagsIDs)
 }
 
 func (fs FileStorage) DeleteTagFromFiles(tagID int) {
