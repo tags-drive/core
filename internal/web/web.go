@@ -59,21 +59,29 @@ func (s *Server) Start() error {
 	// Init routes
 	var routes = []route{
 		{"/", "GET", s.index, true},
-		// auth
+
+		// Auth
 		{"/login", "GET", s.login, false},
 		{"/login", "POST", s.authentication, false},
 		{"/logout", "POST", s.logout, true},
-		// files
+
+		// Files
 		{"/api/files", "GET", s.returnFiles, true},
+		{"/api/files/recent", "GET", s.returnRecentFiles, true},
 		{"/api/files/download", "GET", s.downloadFiles, true},
 		{"/api/files", "POST", s.upload, true},
-		{"/api/files/recover", "POST", s.recoverFile, true},
-		{"/api/files/tags", "PUT", s.changeFileTags, true},
+		// change file info
 		{"/api/files/name", "PUT", s.changeFilename, true},
+		{"/api/files/tags", "PUT", s.changeFileTags, true},
 		{"/api/files/description", "PUT", s.changeFileDescription, true},
+		// bulk tags changing
+		{"/api/files/tags", "POST", s.addTagsToFiles, true},
+		{"/api/files/tags", "DELETE", s.removeTagsFromFiles, true},
+		// remove or recover files
 		{"/api/files", "DELETE", s.deleteFile, true},
-		{"/api/files/recent", "GET", s.returnRecentFiles, true},
-		// tags
+		{"/api/files/recover", "POST", s.recoverFile, true},
+
+		// Tags
 		{"/api/tags", "GET", s.returnTags, true},
 		{"/api/tags", "POST", s.addTag, true},
 		{"/api/tags", "PUT", s.changeTag, true},

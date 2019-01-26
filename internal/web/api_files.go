@@ -385,6 +385,32 @@ func (s Server) changeFileDescription(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// POST /api/files/tags
+//
+// Params:
+//   - files: file ids (list of ids separated by ',')
+//   - tags: tags for adding (list of tags ids seaparated by ',')
+//
+// Response: -
+//
+func (s Server) addTagsToFiles(w http.ResponseWriter, r *http.Request) {
+	// TODO
+	mock(w, r)
+}
+
+// DELETE /api/files/tags
+//
+// Params:
+//   - files: file ids (list of ids separated by ',')
+//   - tags: tags for deleting (list of tags ids seaparated by ',')
+//
+// Response: -
+//
+func (s Server) removeTagsFromFiles(w http.ResponseWriter, r *http.Request) {
+	// TODO
+	mock(w, r)
+}
+
 // DELETE /api/files
 //
 // Params:
