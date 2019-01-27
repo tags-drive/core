@@ -72,12 +72,12 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 			return 0
 		}
 
-		r, err := strconv.ParseInt(param, 10, 0)
+		r, err := strconv.Atoi(param)
 		if err != nil || r < 0 {
 			return 0
 		}
 
-		return int(r)
+		return r
 	}()
 
 	// Get offset
@@ -87,12 +87,12 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 			return 0
 		}
 
-		r, err := strconv.ParseInt(param, 10, 0)
+		r, err := strconv.Atoi(param)
 		if err != nil || r < 0 {
 			return 0
 		}
 
-		return int(r)
+		return r
 	}()
 
 	// Set sortMode
@@ -176,9 +176,9 @@ func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
 	ids := func() (res []int) {
 		strIDs := r.FormValue("ids")
 		for _, strID := range strings.Split(strIDs, ",") {
-			id, err := strconv.ParseInt(strID, 10, 0)
+			id, err := strconv.Atoi(strID)
 			if err == nil {
-				res = append(res, int(id))
+				res = append(res, id)
 			}
 		}
 		return
@@ -267,9 +267,9 @@ func (s Server) recoverFile(w http.ResponseWriter, r *http.Request) {
 	ids := func() (res []int) {
 		strIDs := r.FormValue("ids")
 		for _, strID := range strings.Split(strIDs, ",") {
-			id, err := strconv.ParseInt(strID, 10, 0)
+			id, err := strconv.Atoi(strID)
 			if err == nil {
-				res = append(res, int(id))
+				res = append(res, id)
 			}
 		}
 		return
@@ -295,7 +295,7 @@ func (s Server) recoverFile(w http.ResponseWriter, r *http.Request) {
 //
 func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 	strID := r.FormValue("id")
-	id, err := strconv.ParseInt(strID, 10, 0)
+	id, err := strconv.Atoi(strID)
 	if err != nil {
 		s.processError(w, "bad id syntax", http.StatusBadRequest)
 		return
@@ -308,7 +308,7 @@ func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// We can skip checking of invalid characters, because Go will return an error
-	err = s.fileStorage.Rename(int(id), newName)
+	err = s.fileStorage.Rename(id, newName)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -325,7 +325,7 @@ func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 //
 func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 	strID := r.FormValue("id")
-	id, err := strconv.ParseInt(strID, 10, 0)
+	fileID, err := strconv.Atoi(strID)
 	if err != nil {
 		s.processError(w, "bad id syntax", http.StatusBadRequest)
 		return
@@ -353,7 +353,7 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = s.fileStorage.ChangeTags(int(id), goodTags)
+	err = s.fileStorage.ChangeTags(fileID, goodTags)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -370,14 +370,14 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 //
 func (s Server) changeFileDescription(w http.ResponseWriter, r *http.Request) {
 	strID := r.FormValue("id")
-	id, err := strconv.ParseInt(strID, 10, 0)
+	id, err := strconv.Atoi(strID)
 	if err != nil {
 		s.processError(w, "bad id syntax", http.StatusBadRequest)
 		return
 	}
 
 	newDescription := r.FormValue("description")
-	err = s.fileStorage.ChangeDescription(int(id), newDescription)
+	err = s.fileStorage.ChangeDescription(id, newDescription)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -396,9 +396,9 @@ func (s Server) addTagsToFiles(w http.ResponseWriter, r *http.Request) {
 	filesIDs := func() (res []int) {
 		strIDs := r.FormValue("files")
 		for _, strID := range strings.Split(strIDs, ",") {
-			id, err := strconv.ParseInt(strID, 10, 0)
+			id, err := strconv.Atoi(strID)
 			if err == nil {
-				res = append(res, int(id))
+				res = append(res, id)
 			}
 		}
 		return res
@@ -431,9 +431,9 @@ func (s Server) removeTagsFromFiles(w http.ResponseWriter, r *http.Request) {
 	filesIDs := func() (res []int) {
 		strIDs := r.FormValue("files")
 		for _, strID := range strings.Split(strIDs, ",") {
-			id, err := strconv.ParseInt(strID, 10, 0)
+			id, err := strconv.Atoi(strID)
 			if err == nil {
-				res = append(res, int(id))
+				res = append(res, id)
 			}
 		}
 		return res
@@ -468,9 +468,9 @@ func (s Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 	ids := func() (res []int) {
 		strIDs := r.FormValue("ids")
 		for _, strID := range strings.Split(strIDs, ",") {
-			id, err := strconv.ParseInt(strID, 10, 0)
+			id, err := strconv.Atoi(strID)
 			if err == nil {
-				res = append(res, int(id))
+				res = append(res, id)
 			}
 		}
 		return
