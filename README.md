@@ -15,6 +15,9 @@ This repository contains backend part of **Tags Drive**
     - [SSL folder](#ssl-folder)
   - [API](#api)
     - [Files](#files)
+      - [File info changing](#file-info-changing)
+      - [Bulk file tags changing](#bulk-file-tags-changing)
+      - [Removing and recovering](#removing-and-recovering)
     - [Tags](#tags)
   - [Additional info](#additional-info)
     - [Environment variables](#environment-variables)
@@ -179,12 +182,7 @@ Use this command to generate self-signed TLS certificate:
   }
   ```
 
-- `POST /api/files/recover`
-
-  **Params**:
-  - **ids**: list ids of files for recovering (list of ids separated by comma `ids=1,2,54,9`)
-
-  **Response**: -
+#### File info changing
 
 - `PUT /api/files/name`
 
@@ -210,6 +208,26 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** -
 
+#### Bulk file tags changing
+
+- `POST /api/files/tags`
+
+  **Params:**
+  - **files**: file ids (list of ids separated by ',')
+  - **tags**: tags for adding (list of tags ids separated by ',')
+
+  **Response:** -
+
+- `DELETE /api/files/tags`
+
+  **Params:**
+  - **files**: file ids (list of ids separated by ',')
+  - **tags**: tags for deleting (list of tags ids separated by ',')
+
+  **Response:** -
+
+#### Removing and recovering
+
 - `DELETE /api/files`
 
   **Params:**
@@ -226,6 +244,13 @@ Use this command to generate self-signed TLS certificate:
       Status   string `json:"status"` // Status isn't empty when IsError == false
   }
   ```
+
+- `POST /api/files/recover`
+
+  **Params**:
+  - **ids**: list ids of files for recovering (list of ids separated by comma `ids=1,2,54,9`)
+
+  **Response**: -
 
 ### Tags
 
