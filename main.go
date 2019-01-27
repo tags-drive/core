@@ -72,7 +72,7 @@ func main() {
 	fatalServerErr := make(chan struct{})
 
 	go func() {
-		term := make(chan os.Signal)
+		term := make(chan os.Signal, 1)
 		signal.Notify(term, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 		select {
