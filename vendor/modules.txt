@@ -1,5 +1,5 @@
-# github.com/ShoshinNikita/log v1.6.0
-github.com/ShoshinNikita/log
+# github.com/ShoshinNikita/log/v2 v2.0.0
+github.com/ShoshinNikita/log/v2
 # github.com/disintegration/imaging v1.5.0
 github.com/disintegration/imaging
 # github.com/fatih/color v1.7.0
