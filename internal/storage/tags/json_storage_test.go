@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ShoshinNikita/log"
+	clog "github.com/ShoshinNikita/log/v2"
 
 	"github.com/tags-drive/core/cmd"
 )

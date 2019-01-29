@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ShoshinNikita/log"
+	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
 
@@ -22,7 +22,7 @@ type Server struct {
 	tagStorage  cmd.TagStorageInterface
 	authService cmd.AuthService
 
-	logger *log.Logger
+	logger *clog.Logger
 
 	httpServer *http.Server
 }
@@ -35,7 +35,7 @@ type route struct {
 }
 
 // NewWebServer just creates new Web struct. It doesn't call any Init functions
-func NewWebServer(fs cmd.FileStorageInterface, ts cmd.TagStorageInterface, lg *log.Logger) (*Server, error) {
+func NewWebServer(fs cmd.FileStorageInterface, ts cmd.TagStorageInterface, lg *clog.Logger) (*Server, error) {
 	s := &Server{
 		fileStorage: fs,
 		tagStorage:  ts,

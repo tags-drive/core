@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ShoshinNikita/log"
+	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/pkg/errors"
 	"github.com/tags-drive/core/internal/params"
 )
@@ -17,7 +17,7 @@ type Auth struct {
 	tokens []tokenStruct // we can use array instead of map because number of tokens is small and O(n) is enough
 	mutex  *sync.RWMutex
 
-	logger *log.Logger
+	logger *clog.Logger
 }
 
 type tokenStruct struct {
@@ -26,7 +26,7 @@ type tokenStruct struct {
 }
 
 // NewAuthService create new Auth and inits tokens
-func NewAuthService(lg *log.Logger) (*Auth, error) {
+func NewAuthService(lg *clog.Logger) (*Auth, error) {
 	service := &Auth{
 		mutex:  new(sync.RWMutex),
 		logger: lg,

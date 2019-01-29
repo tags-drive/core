@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ShoshinNikita/log"
+	clog "github.com/ShoshinNikita/log/v2"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 
@@ -25,11 +25,11 @@ type jsonFileStorage struct {
 	files map[int]cmd.FileInfo
 	mutex *sync.RWMutex
 
-	logger *log.Logger
+	logger *clog.Logger
 	json   jsoniter.API
 }
 
-func newJsonFileStorage(lg *log.Logger) *jsonFileStorage {
+func newJsonFileStorage(lg *clog.Logger) *jsonFileStorage {
 	return &jsonFileStorage{
 		maxID:  0,
 		files:  make(map[int]cmd.FileInfo),

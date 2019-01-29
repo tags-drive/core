@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ShoshinNikita/log"
+	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
@@ -88,11 +88,11 @@ type storage interface {
 // FileStorage exposes methods for interactions with files
 type FileStorage struct {
 	storage storage
-	logger  *log.Logger
+	logger  *clog.Logger
 }
 
 // NewFileStorage creates new FileStorage
-func NewFileStorage(lg *log.Logger) (*FileStorage, error) {
+func NewFileStorage(lg *clog.Logger) (*FileStorage, error) {
 	var st storage
 
 	switch params.StorageType {
