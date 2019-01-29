@@ -1,4 +1,4 @@
-module github.com/ShoshinNikita/log
+module github.com/ShoshinNikita/log/v2
 
 require (
 	github.com/fatih/color v1.7.0

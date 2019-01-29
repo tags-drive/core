@@ -1,7 +1,7 @@
 module github.com/tags-drive/core
 
 require (
-	github.com/ShoshinNikita/log v1.6.0
+	github.com/ShoshinNikita/log/v2 v2.0.0
 	github.com/disintegration/imaging v1.5.0
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2

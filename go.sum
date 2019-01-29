@@ -1,5 +1,5 @@
-github.com/ShoshinNikita/log v1.6.0 h1:hY9GWA+o4HVGw59cfnJ2UWN1Ms6S3Z1uPuWoRF/0PjE=
-github.com/ShoshinNikita/log v1.6.0/go.mod h1:ETaGLM1hUmbmewHi9s+aHdZB56TDFt9NgwoBWXBOl7c=
+github.com/ShoshinNikita/log/v2 v2.0.0 h1:51f3J23d3jRbZu6Ydq1FqO5KpTyry+FULpxkWWymBpI=
+github.com/ShoshinNikita/log/v2 v2.0.0/go.mod h1:cw6VG+4grJbT/pSdy0EV89rDjyjv9WDrsGaNGh9rQn8=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/disintegration/imaging v1.5.0 h1:uYqUhwNmLU4K1FN44vhqS4TZJRAA4RhBINgbQlKyGi0=

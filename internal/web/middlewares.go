@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
+	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/minio/sio"
 
 	"github.com/tags-drive/core/internal/params"
@@ -67,16 +67,20 @@ func (s Server) decryptMiddleware(dir http.Dir) http.Handler {
 
 // debugMiddleware logs requests and sets debug headers
 func (s Server) debugMiddleware(h http.Handler) http.Handler {
-	const layout = "01.02.2006 15:04:05"
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		builder := new(strings.Builder)
+
 		// Don't log favicon.ico
 		if !strings.HasSuffix(r.URL.Path, "favicon.ico") {
-			logMsg := fmt.Sprintf("%s %s %s\n", time.Now().Format(layout), r.Method, r.URL.Path)
+			builder.WriteString(r.Method)
+			builder.WriteByte(' ')
+			builder.WriteString(r.URL.Path)
+			builder.WriteByte('\n')
 
 			r.ParseForm()
 			if len(r.Form) > 0 {
-				prefix := strings.Repeat(" ", len(layout)+len(r.Method)+1)
+
+				prefix := strings.Repeat(" ", len(clog.DefaultTimeLayout)+len(r.Method)+2)
 
 				space := 0
 				for k := range r.Form {
@@ -87,11 +91,15 @@ func (s Server) debugMiddleware(h http.Handler) http.Handler {
 
 				for k, v := range r.Form {
 					p := strings.Repeat(" ", space-len(k))
-					logMsg += fmt.Sprintf("%s %v: %s%s\n", prefix, k, p, v)
+					builder.WriteString(prefix)
+					builder.WriteString(k)
+					builder.WriteString(p)
+					fmt.Fprint(builder, v)
+					builder.WriteByte('\n')
 				}
 			}
 
-			s.logger.Print(logMsg)
+			s.logger.Print(builder.String())
 		}
 
 		setDebugHeaders(w, r)

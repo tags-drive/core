@@ -1,7 +1,7 @@
 package tags
 
 import (
-	"github.com/ShoshinNikita/log"
+	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/cmd"
@@ -33,11 +33,11 @@ type storage interface {
 // TagStorage exposes methods for interactions with files
 type TagStorage struct {
 	storage storage
-	logger  *log.Logger
+	logger  *clog.Logger
 }
 
 // NewTagStorage creates new FileStorage
-func NewTagStorage(lg *log.Logger) (*TagStorage, error) {
+func NewTagStorage(lg *clog.Logger) (*TagStorage, error) {
 	var st storage
 
 	switch params.StorageType {

@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/ShoshinNikita/log"
+	clog "github.com/ShoshinNikita/log/v2"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 
@@ -17,11 +17,11 @@ type jsonTagStorage struct {
 	tags  cmd.Tags
 	mutex *sync.RWMutex
 
-	logger *log.Logger
+	logger *clog.Logger
 	json   jsoniter.API
 }
 
-func newJsonTagStorage(lg *log.Logger) *jsonTagStorage {
+func newJsonTagStorage(lg *clog.Logger) *jsonTagStorage {
 	return &jsonTagStorage{
 		tags:   make(cmd.Tags),
 		mutex:  new(sync.RWMutex),

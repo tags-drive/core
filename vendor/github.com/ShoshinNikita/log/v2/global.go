@@ -1,58 +1,11 @@
-package log
-
-import (
-	"io"
-)
+package clog
 
 var globalLogger *Logger
 
 // init inits globalLogger with NewLogger()
 func init() {
-	globalLogger = NewLogger()
-
-	globalLogger.PrintTime(false)
-	globalLogger.PrintColor(false)
-	globalLogger.PrintErrorLine(false)
-
+	globalLogger = NewProdLogger()
 	globalLogger.global = true
-}
-
-// PrintTime sets globalLogger.PrintTime
-// Time isn't printed by default
-func PrintTime(b bool) {
-	globalLogger.PrintTime(b)
-}
-
-// ShowTime sets printTime
-// Time isn't printed by default
-//
-// It was left for backwards compatibility
-var ShowTime = PrintTime
-
-// PrintColor sets printColor
-// printColor is false by default
-func PrintColor(b bool) {
-	globalLogger.PrintColor(b)
-}
-
-// PrintErrorLine sets PrintErrorLine
-// If PrintErrorLine is true, log.Error(), log.Errorf(), log.Errorln() will print file and line,
-// where functions were called.
-// PrintErrorLine is false by default
-func PrintErrorLine(b bool) {
-	globalLogger.PrintErrorLine(b)
-}
-
-// ChangeOutput changes Logger.output writer.
-// Default Logger.output is github.com/fatih/color.Output
-func ChangeOutput(w io.Writer) {
-	globalLogger.ChangeOutput(w)
-}
-
-// ChangeTimeLayout changes Logger.timeLayout
-// Default Logger.timeLayout is DefaultTimeLayout
-func ChangeTimeLayout(layout string) {
-	globalLogger.ChangeTimeLayout(layout)
 }
 
 /* Print */
@@ -78,19 +31,19 @@ func Println(v ...interface{}) {
 /* Info */
 
 // Info prints info message
-// Output pattern: (?time) [INFO] msg
+// Output pattern: (?time) [INF] msg
 func Info(v ...interface{}) {
 	globalLogger.Info(v...)
 }
 
 // Infof prints info message
-// Output pattern: (?time) [INFO] msg
+// Output pattern: (?time) [INF] msg
 func Infof(format string, v ...interface{}) {
 	globalLogger.Infof(format, v...)
 }
 
 // Infoln prints info message
-// Output pattern: (?time) [INFO] msg
+// Output pattern: (?time) [INF] msg
 func Infoln(v ...interface{}) {
 	globalLogger.Infoln(v...)
 }
@@ -98,19 +51,19 @@ func Infoln(v ...interface{}) {
 /* Warn */
 
 // Warn prints warning
-// Output pattern: (?time) [WARN] warning
+// Output pattern: (?time) [WRN] warning
 func Warn(v ...interface{}) {
 	globalLogger.Warn(v...)
 }
 
 // Warnf prints warning
-// Output pattern: (?time) [WARN] warning
+// Output pattern: (?time) [WRN] warning
 func Warnf(format string, v ...interface{}) {
 	globalLogger.Warnf(format, v...)
 }
 
 // Warnln prints warning
-// Output pattern: (?time) [WARN] warning
+// Output pattern: (?time) [WRN] warning
 func Warnln(v ...interface{}) {
 	globalLogger.Warnln(v...)
 }
@@ -138,19 +91,19 @@ func Errorln(v ...interface{}) {
 /* Fatal */
 
 // Fatal prints error and call os.Exit(1)
-// Output pattern: (?time) [FATAL] (?file:line) error
+// Output pattern: (?time) [FAT] (?file:line) error
 func Fatal(v ...interface{}) {
 	globalLogger.Fatal(v...)
 }
 
 // Fatalf prints error and call os.Exit(1)
-// Output pattern: (?time) [FATAL] (?file:line) error
+// Output pattern: (?time) [FAT] (?file:line) error
 func Fatalf(format string, v ...interface{}) {
 	globalLogger.Fatalf(format, v...)
 }
 
 // Fatalln prints error and call os.Exit(1)
-// Output pattern: (?time) [FATAL] (?file:line) error
+// Output pattern: (?time) [FAT] (?file:line) error
 func Fatalln(v ...interface{}) {
 	globalLogger.Fatalln(v...)
 }

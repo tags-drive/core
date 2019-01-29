@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ShoshinNikita/log"
+	clog "github.com/ShoshinNikita/log/v2"
 )
 
 func isEqual(a, b []string) bool {

@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	stdlog "log"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
-	"github.com/ShoshinNikita/log"
+	clog "github.com/ShoshinNikita/log/v2"
 
 	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
@@ -22,20 +23,17 @@ type App struct {
 	Server      cmd.Server
 	FileStorage cmd.FileStorageInterface
 	TagStorage  cmd.TagStorageInterface
-	Logger      *log.Logger
+	Logger      *clog.Logger
 }
 
 func main() {
-	lg := log.NewLogger()
-	lg.PrintColor(true)
-	lg.PrintTime(true)
-
 	if err := params.Parse(); err != nil {
-		lg.Fatalln(err)
+		stdlog.Fatalln(err)
 	}
 
+	lg := clog.NewProdLogger()
 	if params.Debug {
-		lg.PrintErrorLine(true)
+		lg = clog.NewDevLogger()
 	}
 
 	lg.Printf("Tags Drive %s (https://github.com/tags-drive)\n\n", version)
@@ -86,19 +84,19 @@ func main() {
 		lg.Infoln("shutdown WebServer")
 		err := app.Server.Shutdown()
 		if err != nil {
-			log.Warnf("can't shutdown server gracefully: %s\n", err)
+			lg.Warnf("can't shutdown server gracefully: %s\n", err)
 		}
 
 		lg.Infoln("shutdown FileStorage")
 		err = app.FileStorage.Shutdown()
 		if err != nil {
-			log.Warnf("can't shutdown FileStorage gracefully: %s\n", err)
+			lg.Warnf("can't shutdown FileStorage gracefully: %s\n", err)
 		}
 
 		lg.Infoln("shutdown TagStorage")
 		err = app.TagStorage.Shutdown()
 		if err != nil {
-			log.Warnf("can't shutdown TagStorage gracefully: %s\n", err)
+			lg.Warnf("can't shutdown TagStorage gracefully: %s\n", err)
 		}
 
 		close(shutdowned)
