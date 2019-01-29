@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gorilla/mux"
+
 	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	filesPck "github.com/tags-drive/core/internal/storage/files"
@@ -285,7 +287,7 @@ func (s Server) recoverFile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// PUT /api/files/name
+// PUT /api/file/{id}/name
 //
 // Params:
 //   - id: file id
@@ -294,7 +296,7 @@ func (s Server) recoverFile(w http.ResponseWriter, r *http.Request) {
 //  Response: -
 //
 func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
-	strID := r.FormValue("id")
+	strID := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(strID)
 	if err != nil {
 		s.processError(w, "bad id syntax", http.StatusBadRequest)
@@ -315,7 +317,7 @@ func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// PUT /api/files/tags
+// PUT /api/file/{id}/tags
 //
 // Params:
 //   - id: file id
@@ -324,7 +326,7 @@ func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 // Response: -
 //
 func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
-	strID := r.FormValue("id")
+	strID := mux.Vars(r)["id"]
 	fileID, err := strconv.Atoi(strID)
 	if err != nil {
 		s.processError(w, "bad id syntax", http.StatusBadRequest)
@@ -360,7 +362,7 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// PUT /api/files/description
+// PUT /api/file/{id}/description
 //
 // Params:
 //   - id: file id
@@ -369,7 +371,7 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 // Response: -
 //
 func (s Server) changeFileDescription(w http.ResponseWriter, r *http.Request) {
-	strID := r.FormValue("id")
+	strID := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(strID)
 	if err != nil {
 		s.processError(w, "bad id syntax", http.StatusBadRequest)

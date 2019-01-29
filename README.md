@@ -184,7 +184,7 @@ Use this command to generate self-signed TLS certificate:
 
 #### File info changing
 
-- `PUT /api/files/name`
+- `PUT /api/file/{id}/name`
 
   **Params:**
   - **id**: file id
@@ -192,7 +192,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** -
 
-- `PUT /api/files/tags`
+- `PUT /api/file/{id}/tags`
 
   **Params:**
   - **id**: file id
@@ -200,7 +200,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** -
 
-- `PUT /api/files/description`
+- `PUT /api/file/{id}/description`
 
   **Params:**
   - **id**: file id
