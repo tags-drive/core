@@ -42,7 +42,7 @@ func newAuth() *Auth {
 	return &Auth{
 		mutex:  new(sync.RWMutex),
 		tokens: originalTokens(),
-		logger: log.NewLogger(),
+		logger: clog.NewProdLogger(),
 	}
 }
 
@@ -50,13 +50,13 @@ func TestMain(m *testing.M) {
 	// Create tokens.json file in folder web/auth/configs. This file is used for test tokens.write()
 	err := os.Mkdir("configs", 0666)
 	if err != nil && !os.IsExist(err) {
-		log.Fatalln(err)
+		clog.Fatalln(err)
 		return
 	}
 
 	f, err := os.Create("configs/tokens.json")
 	if err != nil {
-		log.Fatalln(err)
+		clog.Fatalln(err)
 		return
 	}
 	// We have to close the file to remove it
@@ -68,12 +68,12 @@ func TestMain(m *testing.M) {
 	// Remove test file
 	err = os.Remove("configs/tokens.json")
 	if err != nil {
-		log.Fatalln(err)
+		clog.Fatalln(err)
 		return
 	}
 	err = os.Remove("configs")
 	if err != nil {
-		log.Fatalln(err)
+		clog.Fatalln(err)
 		return
 	}
 

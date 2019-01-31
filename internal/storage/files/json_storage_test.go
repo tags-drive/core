@@ -29,7 +29,7 @@ func areArraysEqual(a, b []int) bool {
 }
 
 func newStorage() *jsonFileStorage {
-	return newJsonFileStorage(log.NewLogger())
+	return newJsonFileStorage(clog.NewProdLogger())
 }
 
 // addDefaultFiles adds next files into storage:
@@ -71,7 +71,7 @@ func TestMain(m *testing.M) {
 	// Create "configs"folder
 	err := os.Mkdir("configs", 0666)
 	if err != nil {
-		log.Fatalln("can't create folder \"configs\":", err)
+		clog.Fatalln("can't create folder \"configs\":", err)
 	}
 
 	code := m.Run()
@@ -79,12 +79,12 @@ func TestMain(m *testing.M) {
 	// Remove folder "configs"
 	err = os.RemoveAll("configs")
 	if err != nil {
-		log.Errorln("can't remove folder \"configs\":", err)
+		clog.Errorln("can't remove folder \"configs\":", err)
 	}
 	// Remove "data" folder created by storage.init()
 	err = os.RemoveAll("data")
 	if err != nil {
-		log.Errorln("can't remove folder \"configs\":", err)
+		clog.Errorln("can't remove folder \"configs\":", err)
 	}
 
 	os.Exit(code)

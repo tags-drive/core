@@ -27,7 +27,7 @@ func areTagsEqual(a, b cmd.Tags) bool {
 }
 
 func newStorage() *jsonTagStorage {
-	return newJsonTagStorage(log.NewLogger())
+	return newJsonTagStorage(clog.NewProdLogger())
 }
 
 func TestMain(m *testing.M) {
@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 	// Create folder storage/tags/configs
 	err := os.Mkdir("configs", 0666)
 	if err != nil && !os.IsExist(err) {
-		log.Fatalln(err)
+		clog.Fatalln(err)
 		return
 	}
 
@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 	// Remove test file
 	err = os.RemoveAll("configs")
 	if err != nil {
-		log.Fatalln(err)
+		clog.Fatalln(err)
 		return
 	}
 
