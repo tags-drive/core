@@ -71,9 +71,9 @@ func (s *Server) Start() error {
 		{"/api/files/download", "GET", s.downloadFiles, true},
 		{"/api/files", "POST", s.upload, true},
 		// change file info
-		{"/api/files/name", "PUT", s.changeFilename, true},
-		{"/api/files/tags", "PUT", s.changeFileTags, true},
-		{"/api/files/description", "PUT", s.changeFileDescription, true},
+		{"/api/file/{id:\\d+}/name", "PUT", s.changeFilename, true},
+		{"/api/file/{id:\\d+}/tags", "PUT", s.changeFileTags, true},
+		{"/api/file/{id:\\d+}/description", "PUT", s.changeFileDescription, true},
 		// bulk tags changing
 		{"/api/files/tags", "POST", s.addTagsToFiles, true},
 		{"/api/files/tags", "DELETE", s.removeTagsFromFiles, true},
@@ -93,9 +93,9 @@ func (s *Server) Start() error {
 		{"/logout", "OPTIONS", setDebugHeaders, false},
 		{"/api/files", "OPTIONS", setDebugHeaders, false},
 		{"/api/files/recover", "OPTIONS", setDebugHeaders, false},
-		{"/api/files/tags", "OPTIONS", setDebugHeaders, false},
-		{"/api/files/name", "OPTIONS", setDebugHeaders, false},
-		{"/api/files/description", "OPTIONS", setDebugHeaders, false},
+		{"/api/file/{id:\\d+}/tags", "OPTIONS", setDebugHeaders, false},
+		{"/api/file/{id:\\d+}/name", "OPTIONS", setDebugHeaders, false},
+		{"/api/file/{id:\\d+}/description", "OPTIONS", setDebugHeaders, false},
 		{"/api/tags", "OPTIONS", setDebugHeaders, false},
 	}
 
