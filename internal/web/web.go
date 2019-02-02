@@ -92,6 +92,7 @@ func (s *Server) Start() error {
 		{"/login", "OPTIONS", setDebugHeaders, false},
 		{"/logout", "OPTIONS", setDebugHeaders, false},
 		{"/api/files", "OPTIONS", setDebugHeaders, false},
+		{"/api/files/tags", "OPTIONS", setDebugHeaders, false},
 		{"/api/files/recover", "OPTIONS", setDebugHeaders, false},
 		{"/api/file/{id:\\d+}/tags", "OPTIONS", setDebugHeaders, false},
 		{"/api/file/{id:\\d+}/name", "OPTIONS", setDebugHeaders, false},
