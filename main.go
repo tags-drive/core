@@ -113,7 +113,9 @@ func main() {
 	lg.Infoln("stop")
 }
 
-func paramsToString() (s string) {
+func paramsToString() string {
+	s := "\n"
+
 	vars := []struct {
 		name string
 		v    interface{}
