@@ -35,6 +35,8 @@ func TestParse(t *testing.T) {
 		{"(!1|2))&2&3", false, ""},
 		{"(!!1|3)&3&4", false, ""},
 		{"(!&!2|3)&3&50", false, ""},
+		{"25(22|25|23|26)", false, ""},
+		{"2&22&5&26||27", false, ""},
 	}
 
 	for i, tt := range tests {

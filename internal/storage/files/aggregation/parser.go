@@ -121,8 +121,10 @@ func isCorrectExpression(expr string) bool {
 		{'(', '&'},
 		{'(', '|'},
 		{')', '('},
+		{'&', '&'},
 		{'&', '|'},
 		{'|', '&'},
+		{'|', '|'},
 		{'!', '&'},
 		{'!', '|'},
 		{'!', '!'},
@@ -142,6 +144,7 @@ func isCorrectExpression(expr string) bool {
 
 	invalidRegexpes := []string{
 		`\d!\d`,
+		`\d\(`,
 	}
 	for _, r := range invalidRegexpes {
 		reg := regexp.MustCompile(r)
