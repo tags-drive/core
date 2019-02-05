@@ -204,7 +204,7 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 	return buff, nil
 }
 
-func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
+func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 	file, err := f.Open()
 	if err != nil {
 		return errors.Wrap(err, "can't open a file")
@@ -225,31 +225,54 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 
 	newFileID := fs.storage.addFile(f.Filename, fileType, tags, f.Size, time.Now())
 
+	// If we will get a major error, we will have to panic to delete record in file storage
+	defer func() {
+		if r := recover(); r != nil {
+			// Remove record in storage
+			// We can only log this error
+			e := fs.storage.deleteFileForce(newFileID)
+			if e != nil {
+				fs.logger.Errorf("can't delete record in file storage after error in Upload function: %s\n", e)
+			}
+
+			e, ok := r.(error)
+			if !ok {
+				err = errors.New("unexpected error")
+				return
+			}
+
+			err = e
+		}
+	}()
+
 	originPath := params.DataFolder + "/" + strconv.FormatInt(int64(newFileID), 10)
 
 	// Save file
 	switch fileType {
 	case typeImage:
-		previewPath := params.ResizedImagesFolder + "/" + strconv.FormatInt(int64(newFileID), 10)
-		img, err := resizing.Decode(file)
-		if err != nil {
-			return err
-		}
+		// Create 2 io.Reader from file
+		imageReader := new(bytes.Buffer)
+		fileReader := io.TeeReader(file, imageReader)
 
 		// Save an original image
-		r, err := resizing.Encode(img, ext)
+		err = copyToFile(fileReader, originPath)
 		if err != nil {
-			return err
+			panic(err)
 		}
-		err = copyToFile(r, originPath)
+
+		// After saving the original file we can ignore errors and only log them.
+
+		// Convert imageReader into image.Image
+		previewPath := params.ResizedImagesFolder + "/" + strconv.Itoa(newFileID)
+		img, err := resizing.Decode(imageReader)
 		if err != nil {
-			return err
+			fs.logger.Errorf("can't decode an image %s: %s\n", f.Filename, err)
+			break
 		}
 
 		// Save a resized image
-		// We can ignore errors and only log them because the main file was already saved
 		img = resizing.Resize(img)
-		r, err = resizing.Encode(img, ext)
+		r, err := resizing.Encode(img, ext)
 		if err != nil {
 			fs.logger.Errorf("can't encode a resized image %s: %s\n", f.Filename, err)
 			break
@@ -262,7 +285,7 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) error {
 		// Save a file
 		err := copyToFile(file, originPath)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
 
@@ -340,7 +363,7 @@ func (fs FileStorage) DeleteForce(id int) error {
 		err = os.Remove(file.Preview)
 		if err != nil {
 			// Only log error
-			fs.logger.Errorf("can't delete a resized image %s: %s", file.Filename, err)
+			fs.logger.Errorf("can't delete a resized image %s: %s\n", file.Filename, err)
 		}
 	}
 
