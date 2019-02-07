@@ -120,17 +120,11 @@ Use this command to generate self-signed TLS certificate:
 
 ### Files
 
-- `GET /api/files`
-
+- `GET /api/file/{id}`
   **Params:**
-  - **expr**: logical expression. Example: `!(12&15)&(12|15)` means all files with single tag with id `12` or `15`
-  - **search**: text for search
-  - **sort**: name | size | time
-  - **order**: asc | desc
-  - **offset**: lower bound `[offset:]`
-  - **count**: number of returned files (`[offset:offset+count]`). If count == 0, all files will be returned. Default is 0
+  - **id**: id of a file
 
-  **Response:** json array of:
+  **Response:** json object
 
   ```go
     type FileInfo struct {
@@ -149,6 +143,18 @@ Use this command to generate self-signed TLS certificate:
       TimeToDelete time.Time `json:"timeToDelete"`
     }
   ```
+
+- `GET /api/files`
+
+  **Params:**
+  - **expr**: logical expression. Example: `!(12&15)&(12|15)` means all files with single tag with id `12` or `15`
+  - **search**: text for search
+  - **sort**: name | size | time
+  - **order**: asc | desc
+  - **offset**: lower bound `[offset:]`
+  - **count**: number of returned files (`[offset:offset+count]`). If count == 0, all files will be returned. Default is 0
+
+  **Response:** json array of `FileInfo` (full structure is in `GET /api/file/{id}`)
 
 - `GET /api/files/recent`
 

@@ -66,6 +66,7 @@ func (s *Server) Start() error {
 		{"/logout", "POST", s.logout, true},
 
 		// Files
+		{"/api/file/{id:\\d+}", "GET", s.returnSingleFile, false},
 		{"/api/files", "GET", s.returnFiles, true},
 		{"/api/files/recent", "GET", s.returnRecentFiles, true},
 		{"/api/files/download", "GET", s.downloadFiles, true},
@@ -91,6 +92,7 @@ func (s *Server) Start() error {
 	var debugRoutes = []route{
 		{"/login", "OPTIONS", setDebugHeaders, false},
 		{"/logout", "OPTIONS", setDebugHeaders, false},
+		{"/api/file/{id:\\d+}", "OPTIONS", setDebugHeaders, false},
 		{"/api/files", "OPTIONS", setDebugHeaders, false},
 		{"/api/files/tags", "OPTIONS", setDebugHeaders, false},
 		{"/api/files/recover", "OPTIONS", setDebugHeaders, false},

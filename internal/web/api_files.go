@@ -44,6 +44,40 @@ func getParam(def, passed string, options ...string) (s string) {
 	return
 }
 
+// GET /api/file/{id}
+//
+// Params:
+//   - id: id of a file
+//
+// Response: json object
+//
+func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		s.processError(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	file, err := s.fileStorage.GetFile(id)
+	if err != nil {
+		if err == filesPck.ErrFileIsNotExist {
+			s.processError(w, "file doesn't exist", http.StatusNotFound)
+			return
+		}
+
+		s.processError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+
+	enc.Encode(file)
+}
+
 // GET /api/files
 //
 // Params:
