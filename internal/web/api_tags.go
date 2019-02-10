@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
+
 	"github.com/tags-drive/core/internal/params"
 )
 
@@ -48,7 +50,7 @@ func (s Server) addTag(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// PUT /api/tags
+// PUT /api/tag/{id}
 //
 // Params:
 //   - id: id of a tag
@@ -59,7 +61,7 @@ func (s Server) addTag(w http.ResponseWriter, r *http.Request) {
 //
 func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 	var (
-		tagID    = r.FormValue("id")
+		tagID    = mux.Vars(r)["id"]
 		newName  = r.FormValue("name")
 		newColor = r.FormValue("color")
 	)

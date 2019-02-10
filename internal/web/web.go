@@ -85,7 +85,7 @@ func (s *Server) Start() error {
 		// Tags
 		{"/api/tags", "GET", s.returnTags, true},
 		{"/api/tags", "POST", s.addTag, true},
-		{"/api/tags", "PUT", s.changeTag, true},
+		{"/api/tag/{id:\\d+}", "PUT", s.changeTag, true},
 		{"/api/tags", "DELETE", s.deleteTag, true},
 	}
 
@@ -100,6 +100,7 @@ func (s *Server) Start() error {
 		{"/api/file/{id:\\d+}/name", "OPTIONS", setDebugHeaders, false},
 		{"/api/file/{id:\\d+}/description", "OPTIONS", setDebugHeaders, false},
 		{"/api/tags", "OPTIONS", setDebugHeaders, false},
+		{"/api/tag/{id:\\d+}", "OPTIONS", setDebugHeaders, false},
 	}
 
 	router := mux.NewRouter()
