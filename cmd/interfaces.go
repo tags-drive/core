@@ -69,7 +69,7 @@ type TagStorageInterface interface {
 
 	// Change changes a tag with passed id.
 	// If pass empty newName (or newColor), field Name (or Color) won't be changed.
-	Change(id int, newName, newColor string)
+	Change(id int, newName, newColor string) (updatedTag Tag, err error)
 
 	// Delete deletes a tag with passed id
 	Delete(id int)

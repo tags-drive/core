@@ -103,12 +103,12 @@ func (jts *jsonTagStorage) addTag(tag cmd.Tag) {
 	jts.write()
 }
 
-func (jts *jsonTagStorage) updateTag(id int, newName, newColor string) {
+func (jts *jsonTagStorage) updateTag(id int, newName, newColor string) (cmd.Tag, error) {
 	jts.mutex.Lock()
 
 	if _, ok := jts.tags[id]; !ok {
 		jts.mutex.Unlock()
-		return
+		return cmd.Tag{}, errors.New("tag doesn't exist")
 	}
 
 	tag := jts.tags[id]
@@ -129,6 +129,8 @@ func (jts *jsonTagStorage) updateTag(id int, newName, newColor string) {
 	jts.mutex.Unlock()
 
 	jts.write()
+
+	return tag, nil
 }
 
 func (jts *jsonTagStorage) deleteTag(id int) {
