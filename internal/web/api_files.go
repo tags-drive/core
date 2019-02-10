@@ -327,7 +327,7 @@ func (s Server) recoverFile(w http.ResponseWriter, r *http.Request) {
 //   - id: file id
 //   - new-name: new filename
 //
-//  Response: -
+//  Response: updated file
 //
 func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 	strID := mux.Vars(r)["id"]
@@ -344,11 +344,18 @@ func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// We can skip checking of invalid characters, because Go will return an error
-	_, err = s.fileStorage.Rename(id, newName)
+	updatedFile, err := s.fileStorage.Rename(id, newName)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+	enc.Encode(updatedFile)
 }
 
 // PUT /api/file/{id}/tags
@@ -357,7 +364,7 @@ func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 //   - id: file id
 //   - tags: updated list of tags, separated by comma (`tags=1,2,3`)
 //
-// Response: -
+// Response: updated file
 //
 func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 	strID := mux.Vars(r)["id"]
@@ -389,11 +396,18 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	_, err = s.fileStorage.ChangeTags(fileID, goodTags)
+	updatedFile, err := s.fileStorage.ChangeTags(fileID, goodTags)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+	enc.Encode(updatedFile)
 }
 
 // PUT /api/file/{id}/description
@@ -402,22 +416,28 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 //   - id: file id
 //   - description: updated description
 //
-// Response: -
+// Response: updated file
 //
 func (s Server) changeFileDescription(w http.ResponseWriter, r *http.Request) {
-	strID := mux.Vars(r)["id"]
-	id, err := strconv.Atoi(strID)
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		s.processError(w, "bad id syntax", http.StatusBadRequest)
 		return
 	}
-
 	newDescription := r.FormValue("description")
-	_, err = s.fileStorage.ChangeDescription(id, newDescription)
+
+	updatedFile, err := s.fileStorage.ChangeDescription(id, newDescription)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+	enc.Encode(updatedFile)
 }
 
 // POST /api/files/tags
