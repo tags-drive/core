@@ -57,7 +57,7 @@ func (s Server) addTag(w http.ResponseWriter, r *http.Request) {
 //   - name: new name of a tag (can be empty)
 //   - color: new color of a tag (can be empty)
 //
-// Response: -
+// Response: update tag
 //
 func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -75,7 +75,24 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.tagStorage.Change(id, newName, newColor)
+	// Check id
+	if !s.tagStorage.Check(id) {
+		s.processError(w, "tag with id "+tagID+" doesn't exist", http.StatusBadRequest)
+		return
+	}
+
+	updatedTag, err := s.tagStorage.Change(id, newName, newColor)
+	if err != nil {
+		s.processError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+	enc.Encode(updatedTag)
 }
 
 // DELETE /api/tags
