@@ -14,6 +14,10 @@ This repository contains backend part of **Tags Drive**
     - [Data folder](#data-folder)
     - [SSL folder](#ssl-folder)
   - [API](#api)
+    - [General structures](#general-structures)
+      - [FileInfo](#fileinfo)
+      - [Tag](#tag)
+      - [multiplyResponse](#multiplyresponse)
     - [Files](#files)
       - [File info changing](#file-info-changing)
       - [Bulk file tags changing](#bulk-file-tags-changing)
@@ -118,15 +122,11 @@ Use this command to generate self-signed TLS certificate:
 
 ## API
 
-### Files
+### General structures
 
-- `GET /api/file/{id}`
-  **Params:**
-  - **id**: id of a file
+#### FileInfo
 
-  **Response:** json object
-
-  ```go
+```go
     type FileInfo struct {
       ID       int    `json:"id"`
       Filename string `json:"filename"`
@@ -142,7 +142,38 @@ Use this command to generate self-signed TLS certificate:
       Deleted      bool      `json:"deleted"`
       TimeToDelete time.Time `json:"timeToDelete"`
     }
-  ```
+```
+
+#### Tag
+
+```go
+  type Tag struct {
+    ID    int    `json:"id"`
+    Name  string `json:"name"`
+    Color string `json:"color"`
+  }
+
+  type Tags map[int]Tag
+```
+
+#### multiplyResponse
+
+```go
+  type multiplyResponse struct {
+      Filename string `json:"filename"`
+      IsError  bool   `json:"isError"`
+      Error    string `json:"error"`
+      Status   string `json:"status"` // Status isn't empty when IsError == false
+  }
+```
+
+### Files
+
+- `GET /api/file/{id}`
+  **Params:**
+  - **id**: id of a file
+
+  **Response:** json object of [`FileInfo`](#fileinfo)
 
 - `GET /api/files`
 
@@ -154,14 +185,14 @@ Use this command to generate self-signed TLS certificate:
   - **offset**: lower bound `[offset:]`
   - **count**: number of returned files (`[offset:offset+count]`). If count == 0, all files will be returned. Default is 0
 
-  **Response:** json array of `FileInfo` (full structure is in `GET /api/file/{id}`)
+  **Response:** json array of [`FileInfo`](#fileinfo)
 
 - `GET /api/files/recent`
 
   **Params:**
   - **number**: number of returned files (5 is a default value)
 
-  **Response:** same as `GET /api/files`
+  **Response:** json array of [`FileInfo`](#fileinfo)
 
 - `GET /api/files/download`
 
@@ -177,16 +208,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Body** must be `multipart/form-data`
 
-  **Response:** json array of:
-
-  ```go
-  type multiplyResponse struct {
-      Filename string `json:"filename"`
-      IsError  bool   `json:"isError"`
-      Error    string `json:"error"`
-      Status   string `json:"status"` // Status isn't empty when IsError == false
-  }
-  ```
+  **Response:** json array of [`multiplyResponse`](#multiplyresponse)
 
 #### File info changing
 
@@ -196,7 +218,7 @@ Use this command to generate self-signed TLS certificate:
   - **id**: file id
   - **new-name**: new filename
 
-  **Response:** -
+  **Response:** updated file (json object of [`FileInfo`](#fileinfo))
 
 - `PUT /api/file/{id}/tags`
 
@@ -204,7 +226,7 @@ Use this command to generate self-signed TLS certificate:
   - **id**: file id
   - **tags**: updated list of tags, separated by comma (`tags=1,2,3`)
 
-  **Response:** -
+  **Response:** updated file (json object of [`FileInfo`](#fileinfo))
 
 - `PUT /api/file/{id}/description`
 
@@ -212,7 +234,7 @@ Use this command to generate self-signed TLS certificate:
   - **id**: file id
   - **description**: updated description
 
-  **Response:** -
+  **Response:** updated file (json object of [`FileInfo`](#fileinfo))
 
 #### Bulk file tags changing
 
@@ -240,16 +262,7 @@ Use this command to generate self-signed TLS certificate:
   - **ids**: list of ids of files for deleting separated by comma `ids=1,2,54,9`
   - **force**: should file be deleted right now (if it isn't empty, file will be deleted right now)
 
-  **Response:** json array of:
-
-  ```go
-  type multiplyResponse struct {
-      Filename string `json:"filename"`
-      IsError  bool   `json:"isError"`
-      Error    string `json:"error"`
-      Status   string `json:"status"` // Status isn't empty when IsError == false
-  }
-  ```
+  **Response:** json array of [`multiplyResponse`](#multiplyresponse)
 
 - `POST /api/files/recover`
 
@@ -264,15 +277,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Params:** -
 
-  **Response:** json map `tagID: Tag`, where
-
-  ```go
-  type Tag struct {
-      ID    int    `json:"id"`
-      Name  string `json:"name"`
-      Color string `json:"color"`
-  }
-  ```
+  **Response:** json object of [`Tags`](#Tag)
 
 - `POST /api/tags`
 
@@ -282,14 +287,14 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** -
 
-- `PUT /api/tags`
+- `PUT /api/tag/{id}`
 
   **Params:**
   - **id**: id of a tag
   - **name**: new name of a tag (can be empty)
   - **color**: new color of a tag (can be empty)
 
-  **Response:** -
+  **Response:** updated tag (json object of [`Tag`](#Tag))
 
 - `DELETE /api/tags`
 

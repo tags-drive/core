@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
+
 	"github.com/tags-drive/core/internal/params"
 )
 
@@ -48,18 +50,18 @@ func (s Server) addTag(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// PUT /api/tags
+// PUT /api/tag/{id}
 //
 // Params:
 //   - id: id of a tag
 //   - name: new name of a tag (can be empty)
 //   - color: new color of a tag (can be empty)
 //
-// Response: -
+// Response: update tag
 //
 func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 	var (
-		tagID    = r.FormValue("id")
+		tagID    = mux.Vars(r)["id"]
 		newName  = r.FormValue("name")
 		newColor = r.FormValue("color")
 	)
@@ -73,7 +75,24 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.tagStorage.Change(id, newName, newColor)
+	// Check id
+	if !s.tagStorage.Check(id) {
+		s.processError(w, "tag with id "+tagID+" doesn't exist", http.StatusBadRequest)
+		return
+	}
+
+	updatedTag, err := s.tagStorage.Change(id, newName, newColor)
+	if err != nil {
+		s.processError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+	enc.Encode(updatedTag)
 }
 
 // DELETE /api/tags

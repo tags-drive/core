@@ -31,11 +31,11 @@ type FileStorageInterface interface {
 	Upload(file *multipart.FileHeader, tags []int) error
 
 	// Rename renames a file
-	Rename(fileID int, newName string) error
+	Rename(fileID int, newName string) (updatedFile FileInfo, err error)
 	// ChangeTags changes the tags
-	ChangeTags(fileID int, tags []int) error
+	ChangeTags(fileID int, tags []int) (updatedFile FileInfo, err error)
 	// ChangeDescription changes the description
-	ChangeDescription(fileID int, newDescription string) error
+	ChangeDescription(fileID int, newDescription string) (updatedFile FileInfo, err error)
 
 	// Delete "move" a file into Trash
 	Delete(fileID int) error
@@ -58,6 +58,9 @@ type FileStorageInterface interface {
 
 // TagStorageInterface provides methods for interactions with tags
 type TagStorageInterface interface {
+	// Get return tag with passed id. If a tag doesn't exist, it returns Tag{}, false
+	Get(id int) (Tag, bool)
+
 	// GetAll returns all tags
 	GetAll() Tags
 
@@ -66,7 +69,7 @@ type TagStorageInterface interface {
 
 	// Change changes a tag with passed id.
 	// If pass empty newName (or newColor), field Name (or Color) won't be changed.
-	Change(id int, newName, newColor string)
+	Change(id int, newName, newColor string) (updatedTag Tag, err error)
 
 	// Delete deletes a tag with passed id
 	Delete(id int)

@@ -19,7 +19,7 @@ type storage interface {
 	addTag(tag cmd.Tag)
 
 	// updateTag updates name and color of tag with id == tagID
-	updateTag(id int, newName, newColor string)
+	updateTag(id int, newName, newColor string) (cmd.Tag, error)
 
 	// deleteTag deletes a tag
 	deleteTag(id int)
@@ -60,6 +60,13 @@ func NewTagStorage(lg *clog.Logger) (*TagStorage, error) {
 	return ts, nil
 }
 
+// Get returns cmd.Tag. If a tag doesn't exist, it returns cmd.Tag{}, false
+func (ts TagStorage) Get(id int) (cmd.Tag, bool) {
+	allTags := ts.GetAll()
+	tag, ok := allTags[id]
+	return tag, ok
+}
+
 func (ts TagStorage) GetAll() cmd.Tags {
 	return ts.storage.getAll()
 }
@@ -69,8 +76,8 @@ func (ts TagStorage) Add(name, color string) {
 	ts.storage.addTag(t)
 }
 
-func (ts TagStorage) Change(id int, newName, newColor string) {
-	ts.storage.updateTag(id, newName, newColor)
+func (ts TagStorage) Change(id int, newName, newColor string) (cmd.Tag, error) {
+	return ts.storage.updateTag(id, newName, newColor)
 }
 
 func (ts TagStorage) Delete(id int) {

@@ -200,30 +200,28 @@ func (jfs *jsonFileStorage) addFile(filename, fileType string, tags []int, size 
 }
 
 // renameFile renames a file
-func (jfs *jsonFileStorage) renameFile(id int, newName string) error {
+func (jfs *jsonFileStorage) renameFile(id int, newName string) (cmd.FileInfo, error) {
 	if !jfs.checkFile(id) {
-		return ErrFileIsNotExist
+		return cmd.FileInfo{}, ErrFileIsNotExist
 	}
 
 	jfs.mutex.Lock()
 
 	// Update map
 	f := jfs.files[id]
-	delete(jfs.files, id)
 	f.Filename = newName
-	// We don't have to change Origin, because we don't change filename
 	jfs.files[id] = f
 
 	jfs.mutex.Unlock()
 
 	jfs.write()
 
-	return nil
+	return f, nil
 }
 
-func (jfs *jsonFileStorage) updateFileTags(id int, changedTagsID []int) error {
+func (jfs *jsonFileStorage) updateFileTags(id int, changedTagsID []int) (cmd.FileInfo, error) {
 	if !jfs.checkFile(id) {
-		return ErrFileIsNotExist
+		return cmd.FileInfo{}, ErrFileIsNotExist
 	}
 
 	jfs.mutex.Lock()
@@ -240,12 +238,12 @@ func (jfs *jsonFileStorage) updateFileTags(id int, changedTagsID []int) error {
 
 	jfs.write()
 
-	return nil
+	return f, nil
 }
 
-func (jfs *jsonFileStorage) updateFileDescription(id int, newDesc string) error {
+func (jfs *jsonFileStorage) updateFileDescription(id int, newDesc string) (cmd.FileInfo, error) {
 	if !jfs.checkFile(id) {
-		return ErrFileIsNotExist
+		return cmd.FileInfo{}, ErrFileIsNotExist
 	}
 
 	jfs.mutex.Lock()
@@ -259,7 +257,7 @@ func (jfs *jsonFileStorage) updateFileDescription(id int, newDesc string) error 
 
 	jfs.write()
 
-	return nil
+	return f, nil
 }
 
 // deleteFile sets Deleted = true and update TimeToDelete

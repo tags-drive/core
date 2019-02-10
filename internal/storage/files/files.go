@@ -52,13 +52,13 @@ type storage interface {
 	addFile(filename, fileType string, tags []int, size int64, addTime time.Time) (id int)
 
 	// renameFile renames a file
-	renameFile(id int, newName string) error
+	renameFile(id int, newName string) (cmd.FileInfo, error)
 
 	// updateFileTags updates tags of a file
-	updateFileTags(id int, changedTagsID []int) error
+	updateFileTags(id int, changedTagsID []int) (cmd.FileInfo, error)
 
 	// updateFileDescription update description of a file
-	updateFileDescription(id int, newDesc string) error
+	updateFileDescription(id int, newDesc string) (cmd.FileInfo, error)
 
 	// deleteFile marks file deleted and sets TimeToDelete
 	// File can't be deleted several times (function should return ErrFileDeletedAgain)
@@ -319,21 +319,21 @@ func copyToFile(src io.Reader, path string) error {
 }
 
 // Rename renames a file
-func (fs FileStorage) Rename(id int, newName string) error {
-	err := fs.storage.renameFile(id, newName)
+func (fs FileStorage) Rename(id int, newName string) (cmd.FileInfo, error) {
+	file, err := fs.storage.renameFile(id, newName)
 	if err != nil {
-		return errors.Wrap(err, "can't rename file in a storage")
+		return cmd.FileInfo{}, errors.Wrap(err, "can't rename file in a storage")
 	}
 
 	// We don't rename a file on disk, because id is constant
-	return nil
+	return file, nil
 }
 
-func (fs FileStorage) ChangeTags(id int, tags []int) error {
+func (fs FileStorage) ChangeTags(id int, tags []int) (cmd.FileInfo, error) {
 	return fs.storage.updateFileTags(id, tags)
 }
 
-func (fs FileStorage) ChangeDescription(id int, newDescription string) error {
+func (fs FileStorage) ChangeDescription(id int, newDescription string) (cmd.FileInfo, error) {
 	return fs.storage.updateFileDescription(id, newDescription)
 }
 
