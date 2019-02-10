@@ -344,7 +344,7 @@ func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// We can skip checking of invalid characters, because Go will return an error
-	err = s.fileStorage.Rename(id, newName)
+	_, err = s.fileStorage.Rename(id, newName)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -389,7 +389,7 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = s.fileStorage.ChangeTags(fileID, goodTags)
+	_, err = s.fileStorage.ChangeTags(fileID, goodTags)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -413,7 +413,7 @@ func (s Server) changeFileDescription(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newDescription := r.FormValue("description")
-	err = s.fileStorage.ChangeDescription(id, newDescription)
+	_, err = s.fileStorage.ChangeDescription(id, newDescription)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return

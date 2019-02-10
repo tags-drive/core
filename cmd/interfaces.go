@@ -31,11 +31,11 @@ type FileStorageInterface interface {
 	Upload(file *multipart.FileHeader, tags []int) error
 
 	// Rename renames a file
-	Rename(fileID int, newName string) error
+	Rename(fileID int, newName string) (updatedFile FileInfo, err error)
 	// ChangeTags changes the tags
-	ChangeTags(fileID int, tags []int) error
+	ChangeTags(fileID int, tags []int) (updatedFile FileInfo, err error)
 	// ChangeDescription changes the description
-	ChangeDescription(fileID int, newDescription string) error
+	ChangeDescription(fileID int, newDescription string) (updatedFile FileInfo, err error)
 
 	// Delete "move" a file into Trash
 	Delete(fileID int) error
