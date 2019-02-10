@@ -60,6 +60,13 @@ func NewTagStorage(lg *clog.Logger) (*TagStorage, error) {
 	return ts, nil
 }
 
+// Get returns cmd.Tag. If a tag doesn't exist, it returns cmd.Tag{}, false
+func (ts TagStorage) Get(id int) (cmd.Tag, bool) {
+	allTags := ts.GetAll()
+	tag, ok := allTags[id]
+	return tag, ok
+}
+
 func (ts TagStorage) GetAll() cmd.Tags {
 	return ts.storage.getAll()
 }

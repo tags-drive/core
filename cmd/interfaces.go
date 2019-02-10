@@ -58,6 +58,9 @@ type FileStorageInterface interface {
 
 // TagStorageInterface provides methods for interactions with tags
 type TagStorageInterface interface {
+	// Get return tag with passed id. If a tag doesn't exist, it returns Tag{}, false
+	Get(id int) (Tag, bool)
+
 	// GetAll returns all tags
 	GetAll() Tags
 
