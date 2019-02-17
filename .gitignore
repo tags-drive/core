@@ -1,8 +1,8 @@
 # IDEs
-.vscode
+.vscode/
 # Folders
-configs
-data
-scripts
-ssl
-web
+configs/
+data/
+scripts/
+ssl/
+web/**
