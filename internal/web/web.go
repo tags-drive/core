@@ -13,6 +13,12 @@ import (
 	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/web/auth"
+	"github.com/tags-drive/core/internal/web/limiter"
+)
+
+const (
+	authMaxRequests    = 1 // per second
+	authLimiterTimeout = time.Second
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -25,6 +31,8 @@ type Server struct {
 	logger *clog.Logger
 
 	httpServer *http.Server
+
+	authRateLimiter *limiter.RateLimiter
 }
 
 type route struct {
@@ -48,6 +56,8 @@ func NewWebServer(fs cmd.FileStorageInterface, ts cmd.TagStorageInterface, lg *c
 	if err != nil {
 		return nil, err
 	}
+
+	s.authRateLimiter = limiter.NewRateLimiter(authMaxRequests, authLimiterTimeout)
 
 	return s, nil
 }
