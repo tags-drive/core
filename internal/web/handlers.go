@@ -66,6 +66,11 @@ func (s Server) logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) authentication(w http.ResponseWriter, r *http.Request) {
+	if !s.authRateLimiter.Take(r.RemoteAddr) {
+		s.processError(w, "too many auth requests", http.StatusTooManyRequests)
+		return
+	}
+
 	encrypt := func(s string) string {
 		const repeats = 11
 
