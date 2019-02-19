@@ -16,6 +16,8 @@ const (
 	loginPath = "./web/login.html"
 )
 
+// GET /
+//
 func (s Server) index(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open(indexPath)
 	if err != nil {
@@ -30,6 +32,8 @@ func (s Server) index(w http.ResponseWriter, r *http.Request) {
 	f.Close()
 }
 
+// GET /login
+//
 func (s Server) login(w http.ResponseWriter, r *http.Request) {
 	// Redirect to / if user is authorized
 	c, err := r.Cookie(params.AuthCookieName)
@@ -51,6 +55,12 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 	f.Close()
 }
 
+// POST /api/logout – deletes auth cookie
+//
+// Params: -
+//
+// Response: -
+//
 func (s Server) logout(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie(params.AuthCookieName)
 	if err != nil {
@@ -65,6 +75,14 @@ func (s Server) logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{Name: params.AuthCookieName, Expires: time.Unix(0, 0)})
 }
 
+// POST /api/login
+//
+// Params:
+//   - login: user's login
+//   - password: password (sha256 checksum repeated 11 times)
+//
+// Response: cookie with auth token
+//
 func (s Server) authentication(w http.ResponseWriter, r *http.Request) {
 	if !s.authRateLimiter.Take(r.RemoteAddr) {
 		s.processError(w, "too many auth requests", http.StatusTooManyRequests)

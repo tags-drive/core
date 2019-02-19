@@ -14,6 +14,7 @@ This repository contains backend part of **Tags Drive**
     - [Data folder](#data-folder)
     - [SSL folder](#ssl-folder)
   - [API](#api)
+    - [Auth](#auth)
     - [General structures](#general-structures)
       - [FileInfo](#fileinfo)
       - [Tag](#tag)
@@ -122,6 +123,22 @@ Use this command to generate self-signed TLS certificate:
 
 ## API
 
+### Auth
+
+- `POST /api/login` – sets cookie with auth token
+
+  **Params:**
+  - **login**: user's login
+  - **password**: password (sha256 checksum repeated 11 times)
+
+  **Response:** -
+
+- `POST /api/logout` – deletes auth cookie
+
+  **Params:** -
+
+  **Response:** -
+
 ### General structures
 
 #### FileInfo
@@ -170,6 +187,7 @@ Use this command to generate self-signed TLS certificate:
 ### Files
 
 - `GET /api/file/{id}`
+
   **Params:**
   - **id**: id of a file
 
