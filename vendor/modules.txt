@@ -1,20 +1,20 @@
 # github.com/ShoshinNikita/log/v2 v2.0.0
 github.com/ShoshinNikita/log/v2
-# github.com/disintegration/imaging v1.5.0
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
+# github.com/disintegration/imaging v1.6.0
 github.com/disintegration/imaging
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
-# github.com/gorilla/context v1.1.1
-github.com/gorilla/context
-# github.com/gorilla/mux v1.6.2
+# github.com/gorilla/mux v1.7.0
 github.com/gorilla/mux
 # github.com/json-iterator/go v1.1.5
 github.com/json-iterator/go
-# github.com/mattn/go-colorable v0.0.9
+# github.com/mattn/go-colorable v0.1.0
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.4
 github.com/mattn/go-isatty
-# github.com/minio/sio v0.0.0-20181222222821-d86b148d521c
+# github.com/minio/sio v0.0.0-20190118043801-035b4ef8c449
 github.com/minio/sio
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
@@ -22,15 +22,19 @@ github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
-# golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/stretchr/testify v1.3.0
+github.com/stretchr/testify/assert
+# golang.org/x/crypto v0.0.0-20190211182817-74369b46fc67
 golang.org/x/crypto/chacha20poly1305
 golang.org/x/crypto/internal/chacha20
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/poly1305
-# golang.org/x/image v0.0.0-20181116024801-cd38e8056d9b
+# golang.org/x/image v0.0.0-20190209060608-ef4a1470e0dc
 golang.org/x/image/bmp
 golang.org/x/image/tiff
 golang.org/x/image/tiff/lzw
-# golang.org/x/sys v0.0.0-20190107173414-20be8e55dc7b
+# golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
