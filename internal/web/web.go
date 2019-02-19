@@ -68,10 +68,14 @@ func NewWebServer(fs cmd.FileStorageInterface, ts cmd.TagStorageInterface, lg *c
 func (s *Server) Start() error {
 	// Init routes
 	var routes = []route{
+		// Pages
 		{"/", "GET", s.index, true},
+		{"/login", "GET", s.login, false},
 
 		// Auth
-		{"/login", "GET", s.login, false},
+		{"/api/login", "POST", s.authentication, false},
+		{"/api/logout", "POST", s.logout, true},
+		// deprecated
 		{"/login", "POST", s.authentication, false},
 		{"/logout", "POST", s.logout, true},
 
