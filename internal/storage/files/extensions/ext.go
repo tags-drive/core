@@ -9,7 +9,7 @@ import (
 
 var (
 	// UnsupportedExt is used for unsupported file extension
-	UnsupportedExt    = cmd.Ext{Supported: false, FileType: cmd.TypeUnsupported}
+	UnsupportedExt    = cmd.Ext{Supported: false, FileType: cmd.FileTypeUnsupported}
 	errUnsupportedExt = errors.New("unsupported extension")
 )
 
