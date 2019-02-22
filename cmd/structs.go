@@ -12,6 +12,16 @@ type Tag struct {
 // Tags is a map of Tag
 type Tags map[int]Tag
 
+// Ext is a struct which contains type of the original file and type for preview
+type Ext struct {
+	Ext         string   `json:"ext"`
+	FileType    FileType `json:"fileType"`
+	Supported   bool     `json:"supported"`
+	PreviewType FileType `json:"previewType"`
+}
+
+type FileType string
+
 // FileInfo contains the information about a file
 type FileInfo struct {
 	ID       int    `json:"id"`
