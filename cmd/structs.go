@@ -44,9 +44,9 @@ const (
 type FileInfo struct {
 	ID       int    `json:"id"`
 	Filename string `json:"filename"`
-	Type     string `json:"type"`              // typeImage or typeFile
+	Type     Ext    `json:"type"`
 	Origin   string `json:"origin"`            // Origin is a path to a file (params.DataFolder/filename)
-	Preview  string `json:"preview,omitempty"` // Preview is a path to a resized image (only if Type == TypeImage)
+	Preview  string `json:"preview,omitempty"` // Preview is a path to a resized image (only if Type.FileType == FileTypeImage)
 	//
 	Tags        []int     `json:"tags"`
 	Description string    `json:"description"`

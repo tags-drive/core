@@ -18,6 +18,7 @@ import (
 	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
+	"github.com/tags-drive/core/internal/storage/files/extensions"
 	"github.com/tags-drive/core/internal/storage/files/resizing"
 )
 
@@ -49,7 +50,7 @@ type storage interface {
 	getFiles(expr, search string) (files []cmd.FileInfo)
 
 	// add adds a file
-	addFile(filename, fileType string, tags []int, size int64, addTime time.Time) (id int)
+	addFile(filename string, fileType cmd.Ext, tags []int, size int64, addTime time.Time) (id int)
 
 	// renameFile renames a file
 	renameFile(id int, newName string) (cmd.FileInfo, error)
@@ -212,16 +213,7 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 	defer file.Close()
 
 	ext := filepath.Ext(f.Filename)
-	var fileType string
-
-	// Define file type
-	switch ext {
-	case ".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG", ".gif", ".GIF", "webp", "WEBP":
-		fileType = typeImage
-	default:
-		// Save a file
-		fileType = typeFile
-	}
+	fileType := extensions.GetExt(ext)
 
 	newFileID := fs.storage.addFile(f.Filename, fileType, tags, f.Size, time.Now())
 
@@ -248,8 +240,8 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 	originPath := params.DataFolder + "/" + strconv.FormatInt(int64(newFileID), 10)
 
 	// Save file
-	switch fileType {
-	case typeImage:
+	switch fileType.FileType {
+	case cmd.FileTypeImage:
 		// Create 2 io.Reader from file
 		imageReader := new(bytes.Buffer)
 		fileReader := io.TeeReader(file, imageReader)
