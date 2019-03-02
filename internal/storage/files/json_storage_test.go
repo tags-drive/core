@@ -6,6 +6,8 @@ import (
 	"time"
 
 	clog "github.com/ShoshinNikita/log/v2"
+
+	"github.com/tags-drive/core/cmd"
 )
 
 func areArraysEqual(a, b []int) bool {
@@ -58,7 +60,7 @@ func addDefaultFiles(storage *jsonFileStorage) {
 	now := time.Now()
 
 	for _, f := range files {
-		storage.addFile(f.filename, "file", f.tags, 0, now)
+		storage.addFile(f.filename, cmd.Ext{}, f.tags, 0, now)
 	}
 }
 

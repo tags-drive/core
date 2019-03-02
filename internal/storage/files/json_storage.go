@@ -163,7 +163,7 @@ func (jfs jsonFileStorage) getFiles(parsedExpr, search string) (files []cmd.File
 // addFile adds an element into js.files and call js.write()
 // It also defines cmd.FileInfo.Origin and cmd.FileInfo.Preview (if file is image) as
 // `params.DataFolder + "/" + id` and `params.ResizedImagesFolder + "/" + id`
-func (jfs *jsonFileStorage) addFile(filename, fileType string, tags []int, size int64, addTime time.Time) (id int) {
+func (jfs *jsonFileStorage) addFile(filename string, fileType cmd.Ext, tags []int, size int64, addTime time.Time) (id int) {
 	fileInfo := cmd.FileInfo{Filename: filename,
 		Type:    fileType,
 		Tags:    tags,
@@ -186,7 +186,7 @@ func (jfs *jsonFileStorage) addFile(filename, fileType string, tags []int, size 
 	fileInfo.ID = fileID
 
 	fileInfo.Origin = params.DataFolder + "/" + strconv.FormatInt(int64(fileID), 10)
-	if fileType == typeImage {
+	if fileType.FileType == cmd.FileTypeImage {
 		fileInfo.Preview = params.ResizedImagesFolder + "/" + strconv.FormatInt(int64(fileID), 10)
 	}
 

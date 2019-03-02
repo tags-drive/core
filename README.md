@@ -65,27 +65,25 @@ Uploaded files can be encrypted. **Tags Drive** uses sha256 sum of the password 
     {
       "1": {
         "id": 1,
-        "filename": "1.jpg",
-        "type": "image",
-        "origin": "data/1.jpg",
-        "description": "some cool image",
-        "size": 527928,
-        "tags": [12, 15, 17, 19, 18],
-        "addTime": "2018-10-12T20:37:54.5515067+03:00",
-        "preview": "data/resized/1.jpg"
+        "filename": "cute-cat.jpg",
+        "type": {
+          "ext": ".jpg",
+          "fileType": "image",
+          "supported": true,
+          "previewType": "image"
+        },
+        "origin": "data/1",
+        "preview": "data/resized/1",
+        "tags": [24,26],
+        "description": "very cute cat :)",
+        "size": 480900,
+        "addTime": "2018-12-29T16:45:07.4440863+03:00",
+        "deleted": false,
+        "timeToDelete": "0001-01-01T00:00:00Z"
       },
-      "2": {
-        "id": 2,
-        "filename": "file.txt",
-        "type": "file",
-        "origin": "data/file.txt",
-        "description": "",
-        "size": 48,
-        "tags": [],
-        "addTime": "2018-11-04T23:54:54.9669548-08:00"
-      }
     }
     ```
+
   </details>
 
 - `tags.json` - contains json map of all tags
@@ -144,10 +142,22 @@ Use this command to generate self-signed TLS certificate:
 #### FileInfo
 
 ```go
+    type FileType string
+
+    type PreviewType string
+
+    // Ext is a struct which contains type of the original file and type for preview
+    type Ext struct {
+      Ext         string      `json:"ext"`
+      FileType    FileType    `json:"fileType"`
+      Supported   bool        `json:"supported"`
+      PreviewType PreviewType `json:"previewType"`
+    }
+
     type FileInfo struct {
       ID       int    `json:"id"`
       Filename string `json:"filename"`
-      Type     string `json:"type"`
+      Type     Ext    `json:"type"`
       Origin   string `json:"origin"`
       Preview  string `json:"preview,omitempty"`
       //
