@@ -23,9 +23,6 @@ import (
 )
 
 const (
-	typeImage = "image"
-	typeFile  = "file"
-	//
 	timeBeforeDeleting = time.Hour * 24 * 7 // 7 days. File is deleted from storage and from disk after this time since user deleted the file
 )
 
@@ -37,7 +34,7 @@ var (
 	ErrOffsetOutOfBounds = errors.New("offset is out of bounds")
 )
 
-// storage for files metadata
+// storage is an internal storage for files metadata
 type storage interface {
 	init() error
 

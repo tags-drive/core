@@ -8,7 +8,7 @@ import (
 	"github.com/tags-drive/core/internal/params"
 )
 
-// storage for tags metadata
+// storage is an internal storage for tags metadata
 type storage interface {
 	init() error
 

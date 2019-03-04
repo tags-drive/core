@@ -5,15 +5,15 @@ import "time"
 // Folders
 const (
 	// DataFolder is a folder where all files are kept
-	DataFolder = "data"
+	DataFolder = "./data"
 	// ResizedImagesFolder is a folder where all resized images are kept
-	ResizedImagesFolder = "data/resized"
+	ResizedImagesFolder = "./data/resized"
 	// Files is a json file with files information
-	Files = "configs/files.json"
+	Files = "./configs/files.json"
 	// TokensFile is a json file with list of tokens
-	TokensFile = "configs/tokens.json"
+	TokensFile = "./configs/tokens.json"
 	// TagsFile is a json file with list of tags (with name and color)
-	TagsFile = "configs/tags.json"
+	TagsFile = "./configs/tags.json"
 )
 
 // Web const vars
