@@ -40,9 +40,10 @@ func toStringSlice(t []tokenStruct) (s []string) {
 
 func newAuth() *Auth {
 	return &Auth{
-		mutex:  new(sync.RWMutex),
-		tokens: originalTokens(),
-		logger: clog.NewProdLogger(),
+		mutex:      new(sync.RWMutex),
+		tokens:     originalTokens(),
+		logger:     clog.NewProdLogger(),
+		shutdowned: make(chan struct{}),
 	}
 }
 
@@ -122,6 +123,8 @@ func TestAdd(t *testing.T) {
 	if !isEqual(want, got) {
 		t.Errorf("Wrong add result Want: %v Got: %v", want, got)
 	}
+
+	tt.Shutdown()
 }
 
 func TestDelete(t *testing.T) {
@@ -191,6 +194,8 @@ func TestCheck(t *testing.T) {
 	if res != answerBool {
 		t.Errorf("Wrong check result Want: %v Got: %v", answerBool, res)
 	}
+
+	tt.Shutdown()
 }
 
 func TestExpire(t *testing.T) {
@@ -233,4 +238,6 @@ func TestExpire(t *testing.T) {
 			t.Errorf("Test #%d Want: %v Got: %v\n", i, want, got)
 		}
 	}
+
+	testTokens.Shutdown()
 }

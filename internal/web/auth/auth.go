@@ -17,6 +17,9 @@ type Auth struct {
 	tokens []tokenStruct // we can use array instead of map because number of tokens is small and O(n) is enough
 	mutex  *sync.RWMutex
 
+	// this channel signals that Auth.Shutdown() function was called
+	shutdowned chan struct{}
+
 	logger *clog.Logger
 }
 
@@ -28,8 +31,9 @@ type tokenStruct struct {
 // NewAuthService create new Auth and inits tokens
 func NewAuthService(lg *clog.Logger) (*Auth, error) {
 	service := &Auth{
-		mutex:  new(sync.RWMutex),
-		logger: lg,
+		mutex:      new(sync.RWMutex),
+		logger:     lg,
+		shutdowned: make(chan struct{}),
 	}
 
 	f, err := os.Open(params.TokensFile)
@@ -59,10 +63,20 @@ func NewAuthService(lg *clog.Logger) (*Auth, error) {
 
 	// Expiration function
 	go func() {
+		// Check tokens right now
+		lg.Infoln("check expired tokens")
+		service.expire()
+
 		ticker := time.NewTicker(time.Hour * 6)
-		for ; true; <-ticker.C {
-			lg.Infoln("check expired tokens")
-			service.expire()
+		for {
+			select {
+			case <-ticker.C:
+				lg.Infoln("check expired tokens")
+				service.expire()
+			case <-service.shutdowned:
+				ticker.Stop()
+				return
+			}
 		}
 	}()
 
@@ -89,6 +103,8 @@ func (a Auth) CheckToken(token string) bool {
 	return a.check(token)
 }
 
-func (a Auth) Shutdown() error {
+func (a *Auth) Shutdown() error {
+	close(a.shutdowned)
+
 	return nil
 }
