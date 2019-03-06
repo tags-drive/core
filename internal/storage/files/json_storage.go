@@ -1,6 +1,7 @@
 package files
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 
 	clog "github.com/ShoshinNikita/log/v2"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/cmd"
@@ -55,17 +57,9 @@ func (jfs *jsonFileStorage) init() error {
 	if err != nil {
 		// Have to create a new file
 		if os.IsNotExist(err) {
-			jfs.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.Files)
-			f, err = os.OpenFile(params.Files, os.O_CREATE|os.O_RDWR, 0666)
-			if err != nil {
-				return errors.Wrap(err, "can't create a new file")
-			}
-			// Write empty structure
-			f.Write([]byte("{}"))
-			// Can exit because we don't need to decode files from the file
-			f.Close()
 			// We don't have to compute maxID, because there're no any files
-			return nil
+			// Can exit because we don't need to decode files from the file
+			return jfs.createNewFile()
 		}
 
 		return errors.Wrapf(err, "can't open file %s", params.Files)
@@ -88,7 +82,23 @@ func (jfs *jsonFileStorage) init() error {
 	return nil
 }
 
-// write writes js.info into params.TagsFile
+func (jfs jsonFileStorage) createNewFile() error {
+	jfs.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.Files)
+
+	// Just create a new file
+	f, err := os.OpenFile(params.Files, os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		return errors.Wrap(err, "can't create a new file")
+	}
+	f.Close()
+
+	// Write empty files map
+	jfs.write()
+
+	return nil
+}
+
+// write writes js.info into params.Files
 func (jfs jsonFileStorage) write() {
 	jfs.mutex.RLock()
 	defer jfs.mutex.RUnlock()
@@ -98,19 +108,52 @@ func (jfs jsonFileStorage) write() {
 		jfs.logger.Errorf("can't open file %s: %s\n", params.Files, err)
 		return
 	}
+	defer f.Close()
 
-	enc := jfs.json.NewEncoder(f)
+	if !params.Encrypt {
+		// Encode directly into the file
+		enc := jfs.json.NewEncoder(f)
+		if params.Debug {
+			enc.SetIndent("", "  ")
+		}
+		err := enc.Encode(jfs.files)
+		if err != nil {
+			jfs.logger.Warnf("can't write '%s': %s\n", params.Files, err)
+		}
+
+		return
+	}
+
+	// Encode into buffer
+	buff := bytes.NewBuffer([]byte{})
+	enc := jfs.json.NewEncoder(buff)
 	if params.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(jfs.files)
 
-	f.Close()
+	// Write into the file (params.Encrypt is true, if we are here)
+	_, err = sio.Encrypt(f, buff, sio.Config{Key: params.PassPhrase[:]})
+
+	if err != nil {
+		jfs.logger.Warnf("can't write '%s': %s\n", params.Files, err)
+	}
 }
 
 // decode decodes js.info
 func (jfs *jsonFileStorage) decode(r io.Reader) error {
-	return jfs.json.NewDecoder(r).Decode(&jfs.files)
+	if !params.Encrypt {
+		return jfs.json.NewDecoder(r).Decode(&jfs.files)
+	}
+
+	// Have to decrypt at first
+	buff := bytes.NewBuffer([]byte{})
+	_, err := sio.Decrypt(buff, r, sio.Config{Key: params.PassPhrase[:]})
+	if err != nil {
+		return err
+	}
+
+	return jfs.json.NewDecoder(buff).Decode(&jfs.files)
 }
 
 // checkFile return true if file with passed filename exists

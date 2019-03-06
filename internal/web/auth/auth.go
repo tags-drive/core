@@ -1,12 +1,14 @@
 package auth
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"sync"
 	"time"
 
 	clog "github.com/ShoshinNikita/log/v2"
+	"github.com/minio/sio"
 	"github.com/pkg/errors"
 	"github.com/tags-drive/core/internal/params"
 )
@@ -43,17 +45,22 @@ func NewAuthService(lg *clog.Logger) (*Auth, error) {
 		}
 
 		// Have to create a new file
-		lg.Infof("file %s doesn't exist. Need to create a new file\n", params.TokensFile)
-		f, err = os.OpenFile(params.TokensFile, os.O_CREATE|os.O_RDWR, 0666)
+		err = service.createNewFile()
 		if err != nil {
-			return nil, errors.Wrap(err, "can't create a new file")
+			return nil, err
 		}
-		// Write empty structure
-		json.NewEncoder(f).Encode(service.tokens)
-		// Can exit because we don't need to decode files from the file
-		f.Close()
 	} else {
-		err = json.NewDecoder(f).Decode(&service.tokens)
+		if !params.Encrypt {
+			err = json.NewDecoder(f).Decode(&service.tokens)
+		} else {
+			// Have to decrypt at first
+			buff := bytes.NewBuffer([]byte{})
+			_, err := sio.Decrypt(buff, f, sio.Config{Key: params.PassPhrase[:]})
+			if err == nil {
+				err = json.NewDecoder(buff).Decode(&service.tokens)
+			}
+		}
+
 		if err != nil {
 			return nil, errors.Wrap(err, "can't decode allToken.tokens")
 		}
@@ -81,6 +88,34 @@ func NewAuthService(lg *clog.Logger) (*Auth, error) {
 	}()
 
 	return service, nil
+}
+
+func (a Auth) createNewFile() error {
+	a.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.TokensFile)
+
+	f, err := os.OpenFile(params.TokensFile, os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		return errors.Wrap(err, "can't create a new file")
+	}
+	defer f.Close()
+
+	// Write empty structure
+	if !params.Encrypt {
+		return json.NewEncoder(f).Encode(a.tokens)
+	}
+
+	// Encode into buffer
+	buff := bytes.NewBuffer([]byte{})
+	enc := json.NewEncoder(buff)
+	if params.Debug {
+		enc.SetIndent("", "  ")
+	}
+	enc.Encode(a.tokens)
+
+	// Write into the file (params.Encrypt is true, if we are here)
+	_, err = sio.Encrypt(f, buff, sio.Config{Key: params.PassPhrase[:]})
+
+	return err
 }
 
 // GenerateToken generates a new token

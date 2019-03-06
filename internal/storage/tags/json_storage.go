@@ -1,12 +1,14 @@
 package tags
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"sync"
 
 	clog "github.com/ShoshinNikita/log/v2"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/cmd"
@@ -35,23 +37,30 @@ func (jts *jsonTagStorage) init() error {
 	if err != nil {
 		// Have to create a new file
 		if os.IsNotExist(err) {
-			jts.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.TagsFile)
-			f, err = os.OpenFile(params.TagsFile, os.O_CREATE|os.O_RDWR, 0666)
-			if err != nil {
-				return errors.Wrap(err, "can't create a new file")
-			}
-			// Write empty structure
-			f.Write([]byte("{}"))
-			// Can exit because we don't need to decode tags from the file
-			f.Close()
-			return nil
+			return jts.createNewFile()
 		}
 
 		return errors.Wrapf(err, "can't open file %s", params.TagsFile)
 	}
-
 	defer f.Close()
+
 	return jts.decode(f)
+}
+
+func (jts *jsonTagStorage) createNewFile() error {
+	jts.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.TagsFile)
+
+	// Just create a new file
+	f, err := os.OpenFile(params.TagsFile, os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		return errors.Wrap(err, "can't create a new file")
+	}
+	f.Close()
+
+	// Write empty tag map
+	jts.write()
+
+	return nil
 }
 
 func (jts jsonTagStorage) write() {
@@ -63,18 +72,51 @@ func (jts jsonTagStorage) write() {
 		jts.logger.Errorf("can't open file %s: %s\n", params.TagsFile, err)
 		return
 	}
+	defer f.Close()
 
-	enc := jts.json.NewEncoder(f)
+	if !params.Encrypt {
+		// Encode directly into the file
+		enc := jts.json.NewEncoder(f)
+		if params.Debug {
+			enc.SetIndent("", "  ")
+		}
+		err := enc.Encode(jts.tags)
+		if err != nil {
+			jts.logger.Warnf("can't write '%s': %s", params.TagsFile, err)
+		}
+
+		return
+	}
+
+	// Encode into buffer
+	buff := bytes.NewBuffer([]byte{})
+	enc := jts.json.NewEncoder(buff)
 	if params.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(jts.tags)
 
-	f.Close()
+	// Write into the file (params.Encrypt is true, if we are here)
+	_, err = sio.Encrypt(f, buff, sio.Config{Key: params.PassPhrase[:]})
+
+	if err != nil {
+		jts.logger.Warnf("can't write '%s': %s\n", params.TagsFile, err)
+	}
 }
 
 func (jts *jsonTagStorage) decode(r io.Reader) error {
-	return jts.json.NewDecoder(r).Decode(&jts.tags)
+	if !params.Encrypt {
+		return jts.json.NewDecoder(r).Decode(&jts.tags)
+	}
+
+	// Have to decrypt at first
+	buff := bytes.NewBuffer([]byte{})
+	_, err := sio.Decrypt(buff, r, sio.Config{Key: params.PassPhrase[:]})
+	if err != nil {
+		return err
+	}
+
+	return jts.json.NewDecoder(buff).Decode(&jts.tags)
 }
 
 func (jts jsonTagStorage) getAll() cmd.Tags {
