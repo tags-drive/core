@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"time"
 
+	"github.com/minio/sio"
 	"github.com/tags-drive/core/internal/params"
 )
 
@@ -17,14 +19,36 @@ func (a Auth) write() {
 		a.logger.Errorf("can't open file %s: %s\n", params.TokensFile, err)
 		return
 	}
+	defer f.Close()
 
-	enc := json.NewEncoder(f)
+	if !params.Encrypt {
+		// Encode directly into the file
+		enc := json.NewEncoder(f)
+		if params.Debug {
+			enc.SetIndent("", "  ")
+		}
+		err := enc.Encode(a.tokens)
+		if err != nil {
+			a.logger.Warnf("can't write '%s': %s\n", params.TokensFile, err)
+		}
+
+		return
+	}
+
+	// Encode into buffer
+	buff := bytes.NewBuffer([]byte{})
+	enc := json.NewEncoder(buff)
 	if params.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(a.tokens)
 
-	f.Close()
+	// Write into the file (params.Encrypt is true, if we are here)
+	_, err = sio.Encrypt(f, buff, sio.Config{Key: params.PassPhrase[:]})
+
+	if err != nil {
+		a.logger.Warnf("can't write '%s': %s\n", params.TokensFile, err)
+	}
 }
 
 func (a *Auth) add(token string) {
