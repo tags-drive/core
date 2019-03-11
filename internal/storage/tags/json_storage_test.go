@@ -73,7 +73,7 @@ func TestInit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !bytes.Equal(data, []byte("{}")) {
+	if !(bytes.Equal(data, []byte("{}")) || bytes.Equal(data, []byte("{}\n"))) {
 		t.Errorf("Wrong file content: %s", string(data))
 	}
 
