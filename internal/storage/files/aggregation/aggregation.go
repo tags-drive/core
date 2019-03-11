@@ -11,7 +11,7 @@ import (
 //
 // expr is a logical expression in reverse Polish notation received from ParseLogicalExpr()
 //
-func IsGoodFile(expr string, fileTags []int) (res bool) {
+func IsGoodFile(expr LogicalExpr, fileTags []int) (res bool) {
 	// Just in case
 	defer func() {
 		if r := recover(); r != nil {

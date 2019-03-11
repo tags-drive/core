@@ -45,7 +45,7 @@ type storage interface {
 	//     expr - parsed logical expression
 	//     search - string, which filename has to contain (lower case)
 	//     isRegexp - is expr a regular expression (if it is true, expr must be valid regular expression)
-	getFiles(expr, search string, isRegexp bool) (files []cmd.FileInfo)
+	getFiles(expr aggregation.LogicalExpr, search string, isRegexp bool) (files []cmd.FileInfo)
 
 	// add adds a file
 	addFile(filename string, fileType cmd.Ext, tags []int, size int64, addTime time.Time) (id int)

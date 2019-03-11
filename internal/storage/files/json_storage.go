@@ -178,7 +178,7 @@ func (jfs jsonFileStorage) getFile(id int) (cmd.FileInfo, error) {
 }
 
 // getFiles returns slice of cmd.FileInfo. If parsedExpr == "", it returns all files
-func (jfs jsonFileStorage) getFiles(parsedExpr, search string, isRegexp bool) (files []cmd.FileInfo) {
+func (jfs jsonFileStorage) getFiles(parsedExpr aggregation.LogicalExpr, search string, isRegexp bool) (files []cmd.FileInfo) {
 	jfs.mutex.RLock()
 
 	for _, v := range jfs.files {

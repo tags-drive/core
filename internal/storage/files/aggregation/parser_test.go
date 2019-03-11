@@ -10,7 +10,7 @@ func TestParse(t *testing.T) {
 	tests := []struct {
 		expr      string
 		isCorrect bool
-		answer    string
+		answer    aggregation.LogicalExpr
 	}{
 		// correct
 		{"", true, ""},

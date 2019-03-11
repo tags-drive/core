@@ -8,7 +8,7 @@ import (
 
 func TestIsGoodFile(t *testing.T) {
 	tests := []struct {
-		expr   string
+		expr   aggregation.LogicalExpr
 		tags   []int
 		answer bool
 	}{

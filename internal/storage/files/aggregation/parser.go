@@ -8,6 +8,9 @@ import (
 
 var ErrBadSyntax = errors.New("bad syntax")
 
+// Expression is a parsed logical expression
+type LogicalExpr string
+
 // ParseLogicalExpr returns expression in reverse Polish notation
 //
 // Valid symbols: digits, !, &, |, (, )
@@ -15,14 +18,16 @@ var ErrBadSyntax = errors.New("bad syntax")
 //   - input: "66&!8|7" output: "66 8 ! & 7 |"
 //   - input: "(!7|6)&(6|9)" output: "7 ! 6 | 6 9 | &"
 //
-func ParseLogicalExpr(expr string) (res string, err error) {
+func ParseLogicalExpr(expr string) (result LogicalExpr, err error) {
 	// Just in case
 	defer func() {
 		if r := recover(); r != nil {
-			res = ""
+			result = LogicalExpr("")
 			err = ErrBadSyntax
 		}
 	}()
+
+	var res string
 
 	if expr == "" {
 		return "", nil
@@ -89,7 +94,7 @@ func ParseLogicalExpr(expr string) (res string, err error) {
 		res = res[:len(res)-1]
 	}
 
-	return res, nil
+	return LogicalExpr(res), nil
 }
 
 func isGreaterPriority(a, b byte) bool {
