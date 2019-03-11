@@ -20,7 +20,7 @@ import (
 const version = "v0.4.0"
 
 type App struct {
-	Server      cmd.Server
+	Server      cmd.ServerInterface
 	FileStorage cmd.FileStorageInterface
 	TagStorage  cmd.TagStorageInterface
 	Logger      *clog.Logger

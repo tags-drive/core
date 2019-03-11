@@ -5,11 +5,11 @@ import (
 	"mime/multipart"
 )
 
-// Server provides methods for interactions web server
-type Server interface {
+// ServerInterface provides methods for interactions web server
+type ServerInterface interface {
 	Start() error
 
-	// Shutdown gracefully shutdown server
+	// Shutdown gracefully shutdowns server
 	Shutdown() error
 }
 
