@@ -207,7 +207,8 @@ Use this command to generate self-signed TLS certificate:
 
   **Params:**
   - **expr**: logical expression. Example: `!(12&15)&(12|15)` means all files with single tag with id `12` or `15`
-  - **search**: text for search
+  - **search**: text (or regexp) for search
+  - **regexp**: is search a regular expression (it is true when regexp != "")
   - **sort**: name | size | time
   - **order**: asc | desc
   - **offset**: lower bound `[offset:]`
