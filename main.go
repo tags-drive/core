@@ -17,7 +17,7 @@ import (
 	"github.com/tags-drive/core/internal/web"
 )
 
-const version = "v0.4.0"
+const version = "v0.5.0"
 
 type App struct {
 	Server      cmd.ServerInterface
