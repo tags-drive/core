@@ -154,7 +154,7 @@ Use this command to generate self-signed TLS certificate:
       PreviewType PreviewType `json:"previewType"`
     }
 
-    type FileInfo struct {
+    type File struct {
       ID       int    `json:"id"`
       Filename string `json:"filename"`
       Type     Ext    `json:"type"`

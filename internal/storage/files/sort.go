@@ -6,7 +6,7 @@ import (
 	"github.com/tags-drive/core/cmd"
 )
 
-func sortFiles(s cmd.FilesSortMode, files []cmd.FileInfo) {
+func sortFiles(s cmd.FilesSortMode, files []cmd.File) {
 	switch s {
 	case cmd.SortByNameAsc:
 		sort.Slice(files, func(i, j int) bool {

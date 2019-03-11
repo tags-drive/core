@@ -3,7 +3,7 @@ package cmd
 import "time"
 
 // FileInfo contains the information about a file
-type FileInfo struct {
+type File struct {
 	ID       int    `json:"id"`
 	Filename string `json:"filename"`
 	Type     Ext    `json:"type"`

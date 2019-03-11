@@ -17,7 +17,7 @@ func TestSortFiles(t *testing.T) {
 		return tm
 	}
 
-	isEqual := func(a, b []cmd.FileInfo) bool {
+	isEqual := func(a, b []cmd.File) bool {
 		if len(a) != len(b) {
 			return false
 		}
@@ -34,17 +34,17 @@ func TestSortFiles(t *testing.T) {
 
 	tests := []struct {
 		s     cmd.FilesSortMode
-		files []cmd.FileInfo
-		res   []cmd.FileInfo
+		files []cmd.File
+		res   []cmd.File
 	}{
 		{cmd.SortByNameAsc,
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "aaa"},
 				{Filename: "fer"},
 			},
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{Filename: "aaa"},
 				{Filename: "abc"},
 				{Filename: "cbd"},
@@ -52,13 +52,13 @@ func TestSortFiles(t *testing.T) {
 			},
 		},
 		{cmd.SortByNameDesc,
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "aaa"},
 				{Filename: "fer"},
 			},
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{Filename: "fer"},
 				{Filename: "cbd"},
 				{Filename: "abc"},
@@ -66,13 +66,13 @@ func TestSortFiles(t *testing.T) {
 			},
 		},
 		{cmd.SortByTimeAsc,
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{AddTime: getTime("05-05-2018 15:45:35")},
 				{AddTime: getTime("05-05-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:16:35")},
 				{AddTime: getTime("05-04-2018 15:22:35")},
 			},
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{AddTime: getTime("05-04-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:16:35")},
 				{AddTime: getTime("05-05-2018 15:22:35")},
@@ -80,13 +80,13 @@ func TestSortFiles(t *testing.T) {
 			},
 		},
 		{cmd.SortByTimeDesc,
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{AddTime: getTime("05-05-2018 15:45:35")},
 				{AddTime: getTime("05-05-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:16:35")},
 				{AddTime: getTime("05-04-2018 15:22:35")},
 			},
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{AddTime: getTime("05-05-2018 15:45:35")},
 				{AddTime: getTime("05-05-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:16:35")},
@@ -94,14 +94,14 @@ func TestSortFiles(t *testing.T) {
 			},
 		},
 		{cmd.SortBySizeAsc,
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{Size: 15},
 				{Size: 1515},
 				{Size: 1885},
 				{Size: 1365},
 				{Size: 1551561651},
 			},
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{Size: 15},
 				{Size: 1365},
 				{Size: 1515},
@@ -110,14 +110,14 @@ func TestSortFiles(t *testing.T) {
 			},
 		},
 		{cmd.SortBySizeDecs,
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{Size: 15},
 				{Size: 1515},
 				{Size: 1885},
 				{Size: 1365},
 				{Size: 1551561651},
 			},
-			[]cmd.FileInfo{
+			[]cmd.File{
 				{Size: 1551561651},
 				{Size: 1885},
 				{Size: 1515},

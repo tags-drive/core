@@ -19,11 +19,11 @@ type FileStorageInterface interface {
 	//
 	// If expr isn't valid, Get returns ErrBadExpessionSyntax
 	// count must be greater than 0, else all files will be returned ([offset:])
-	Get(expr string, s FilesSortMode, search string, isRegexp bool, offset, count int) ([]FileInfo, error)
+	Get(expr string, s FilesSortMode, search string, isRegexp bool, offset, count int) ([]File, error)
 	// GetFile returns a file with passed id
-	GetFile(id int) (FileInfo, error)
+	GetFile(id int) (File, error)
 	// GetRecent returns the last uploaded files
-	GetRecent(number int) []FileInfo
+	GetRecent(number int) []File
 	// ArchiveFiles archives passed files and returns io.Reader with archive
 	Archive(fileIDs []int) (io.Reader, error)
 
@@ -31,11 +31,11 @@ type FileStorageInterface interface {
 	Upload(file *multipart.FileHeader, tags []int) error
 
 	// Rename renames a file
-	Rename(fileID int, newName string) (updatedFile FileInfo, err error)
+	Rename(fileID int, newName string) (updatedFile File, err error)
 	// ChangeTags changes the tags
-	ChangeTags(fileID int, tags []int) (updatedFile FileInfo, err error)
+	ChangeTags(fileID int, tags []int) (updatedFile File, err error)
 	// ChangeDescription changes the description
-	ChangeDescription(fileID int, newDescription string) (updatedFile FileInfo, err error)
+	ChangeDescription(fileID int, newDescription string) (updatedFile File, err error)
 
 	// Delete "move" a file into Trash
 	Delete(fileID int) error
