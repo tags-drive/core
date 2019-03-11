@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -83,6 +84,7 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 // Params:
 //   - expr: logical expression
 //   - search: text for search
+//   - regexp: is search a regular expression (it is true when regexp != "")
 //   - sort: name | size | time
 //   - order: asc | desc
 //   - offset: lower bound [offset:]
@@ -92,14 +94,23 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 //
 func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 	var (
-		order  = getParam("asc", r.FormValue("order"), "asc", "desc")
-		expr   = r.FormValue("expr")
-		search = r.FormValue("search")
-
+		order    = getParam("asc", r.FormValue("order"), "asc", "desc")
+		expr     = r.FormValue("expr")
+		search   = r.FormValue("search")
+		isRegexp = r.FormValue("regexp") != ""
 		offset   = 0
 		count    = 0
 		sortMode = cmd.SortByNameAsc
 	)
+
+	// Check is regexp valid
+	if isRegexp {
+		_, err := regexp.Compile(search)
+		if err != nil {
+			s.processError(w, "invalid regular expression", http.StatusBadRequest)
+			return
+		}
+	}
 
 	// Get offset
 	offset = func() int {
@@ -154,7 +165,7 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	files, err := s.fileStorage.Get(expr, sortMode, search, false, offset, count)
+	files, err := s.fileStorage.Get(expr, sortMode, search, isRegexp, offset, count)
 	if err != nil {
 		if err == aggregation.ErrBadSyntax || err == filesPck.ErrOffsetOutOfBounds {
 			s.processError(w, err.Error(), http.StatusBadRequest)
