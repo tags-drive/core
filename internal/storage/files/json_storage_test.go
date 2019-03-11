@@ -10,12 +10,32 @@ import (
 	"github.com/tags-drive/core/cmd"
 )
 
-func areArraysEqual(a, b []int) bool {
+func areArraysEqualInt(a, b []int) bool {
 	if len(a) != len(b) {
 		return false
 	}
 
 	m := make(map[int]struct{}, len(a))
+	// Add elements
+	for _, v := range a {
+		m[v] = struct{}{}
+	}
+	// Check
+	for _, v := range b {
+		if _, ok := m[v]; !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
+func areArraysEqualString(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	m := make(map[string]struct{}, len(a))
 	// Add elements
 	for _, v := range a {
 		m[v] = struct{}{}
@@ -173,7 +193,7 @@ func TestAddTagsToFiles(t *testing.T) {
 				break
 			}
 
-			if !areArraysEqual(f.Tags, res) {
+			if !areArraysEqualInt(f.Tags, res) {
 				t.Errorf("Test #%d: file with id %d: Want: %v Got: %v", i+1, id+1, res, f.Tags)
 			}
 		}
@@ -251,8 +271,68 @@ func TestRemoveTagsFromFiles(t *testing.T) {
 				break
 			}
 
-			if !areArraysEqual(f.Tags, res) {
+			if !areArraysEqualInt(f.Tags, res) {
 				t.Errorf("Test #%d: file with id %d: Want: %v Got: %v", i+1, id+1, res, f.Tags)
+			}
+		}
+	}
+
+	removeConfigFile()
+}
+
+func TestGetFiles(t *testing.T) {
+	storage := newStorage()
+	storage.init()
+
+	files := []struct {
+		filename string
+	}{
+		{filename: "123.jpg"},
+		{filename: "456.jpeg"},
+		{filename: "1.png"},
+		{filename: "test.exe"},
+		{filename: "123.png"},
+		{filename: "text.txt"},
+	}
+
+	now := time.Now()
+	for _, f := range files {
+		storage.addFile(f.filename, cmd.Ext{}, []int{}, 0, now)
+	}
+
+	requests := []struct {
+		search   string
+		isRegexp bool
+		result   []string // filenames
+	}{
+		{search: "", isRegexp: false, result: []string{"123.jpg", "456.jpeg", "1.png", "test.exe", "123.png", "text.txt"}},
+		{search: "123\\.jpg", isRegexp: false, result: []string{}},
+		{search: "123", isRegexp: false, result: []string{"123.jpg", "123.png"}},
+		//
+		{search: "", isRegexp: true, result: []string{"123.jpg", "456.jpeg", "1.png", "test.exe", "123.png", "text.txt"}},
+		{search: "123", isRegexp: true, result: []string{"123.jpg", "123.png"}},
+		{search: "123\\.jpg", isRegexp: true, result: []string{"123.jpg"}},
+		{search: "123\\.(jpg|png)", isRegexp: true, result: []string{"123.jpg", "123.png"}},
+		{search: "123\\.(jpg|png|txt)", isRegexp: true, result: []string{"123.jpg", "123.png"}},
+		{search: "^1.*g$", isRegexp: true, result: []string{"123.jpg", "123.png", "1.png"}},
+		{search: "\\.[^png]+$", isRegexp: true, result: []string{"test.exe", "text.txt"}},
+	}
+
+	for i, r := range requests {
+		files := storage.getFiles("", r.search, r.isRegexp)
+		if len(files) != len(r.result) {
+			t.Errorf("Test #%d \nWant: %v\nGet: %v\n\n", i, r.result, files)
+		} else {
+			a1 := make([]string, len(files))
+			a2 := make([]string, len(files))
+
+			for i := range files {
+				a1[i] = r.result[i]
+				a2[i] = files[i].Filename
+			}
+
+			if !areArraysEqualString(a1, a2) {
+				t.Errorf("Test #%d \nWant: %v\nGet: %v\n\n", i, r.result, files)
 			}
 		}
 	}
