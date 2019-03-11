@@ -19,7 +19,7 @@ type FileStorageInterface interface {
 	//
 	// If expr isn't valid, Get returns ErrBadExpessionSyntax
 	// count must be greater than 0, else all files will be returned ([offset:])
-	Get(expr string, s FilesSortMode, search string, offset, count int) ([]FileInfo, error)
+	Get(expr string, s FilesSortMode, search string, isRegexp bool, offset, count int) ([]FileInfo, error)
 	// GetFile returns a file with passed id
 	GetFile(id int) (FileInfo, error)
 	// GetRecent returns the last uploaded files

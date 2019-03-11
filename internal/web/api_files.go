@@ -154,7 +154,7 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	files, err := s.fileStorage.Get(expr, sortMode, search, offset, count)
+	files, err := s.fileStorage.Get(expr, sortMode, search, false, offset, count)
 	if err != nil {
 		if err == aggregation.ErrBadSyntax || err == filesPck.ErrOffsetOutOfBounds {
 			s.processError(w, err.Error(), http.StatusBadRequest)

@@ -44,7 +44,8 @@ type storage interface {
 	// getFiles returns files
 	//     expr - parsed logical expression
 	//     search - string, which filename has to contain (lower case)
-	getFiles(expr, search string) (files []cmd.FileInfo)
+	//     isRegexp - is expr a regular expression (if it is true, expr must be valid regular expression)
+	getFiles(expr, search string, isRegexp bool) (files []cmd.FileInfo)
 
 	// add adds a file
 	addFile(filename string, fileType cmd.Ext, tags []int, size int64, addTime time.Time) (id int)
@@ -115,14 +116,14 @@ func NewFileStorage(lg *clog.Logger) (*FileStorage, error) {
 	return fs, nil
 }
 
-func (fs FileStorage) Get(expr string, s cmd.FilesSortMode, search string, offset, count int) ([]cmd.FileInfo, error) {
+func (fs FileStorage) Get(expr string, s cmd.FilesSortMode, search string, isRegexp bool, offset, count int) ([]cmd.FileInfo, error) {
 	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
 	if err != nil {
 		return []cmd.FileInfo{}, err
 	}
 
 	search = strings.ToLower(search)
-	files := fs.storage.getFiles(parsedExpr, search)
+	files := fs.storage.getFiles(parsedExpr, search, isRegexp)
 	if len(files) == 0 && offset == 0 {
 		// We don't return error, when there're no files and offset isn't set
 		return []cmd.FileInfo{}, nil
@@ -146,7 +147,7 @@ func (fs FileStorage) GetFile(id int) (cmd.FileInfo, error) {
 }
 
 func (fs FileStorage) GetRecent(number int) []cmd.FileInfo {
-	files, _ := fs.Get("", cmd.SortByTimeDesc, "", 0, number)
+	files, _ := fs.Get("", cmd.SortByTimeDesc, "", false, 0, number)
 	return files
 }
 
