@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -192,11 +193,19 @@ func (jfs jsonFileStorage) getFiles(parsedExpr, search string, isRegexp bool) (f
 		return files
 	}
 
+	var reg *regexp.Regexp
+	if isRegexp {
+		// search must be valid regular expression
+		reg = regexp.MustCompile(search)
+	}
+
 	// Need to remove files with incorrect name
 	var goodFiles []cmd.FileInfo
-	for _, f := range files {
-		if strings.Contains(strings.ToLower(f.Filename), search) {
-			goodFiles = append(goodFiles, f)
+	for i := range files {
+		if isRegexp && reg.MatchString(files[i].Filename) {
+			goodFiles = append(goodFiles, files[i])
+		} else if strings.Contains(strings.ToLower(files[i].Filename), search) {
+			goodFiles = append(goodFiles, files[i])
 		}
 	}
 
