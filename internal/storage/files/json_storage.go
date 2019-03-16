@@ -363,6 +363,7 @@ func (jfs *jsonFileStorage) recover(id int) {
 	jfs.mutex.Lock()
 
 	if !jfs.files[id].Deleted {
+		jfs.mutex.Unlock()
 		return
 	}
 
