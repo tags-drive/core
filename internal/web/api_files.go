@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -279,27 +280,60 @@ func (s Server) upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var response []multiplyResponse
-	for _, header := range r.MultipartForm.File["files"] {
-		err := s.fileStorage.Upload(header, tags)
-		if err != nil {
-			response = append(response, multiplyResponse{
-				Filename: header.Filename,
-				IsError:  true,
-				Error:    err.Error(),
-			})
-			s.logger.Errorf("can't load a file %s: %s\n", header.Filename, err)
-		} else {
-			response = append(response, multiplyResponse{Filename: header.Filename, Status: "uploaded"})
+	responses := make([]multiplyResponse, 0, len(r.MultipartForm.File["files"]))
+	responsesReady := make(chan struct{})
+	responsesChan := make(chan multiplyResponse, 50)
+
+	headersChan := make(chan interface{}, 5)
+	// Fill headersChan
+	go func() {
+		for i := range r.MultipartForm.File["files"] {
+			headersChan <- r.MultipartForm.File["files"][i]
 		}
-	}
+		close(headersChan)
+	}()
+
+	// Fill responsesChan
+	go func() {
+		for r := range responsesChan {
+			responses = append(responses, r)
+		}
+		close(responsesReady)
+	}()
+
+	runPool(5, headersChan, func(data <-chan interface{}) {
+		for d := range data {
+			header, ok := d.(*multipart.FileHeader)
+			if !ok {
+				continue
+			}
+
+			err := s.fileStorage.Upload(header, tags)
+			var resp multiplyResponse
+			if err != nil {
+				resp = multiplyResponse{
+					Filename: header.Filename,
+					IsError:  true,
+					Error:    err.Error(),
+				}
+				s.logger.Errorf("can't load a file %s: %s\n", header.Filename, err)
+			} else {
+				resp = multiplyResponse{Filename: header.Filename, Status: "uploaded"}
+			}
+
+			responsesChan <- resp
+		}
+	})
+	close(responsesChan)
+
+	<-responsesReady
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
 		enc.SetIndent("", "  ")
 	}
-	enc.Encode(response)
+	enc.Encode(responses)
 }
 
 // POST /api/files/recover
@@ -327,9 +361,23 @@ func (s Server) recoverFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, id := range ids {
-		s.fileStorage.Recover(id)
-	}
+	idsChan := make(chan interface{}, 5)
+	go func() {
+		for i := range ids {
+			idsChan <- ids[i]
+		}
+		close(idsChan)
+	}()
+
+	runPool(5, idsChan, func(data <-chan interface{}) {
+		for d := range data {
+			id, ok := d.(int)
+			if !ok {
+				continue
+			}
+			s.fileStorage.Recover(id)
+		}
+	})
 }
 
 // PUT /api/file/{id}/name
@@ -547,53 +595,93 @@ func (s Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 		return r.FormValue("force") != ""
 	}()
 
-	var response []multiplyResponse
-	for _, id := range ids {
-		file, err := s.fileStorage.GetFile(id)
-		if err != nil {
-			msg := err.Error()
-			if err == filesPck.ErrFileIsNotExist {
-				msg = fmt.Sprintf("file with id \"%d\" doesn't exist", id)
+	responses := make([]multiplyResponse, 0, len(ids))
+	responsesChan := make(chan multiplyResponse, 50)
+	responsesReady := make(chan struct{})
+
+	filesIDsChan := make(chan interface{}, 5)
+	// Fill filesIDsChan
+	go func() {
+		for _, id := range ids {
+			filesIDsChan <- id
+		}
+		close(filesIDsChan)
+	}()
+
+	// Fill responsesChan
+	go func() {
+		for r := range responsesChan {
+			responses = append(responses, r)
+		}
+		close(responsesReady)
+	}()
+
+	// Used in a worker function
+	var (
+		deleteFunc = s.fileStorage.Delete
+		// We will use status if deleteFunc returns nil error
+		respStatus = "added into trash"
+	)
+
+	if force {
+		deleteFunc = s.fileStorage.DeleteForce
+		respStatus = "deleted"
+	}
+
+	runPool(5, filesIDsChan, func(data <-chan interface{}) {
+		for d := range data {
+			id, ok := d.(int)
+			if !ok {
+				continue
 			}
 
-			response = append(response, multiplyResponse{
-				Filename: "",
-				IsError:  true,
-				Error:    msg,
-			})
+			// Check file
+			file, err := s.fileStorage.GetFile(id)
+			if err != nil {
+				msg := err.Error()
+				if err == filesPck.ErrFileIsNotExist {
+					msg = fmt.Sprintf("file with id \"%d\" doesn't exist", id)
+				}
 
-			// We can skip non-existent file
-			continue
-		}
+				responsesChan <- multiplyResponse{
+					Filename: "",
+					IsError:  true,
+					Error:    msg,
+				}
 
-		deleteFunc := s.fileStorage.Delete
-		// We will use status if deleteFunc returns nil error
-		status := "added into trash"
-		if force {
-			deleteFunc = s.fileStorage.DeleteForce
-			status = "deleted"
-		}
+				// We can skip non-existent file
+				continue
+			}
 
-		err = deleteFunc(id)
-		if err != nil {
-			response = append(response, multiplyResponse{
-				Filename: file.Filename,
-				IsError:  true,
-				Error:    err.Error(),
-			})
-		} else {
-			// Use pre-defined var status
-			response = append(response, multiplyResponse{
-				Filename: file.Filename,
-				Status:   status,
-			})
+			var resp multiplyResponse
+
+			// Delete file
+			err = deleteFunc(id)
+			if err != nil {
+				resp = multiplyResponse{
+					Filename: file.Filename,
+					IsError:  true,
+					Error:    err.Error(),
+				}
+			} else {
+				// Use pre-defined var status
+				resp = multiplyResponse{
+					Filename: file.Filename,
+					Status:   respStatus,
+				}
+			}
+
+			responsesChan <- resp
 		}
-	}
+	})
+	close(responsesChan)
+
+	<-responsesReady
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if params.Debug {
 		enc.SetIndent("", "  ")
 	}
-	enc.Encode(response)
+	enc.Encode(responses)
 }
