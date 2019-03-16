@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	clog "github.com/ShoshinNikita/log/v2"
@@ -20,6 +21,9 @@ import (
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
 
+// saveInterval is used in saveOnDisk. It defines interval between calls of jfs.write()
+const saveInterval = time.Second * 10
+
 // jsonFileStorage implements files.storage interface.
 // It is a map (id: cmd.FileInfo) with RWMutex
 type jsonFileStorage struct {
@@ -30,15 +34,20 @@ type jsonFileStorage struct {
 
 	logger *clog.Logger
 	json   jsoniter.API
+
+	shutdownChan chan struct{}
+	// number of changes since last write() call
+	changes uint32
 }
 
 func newJsonFileStorage(lg *clog.Logger) *jsonFileStorage {
 	return &jsonFileStorage{
-		maxID:  0,
-		files:  make(map[int]cmd.File),
-		mutex:  new(sync.RWMutex),
-		logger: lg,
-		json:   jsoniter.ConfigCompatibleWithStandardLibrary,
+		maxID:        0,
+		files:        make(map[int]cmd.File),
+		mutex:        new(sync.RWMutex),
+		logger:       lg,
+		json:         jsoniter.ConfigCompatibleWithStandardLibrary,
+		shutdownChan: make(chan struct{}),
 	}
 }
 
@@ -60,7 +69,13 @@ func (jfs *jsonFileStorage) init() error {
 		if os.IsNotExist(err) {
 			// We don't have to compute maxID, because there're no any files
 			// Can exit because we don't need to decode files from the file
-			return jfs.createNewFile()
+			err := jfs.createNewFile()
+			if err != nil {
+				return err
+			}
+
+			go jfs.saveOnDisk()
+			return nil
 		}
 
 		return errors.Wrapf(err, "can't open file %s", params.Files)
@@ -80,6 +95,7 @@ func (jfs *jsonFileStorage) init() error {
 		}
 	}
 
+	go jfs.saveOnDisk()
 	return nil
 }
 
@@ -97,6 +113,28 @@ func (jfs jsonFileStorage) createNewFile() error {
 	jfs.write()
 
 	return nil
+}
+
+// saveOnDisk calls jfs.write() every saveInterval seconds. It must be ran in goroutine
+// It finishes when jfs.shutdownChan is closed.
+func (jfs *jsonFileStorage) saveOnDisk() {
+	ticker := time.NewTicker(saveInterval)
+	for {
+		select {
+		case <-ticker.C:
+			changed := atomic.LoadUint32(&jfs.changes) != 0
+			// Reset jfs.changes
+			atomic.StoreUint32(&jfs.changes, 0)
+
+			if changed {
+				jfs.write()
+			}
+
+		case <-jfs.shutdownChan:
+			ticker.Stop()
+			return
+		}
+	}
 }
 
 // write writes js.info into params.Files
@@ -181,6 +219,7 @@ func (jfs jsonFileStorage) getFile(id int) (cmd.File, error) {
 func (jfs jsonFileStorage) getFiles(parsedExpr aggregation.LogicalExpr, search string, isRegexp bool) (files []cmd.File) {
 	jfs.mutex.RLock()
 
+	files = make([]cmd.File, 0, len(jfs.files))
 	for _, v := range jfs.files {
 		if aggregation.IsGoodFile(parsedExpr, v.Tags) {
 			files = append(files, v)
@@ -231,6 +270,7 @@ func (jfs *jsonFileStorage) addFile(filename string, fileType cmd.Ext, tags []in
 	}
 
 	jfs.mutex.Lock()
+	defer jfs.mutex.Unlock()
 
 	// Set id
 	jfs.maxID++
@@ -244,9 +284,7 @@ func (jfs *jsonFileStorage) addFile(filename string, fileType cmd.Ext, tags []in
 
 	jfs.files[jfs.maxID] = fileInfo
 
-	jfs.mutex.Unlock()
-
-	jfs.write()
+	atomic.AddUint32(&jfs.changes, 1)
 
 	return fileID
 }
@@ -258,15 +296,13 @@ func (jfs *jsonFileStorage) renameFile(id int, newName string) (cmd.File, error)
 	}
 
 	jfs.mutex.Lock()
+	defer jfs.mutex.Unlock()
 
-	// Update map
 	f := jfs.files[id]
 	f.Filename = newName
 	jfs.files[id] = f
 
-	jfs.mutex.Unlock()
-
-	jfs.write()
+	atomic.AddUint32(&jfs.changes, 1)
 
 	return f, nil
 }
@@ -276,19 +312,18 @@ func (jfs *jsonFileStorage) updateFileTags(id int, changedTagsID []int) (cmd.Fil
 		return cmd.File{}, ErrFileIsNotExist
 	}
 
-	jfs.mutex.Lock()
-
-	// Update map
-	f := jfs.files[id]
 	if changedTagsID == nil {
 		changedTagsID = []int{} // https://github.com/tags-drive/core/issues/19
 	}
+
+	jfs.mutex.Lock()
+	defer jfs.mutex.Unlock()
+
+	f := jfs.files[id]
 	f.Tags = changedTagsID
 	jfs.files[id] = f
 
-	jfs.mutex.Unlock()
-
-	jfs.write()
+	atomic.AddUint32(&jfs.changes, 1)
 
 	return f, nil
 }
@@ -299,15 +334,13 @@ func (jfs *jsonFileStorage) updateFileDescription(id int, newDesc string) (cmd.F
 	}
 
 	jfs.mutex.Lock()
+	defer jfs.mutex.Unlock()
 
-	// Update map
 	f := jfs.files[id]
 	f.Description = newDesc
 	jfs.files[id] = f
 
-	jfs.mutex.Unlock()
-
-	jfs.write()
+	atomic.AddUint32(&jfs.changes, 1)
 
 	return f, nil
 }
@@ -318,21 +351,21 @@ func (jfs *jsonFileStorage) deleteFile(id int) error {
 		return ErrFileIsNotExist
 	}
 
+	deleteTime := time.Now().Add(timeBeforeDeleting)
+
 	jfs.mutex.Lock()
+	defer jfs.mutex.Unlock()
 
 	f := jfs.files[id]
 	if f.Deleted {
-		jfs.mutex.Unlock()
 		return ErrFileDeletedAgain
 	}
 
 	f.Deleted = true
-	f.TimeToDelete = time.Now().Add(timeBeforeDeleting)
+	f.TimeToDelete = deleteTime
 	jfs.files[id] = f
 
-	jfs.mutex.Unlock()
-
-	jfs.write()
+	atomic.AddUint32(&jfs.changes, 1)
 
 	return nil
 }
@@ -344,12 +377,11 @@ func (jfs *jsonFileStorage) deleteFileForce(id int) error {
 	}
 
 	jfs.mutex.Lock()
+	defer jfs.mutex.Unlock()
 
 	delete(jfs.files, id)
 
-	jfs.mutex.Unlock()
-
-	jfs.write()
+	atomic.AddUint32(&jfs.changes, 1)
 
 	return nil
 }
@@ -361,9 +393,9 @@ func (jfs *jsonFileStorage) recover(id int) {
 	}
 
 	jfs.mutex.Lock()
+	defer jfs.mutex.Unlock()
 
 	if !jfs.files[id].Deleted {
-		jfs.mutex.Unlock()
 		return
 	}
 
@@ -372,9 +404,7 @@ func (jfs *jsonFileStorage) recover(id int) {
 	f.TimeToDelete = time.Time{}
 	jfs.files[id] = f
 
-	jfs.mutex.Unlock()
-
-	jfs.write()
+	atomic.AddUint32(&jfs.changes, 1)
 }
 
 func (jfs *jsonFileStorage) addTagsToFiles(filesIDs, tagsID []int) {
@@ -406,6 +436,7 @@ func (jfs *jsonFileStorage) addTagsToFiles(filesIDs, tagsID []int) {
 	}
 
 	jfs.mutex.Lock()
+	defer jfs.mutex.Unlock()
 
 	for id, f := range jfs.files {
 		if !goodID(id) {
@@ -417,9 +448,7 @@ func (jfs *jsonFileStorage) addTagsToFiles(filesIDs, tagsID []int) {
 		jfs.files[id] = f
 	}
 
-	jfs.mutex.Unlock()
-
-	jfs.write()
+	atomic.AddUint32(&jfs.changes, 1)
 }
 
 func (jfs *jsonFileStorage) removeTagsFromFiles(filesIDs, tagsID []int) {
@@ -453,6 +482,7 @@ func (jfs *jsonFileStorage) removeTagsFromFiles(filesIDs, tagsID []int) {
 	}
 
 	jfs.mutex.Lock()
+	defer jfs.mutex.Unlock()
 
 	for id, f := range jfs.files {
 		if !goodID(id) {
@@ -464,13 +494,12 @@ func (jfs *jsonFileStorage) removeTagsFromFiles(filesIDs, tagsID []int) {
 		jfs.files[id] = f
 	}
 
-	jfs.mutex.Unlock()
-
-	jfs.write()
+	atomic.AddUint32(&jfs.changes, 1)
 }
 
 func (jfs *jsonFileStorage) deleteTagFromFiles(tagID int) {
 	jfs.mutex.Lock()
+	defer jfs.mutex.Unlock()
 
 	for id, f := range jfs.files {
 		index := -1
@@ -489,14 +518,13 @@ func (jfs *jsonFileStorage) deleteTagFromFiles(tagID int) {
 		jfs.files[id] = f
 	}
 
-	jfs.mutex.Unlock()
-
-	jfs.write()
+	atomic.AddUint32(&jfs.changes, 1)
 }
 
 // getExpiredDeletedFiles returns ids of files with expired TimeToDelete
 func (jfs *jsonFileStorage) getExpiredDeletedFiles() []int {
 	jfs.mutex.RLock()
+	defer jfs.mutex.RUnlock()
 
 	var filesForDeleting []int
 	now := time.Now()
@@ -506,18 +534,15 @@ func (jfs *jsonFileStorage) getExpiredDeletedFiles() []int {
 		}
 	}
 
-	jfs.mutex.RUnlock()
-
 	return filesForDeleting
 }
 
 func (jfs jsonFileStorage) shutdown() error {
-	// We have not to do any special operations because we update json file on every change.
-	// Also there are no any requests because server is already down. But it's better to check the mutex
-	// just in case.
+	// Stop saveOnDisk goroutine
+	close(jfs.shutdownChan)
 
-	jfs.mutex.Lock()
-	jfs.mutex.Unlock()
+	// Write changes
+	jfs.write()
 
 	// There will be no any new requests.
 
