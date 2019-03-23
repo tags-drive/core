@@ -168,7 +168,10 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 
 	files, err := s.fileStorage.Get(expr, sortMode, search, isRegexp, offset, count)
 	if err != nil {
-		if err == aggregation.ErrBadSyntax || err == filesPck.ErrOffsetOutOfBounds {
+		if err == filesPck.ErrOffsetOutOfBounds {
+			w.WriteHeader(http.StatusNoContent)
+			fmt.Fprint(w, err.Error())
+		} else if err == aggregation.ErrBadSyntax {
 			s.processError(w, err.Error(), http.StatusBadRequest)
 		} else {
 			s.processError(w, err.Error(), http.StatusInternalServerError)

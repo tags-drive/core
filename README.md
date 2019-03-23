@@ -214,7 +214,7 @@ Use this command to generate self-signed TLS certificate:
   - **offset**: lower bound `[offset:]`
   - **count**: number of returned files (`[offset:offset+count]`). If count == 0, all files will be returned. Default is 0
 
-  **Response:** json array of [`FileInfo`](#fileinfo)
+  **Response:** json array of [`FileInfo`](#fileinfo). Status code is `204` when offset is out of bounds.
 
 - `GET /api/files/recent`
 
