@@ -3,71 +3,77 @@
 # This script builds backend and starts a Docker container
 
 import os
-import shutil
+import argparse
 
 
 def runCommand(cmd: str, errMsg: str = ""):
-    '''Calls os.system(cmd). If it get an exception, it calls exit(1)'''
+    '''Calls os.system(cmd). If it gets an exception, it calls exit(1)'''
     try:
         os.system(cmd)
     except Exception as e:
-        print(f"[FAT] {errMsg}:", e)
+        print("[ERR] ", e)
         exit(1)
 
 
-def removeFile(file: str):
-    '''Tries to remove file'''
-    try:
-        os.remove(file)
-    except Exception as e:
-        print(f"[WRN] can't delete file '{file}':", e)
+# Args
+parser = argparse.ArgumentParser(description="This script builds backend and starts a Docker container")
 
+parser.add_argument("--image-name",
+                    type=str,
+                    default="dev-tags-drive",
+                    help="name of a Docker image (default: 'dev-tags-drive')")
+parser.add_argument("--image-tag",
+                    type=str,
+                    default="latest",
+                    help="tag of a Docker image (default: 'lastest')")
+parser.add_argument("--container-name",
+                    type=str,
+                    default="dev-tags-drive",
+                    help="name of a Docker container (default: 'dev-tags-drive')")
+parser.add_argument("--container-port",
+                    type=int,
+                    default=80,
+                    help="port of a Docker container (default: 80)")
+parser.add_argument("--mount-folder",
+                    type=str,
+                    default=os.path.realpath("."),
+                    help="folder for mount to a Docker container (default: root folder)")
+parser.add_argument("--build-only",
+                    action="store_true",
+                    help="don't run s Docker container (default: False)")
 
-# Vars
-ROOT = os.path.realpath(".")
-CONTAINER_NAME = "dev-tags-drive"
-PORT = 80
-
-
-def buildBinary():
-    # Build a binary
-    os.environ["GOOS"] = "linux"
-    os.environ["GOARCH"] = "amd64"
-
-    runCommand("go build -o tags-drive", "can't build binary")
-
-    # Try to delete old version (we can't move a file, if it exists)
-    removeFile("./scripts/docker/tags-drive")
-
-    try:
-        shutil.move("tags-drive", "./scripts/docker")
-    except Exception as e:
-        print(f"[FAT] can't move 'tags-drive':", e)
-        exit(1)
+# Available args:
+#    image_name
+#    image_tag
+#    container_name
+#    container_port
+#    mount_folder
+#    build_only
+args = parser.parse_args()
 
 
 def buildDockerImage():
-    # Build a Docker image
-    os.chdir("./scripts/docker")
-
-    runCommand("docker build -t dev-tags-drive:latest .", "can't build a Docker image")
-
-    # Clear
-    removeFile("./tags-drive")
+    # Build a Docker image (run in root folder)
+    runCommand(f"docker build -t {args.image_name}:{args.image_tag} -f scripts/docker/Dockerfile .",
+               "can't build a Docker image")
 
 
 def runDockerContainer():
-    # Run container
-    runCommand(f"docker run -d --name {CONTAINER_NAME} " +
-               f"-p {PORT}:80 " +
-               f"-v {ROOT}/configs:/app/configs " +
-               f"-v {ROOT}/data:/app/data " +
-               f"--restart=unless-stopped " +
-               f"dev-tags-drive:latest")
+    runCommand("docker run -d --rm " +
+               f"--name {args.container_name} " +
+               f"-p {args.container_port}:80 " +
+               f"-v {args.mount_folder}/configs:/app/configs " +
+               f"-v {args.mount_folder}/data:/app/data " +
+               f"{args.image_name}:{args.image_tag}")
 
 
-buildBinary()
+if __name__ == "__main__":
+    print("[INF] build a Docker image")
 
-buildDockerImage()
+    buildDockerImage()
 
-runDockerContainer()
+    if not args.build_only:
+        print("[INF] run a Docker container")
+        runDockerContainer()
+    else:
+        print("[INF] skip running a Docker container")
