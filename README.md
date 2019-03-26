@@ -6,30 +6,42 @@ This repository contains backend part of **Tags Drive**
 
 ##
 
-- [Tags Drive Core](#tags-drive-core)
+- [Usage](#usage)
+  - [Environment variables](#environment-variables)
+- [Development](#development)
+- [File structure](#file-structure)
+  - [Config folder](#config-folder)
+  - [Data folder](#data-folder)
+  - [SSL folder](#ssl-folder)
+- [API](#api)
+  - [Auth](#auth)
+  - [General structures](#general-structures)
+  - [Files](#files)
+  - [Tags](#tags)
+- [Additional info](#additional-info)
   - [Security](#security)
-  - [File structure](#file-structure)
-    - [Config folder](#config-folder)
-      - [JSON storage](#json-storage)
-    - [Data folder](#data-folder)
-    - [SSL folder](#ssl-folder)
-  - [API](#api)
-    - [Auth](#auth)
-    - [General structures](#general-structures)
-      - [FileInfo](#fileinfo)
-      - [Tag](#tag)
-      - [multiplyResponse](#multiplyresponse)
-    - [Files](#files)
-      - [File info changing](#file-info-changing)
-      - [Bulk file tags changing](#bulk-file-tags-changing)
-      - [Removing and recovering](#removing-and-recovering)
-    - [Tags](#tags)
-  - [Additional info](#additional-info)
-    - [Environment variables](#environment-variables)
 
-## Security
+## Usage
 
-Uploaded files can be encrypted. **Tags Drive** uses sha256 sum of the password for encryption. Encryption is realized by [minio/sio](https://github.com/minio/sio) package.
+### Environment variables
+
+| Variable    | Default | Description                                                              |
+| ----------- | ------- | ------------------------------------------------------------------------ |
+| PORT        | 80      | Port for website                                                         |
+| TLS         | true    | Should **Tags Drive** use https                                          |
+| LOGIN       | user    | Login for login                                                          |
+| PSWRD       | qwerty  | Password for login                                                       |
+| ENCRYPT     | false   | Should the **Tags Drive** encrypt uploaded files                         |
+| DBG         | false   |                                                                          |
+| SKIP_LOGIN  | false   | Let use **Tags Drive** without loginning                                 |
+| PASS_PHRASE | ""      | Passphrase is used to encrypt files. It can't be empty if `ENCRYPT=true` |
+
+## Development
+
+There are two Python scripts to run a local version:
+
+- [scripts/run/run.py](scripts/run/run.py) – run a local version with `go run`. You can control env vars by editing [.env file](scripts/run/run.env). It is the fastest way to launch the local version, but you need installed `Go`.
+- [scripts/docker/run_docker.py](scripts/docker/run_docker.py) – build a Docker image and run a container. There are some command-line args (run `python scripts/docker/run_docker.py --help` to learn all args)
 
 ## File structure
 
@@ -334,15 +346,6 @@ Use this command to generate self-signed TLS certificate:
 
 ## Additional info
 
-### Environment variables
+### Security
 
-| Variable    | Default | Description                                                              |
-| ----------- | ------- | ------------------------------------------------------------------------ |
-| PORT        | 80      | Port for website                                                         |
-| TLS         | true    | Should **Tags Drive** use https                                          |
-| LOGIN       | user    | Login for login                                                          |
-| PSWRD       | qwerty  | Password for login                                                       |
-| ENCRYPT     | false   | Should the **Tags Drive** encrypt uploaded files                         |
-| DBG         | false   |                                                                          |
-| SKIP_LOGIN  | false   | Let use **Tags Drive** without loginning                                 |
-| PASS_PHRASE | ""      | Passphrase is used to encrypt files. It can't be empty if `ENCRYPT=true` |
+Uploaded files can be encrypted. **Tags Drive** uses sha256 sum of the `PASS_PHRASE` for encryption. Encryption is realized by [minio/sio](https://github.com/minio/sio) package.
