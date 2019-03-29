@@ -12,14 +12,31 @@ import (
 )
 
 const (
-	indexPath = "./web/index.html"
-	loginPath = "./web/login.html"
+	indexPath  = "./web/index.html"
+	loginPath  = "./web/login.html"
+	mobilePage = "./web/mobile.html"
 )
 
 // GET /
 //
 func (s Server) index(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open(indexPath)
+	if err != nil {
+		s.processError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = io.Copy(w, f)
+	if err != nil {
+		s.logger.Errorf("can't io.Copy() %s: %s\n", f.Name(), err)
+	}
+	f.Close()
+}
+
+// GET /mobile
+//
+func (s Server) mobile(w http.ResponseWriter, r *http.Request) {
+	f, err := os.Open(mobilePage)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
 		return

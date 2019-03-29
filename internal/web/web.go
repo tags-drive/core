@@ -70,6 +70,7 @@ func (s *Server) Start() error {
 	var routes = []route{
 		// Pages
 		{"/", "GET", s.index, true},
+		{"/mobile", "GET", s.mobile, true},
 		{"/login", "GET", s.login, false},
 
 		// Auth
