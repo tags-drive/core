@@ -45,17 +45,19 @@ func NewAuthService(lg *clog.Logger) (*Auth, error) {
 		}
 
 		// Have to create a new file
-		err = service.createNewFile()
+		err := service.createNewFile()
 		if err != nil {
 			return nil, err
 		}
 	} else {
+		var err error
+
 		if !params.Encrypt {
 			err = json.NewDecoder(f).Decode(&service.tokens)
 		} else {
 			// Have to decrypt at first
 			buff := bytes.NewBuffer([]byte{})
-			_, err := sio.Decrypt(buff, f, sio.Config{Key: params.PassPhrase[:]})
+			_, err = sio.Decrypt(buff, f, sio.Config{Key: params.PassPhrase[:]})
 			if err == nil {
 				err = json.NewDecoder(buff).Decode(&service.tokens)
 			}

@@ -8,7 +8,7 @@ import (
 
 var ErrBadSyntax = errors.New("bad syntax")
 
-// Expression is a parsed logical expression
+// LogicalExpr is a parsed logical expression
 type LogicalExpr string
 
 // ParseLogicalExpr returns expression in reverse Polish notation
