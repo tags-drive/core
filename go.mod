@@ -4,6 +4,7 @@ require (
 	github.com/ShoshinNikita/log/v2 v2.0.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/disintegration/imaging v1.6.0
+	github.com/fvbommel/util v0.0.0-20180919145318-efcd4e0f9787
 	github.com/gorilla/mux v1.7.0
 	github.com/json-iterator/go v1.1.6
 	github.com/mattn/go-colorable v0.1.1 // indirect

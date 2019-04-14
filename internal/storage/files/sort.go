@@ -3,6 +3,8 @@ package files
 import (
 	"sort"
 
+	"github.com/fvbommel/util/sortorder"
+
 	"github.com/tags-drive/core/cmd"
 )
 
@@ -10,11 +12,11 @@ func sortFiles(s cmd.FilesSortMode, files []cmd.File) {
 	switch s {
 	case cmd.SortByNameAsc:
 		sort.Slice(files, func(i, j int) bool {
-			return files[i].Filename < files[j].Filename
+			return sortorder.NaturalLess(files[i].Filename, files[j].Filename)
 		})
 	case cmd.SortByNameDesc:
 		sort.Slice(files, func(i, j int) bool {
-			return files[i].Filename > files[j].Filename
+			return !sortorder.NaturalLess(files[i].Filename, files[j].Filename)
 		})
 	case cmd.SortByTimeAsc:
 		sort.Slice(files, func(i, j int) bool {
