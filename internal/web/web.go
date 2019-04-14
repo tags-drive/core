@@ -85,6 +85,7 @@ func (s *Server) Start() error {
 
 	if params.Debug {
 		s.addDebugRoutes(router)
+		s.addPprofRoutes(router)
 	}
 
 	var handler http.Handler = router
