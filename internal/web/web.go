@@ -66,89 +66,25 @@ func NewWebServer(fs cmd.FileStorageInterface, ts cmd.TagStorageInterface, lg *c
 //
 // Server stops when ctx.Done()
 func (s *Server) Start() error {
-	// Init routes
-	var routes = []route{
-		// Pages
-		{"/", "GET", s.index, true},
-		{"/mobile", "GET", s.mobile, true},
-		{"/login", "GET", s.login, false},
-
-		// Auth
-		{"/api/login", "POST", s.authentication, false},
-		{"/api/logout", "POST", s.logout, true},
-		// deprecated
-		{"/login", "POST", s.authentication, false},
-		{"/logout", "POST", s.logout, true},
-
-		// Files
-		{"/api/file/{id:\\d+}", "GET", s.returnSingleFile, false},
-		{"/api/files", "GET", s.returnFiles, true},
-		{"/api/files/recent", "GET", s.returnRecentFiles, true},
-		{"/api/files/download", "GET", s.downloadFiles, true},
-		{"/api/files", "POST", s.upload, true},
-		// change file info
-		{"/api/file/{id:\\d+}/name", "PUT", s.changeFilename, true},
-		{"/api/file/{id:\\d+}/tags", "PUT", s.changeFileTags, true},
-		{"/api/file/{id:\\d+}/description", "PUT", s.changeFileDescription, true},
-		// bulk tags changing
-		{"/api/files/tags", "POST", s.addTagsToFiles, true},
-		{"/api/files/tags", "DELETE", s.removeTagsFromFiles, true},
-		// remove or recover files
-		{"/api/files", "DELETE", s.deleteFile, true},
-		{"/api/files/recover", "POST", s.recoverFile, true},
-
-		// Tags
-		{"/api/tags", "GET", s.returnTags, true},
-		{"/api/tags", "POST", s.addTag, true},
-		{"/api/tag/{id:\\d+}", "PUT", s.changeTag, true},
-		{"/api/tags", "DELETE", s.deleteTag, true},
-	}
-
-	var debugRoutes = []route{
-		{"/login", "OPTIONS", setDebugHeaders, false},
-		{"/logout", "OPTIONS", setDebugHeaders, false},
-		{"/api/file/{id:\\d+}", "OPTIONS", setDebugHeaders, false},
-		{"/api/files", "OPTIONS", setDebugHeaders, false},
-		{"/api/files/tags", "OPTIONS", setDebugHeaders, false},
-		{"/api/files/recover", "OPTIONS", setDebugHeaders, false},
-		{"/api/file/{id:\\d+}/tags", "OPTIONS", setDebugHeaders, false},
-		{"/api/file/{id:\\d+}/name", "OPTIONS", setDebugHeaders, false},
-		{"/api/file/{id:\\d+}/description", "OPTIONS", setDebugHeaders, false},
-		{"/api/tags", "OPTIONS", setDebugHeaders, false},
-		{"/api/tag/{id:\\d+}", "OPTIONS", setDebugHeaders, false},
-	}
-
 	router := mux.NewRouter()
 
-	staticHandler := http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/")))
-	uploadedFilesHandler := http.StripPrefix("/data/", s.decryptMiddleware(http.Dir(params.DataFolder+"/")))
-	exitensionsHandler := http.StripPrefix("/ext/", s.extensionHandler(http.Dir("./web/static/ext/48px/")))
-
 	// For static files
+	staticHandler := http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static/")))
 	router.PathPrefix("/static/").Handler(staticHandler)
+
 	// For uploaded files
+	uploadedFilesHandler := http.StripPrefix("/data/", s.decryptMiddleware(http.Dir(params.DataFolder+"/")))
 	router.PathPrefix("/data/").Handler(cacheMiddleware(uploadedFilesHandler, 60*60*24*14)) // cache for 14 days
+
 	// For exitensions
+	exitensionsHandler := http.StripPrefix("/ext/", s.extensionHandler(http.Dir("./web/static/ext/48px/")))
 	router.PathPrefix("/ext/").Handler(cacheMiddleware(exitensionsHandler, 60*60*24*180)) // cache for 180 days
 
 	// Add usual routes
-	for _, r := range routes {
-		var handler http.Handler = r.handler
-		if r.needAuth {
-			handler = s.authMiddleware(r.handler)
-		}
-		router.Path(r.path).Methods(r.methods).Handler(handler)
-	}
+	s.addDefaultRoutes(router)
 
 	if params.Debug {
-		// Add debug routes
-		for _, r := range debugRoutes {
-			var handler http.Handler = r.handler
-			if r.needAuth {
-				handler = s.authMiddleware(r.handler)
-			}
-			router.Path(r.path).Methods(r.methods).Handler(handler)
-		}
+		s.addDebugRoutes(router)
 	}
 
 	var handler http.Handler = router
@@ -158,14 +94,14 @@ func (s *Server) Start() error {
 
 	s.httpServer = &http.Server{Addr: params.Port, Handler: handler}
 
-	s.logger.Infoln("start web server")
-
 	listenAndServe := s.httpServer.ListenAndServe
 	if params.IsTLS {
 		listenAndServe = func() error {
 			return s.httpServer.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key")
 		}
 	}
+
+	s.logger.Infoln("start web server")
 
 	// http.ErrServerClosed is a valid error
 	if err := listenAndServe(); err != nil && err != http.ErrServerClosed {
