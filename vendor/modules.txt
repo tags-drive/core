@@ -6,7 +6,9 @@ github.com/davecgh/go-spew/spew
 github.com/disintegration/imaging
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
-# github.com/gorilla/mux v1.7.0
+# github.com/fvbommel/util v0.0.0-20180919145318-efcd4e0f9787
+github.com/fvbommel/util/sortorder
+# github.com/gorilla/mux v1.7.1
 github.com/gorilla/mux
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
@@ -26,7 +28,7 @@ github.com/pkg/errors
 github.com/pmezard/go-difflib/difflib
 # github.com/stretchr/testify v1.3.0
 github.com/stretchr/testify/assert
-# golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
+# golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a
 golang.org/x/crypto/chacha20poly1305
 golang.org/x/crypto/internal/chacha20
 golang.org/x/crypto/internal/subtle
@@ -35,6 +37,6 @@ golang.org/x/crypto/poly1305
 golang.org/x/image/bmp
 golang.org/x/image/tiff
 golang.org/x/image/tiff/lzw
-# golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc
+# golang.org/x/sys v0.0.0-20190412213103-97732733099d
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
