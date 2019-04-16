@@ -26,7 +26,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 type Server struct {
 	fileStorage cmd.FileStorageInterface
 	tagStorage  cmd.TagStorageInterface
-	authService cmd.AuthService
+	authService cmd.AuthServiceInterface
 
 	logger *clog.Logger
 

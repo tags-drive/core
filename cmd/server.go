@@ -8,8 +8,8 @@ type ServerInterface interface {
 	Shutdown() error
 }
 
-// AuthService provides methods for auth users
-type AuthService interface {
+// AuthServiceInterface provides methods for auth users
+type AuthServiceInterface interface {
 	// GenerateToken generates a new token. GenerateToken doesn't add new token, just return it!
 	GenerateToken() string
 
