@@ -67,44 +67,74 @@ func (s Server) decryptMiddleware(dir http.Dir) http.Handler {
 
 // debugMiddleware logs requests and sets debug headers
 func (s Server) debugMiddleware(h http.Handler) http.Handler {
+	const (
+		// Can be changed to debug
+		logDataRequests = false
+		logExtRequests  = false
+		logStaticFiles  = false
+		logFavicon      = false
+	)
+
+	// time len + space (1) + [DBG] (5) + space (1) + method len (?) + space (1)
+	const prefixOffset = len(clog.DefaultTimeLayout) + 1 + 5 + 1 + 1
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		builder := new(strings.Builder)
+		defer func() {
+			setDebugHeaders(w, r)
+
+			h.ServeHTTP(w, r)
+		}()
 
 		// Don't log favicon.ico
-		if !strings.HasSuffix(r.URL.Path, "favicon.ico") {
-			builder.WriteString(r.Method)
-			builder.WriteByte(' ')
-			builder.WriteString(r.URL.Path)
-			builder.WriteByte('\n')
-
-			r.ParseForm()
-			if len(r.Form) > 0 {
-
-				prefix := strings.Repeat(" ", len(clog.DefaultTimeLayout)+len(r.Method)+2)
-
-				space := 0
-				for k := range r.Form {
-					if space < len(k) {
-						space = len(k)
-					}
-				}
-
-				for k, v := range r.Form {
-					p := strings.Repeat(" ", space-len(k))
-					builder.WriteString(prefix)
-					builder.WriteString(k)
-					builder.WriteString(p)
-					fmt.Fprint(builder, v)
-					builder.WriteByte('\n')
-				}
-			}
-
-			s.logger.Print(builder.String())
+		if !logFavicon && strings.HasSuffix(r.URL.Path, "favicon.ico") {
+			return
 		}
 
-		setDebugHeaders(w, r)
+		// Don't log data requests
+		if !logDataRequests && strings.HasPrefix(r.URL.Path, "/data/") {
+			return
+		}
 
-		h.ServeHTTP(w, r)
+		// Don't log extensions requests
+		if !logExtRequests && strings.HasPrefix(r.URL.Path, "/ext/") {
+			return
+		}
+
+		// Don't log static files
+		if !logStaticFiles && strings.HasPrefix(r.URL.Path, "/static/") {
+			return
+		}
+
+		builder := new(strings.Builder)
+		builder.WriteString(r.Method)
+		builder.WriteByte(' ')
+		builder.WriteString(r.URL.Path)
+		builder.WriteByte('\n')
+
+		r.ParseForm()
+		if len(r.Form) > 0 {
+
+			prefix := strings.Repeat(" ", prefixOffset+len(r.Method))
+
+			space := 0
+			for k := range r.Form {
+				if space < len(k) {
+					space = len(k)
+				}
+			}
+			space++
+
+			for k, v := range r.Form {
+				p := strings.Repeat(" ", space-len(k))
+				builder.WriteString(prefix)
+				builder.WriteString(k)
+				builder.WriteString(p)
+				fmt.Fprint(builder, v)
+				builder.WriteByte('\n')
+			}
+		}
+
+		s.logger.Debug(builder.String())
 	})
 }
 
