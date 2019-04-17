@@ -2,6 +2,7 @@ package extensions
 
 import (
 	"errors"
+	"strings"
 	"sync"
 
 	"github.com/tags-drive/core/cmd"
@@ -53,6 +54,15 @@ func init() {
 // GetExt returns Ext according to passed file ext.
 // If there's no such extension, it returns cmd.UnsupportedExt
 func GetExt(ext string) cmd.Ext {
+	if len(ext) == 0 {
+		return UnsupportedExt
+	}
+
+	ext = strings.ToLower(ext)
+	if ext[0] != '.' {
+		ext = "." + ext
+	}
+
 	res, err := allExtensions.get(ext)
 	if err != nil {
 		res = UnsupportedExt
