@@ -8,6 +8,19 @@ import (
 	"github.com/tags-drive/core/internal/storage/files/extensions"
 )
 
+type Config struct {
+	Debug bool
+
+	DataFolder          string
+	ResizedImagesFolder string
+
+	StorageType   string
+	FilesJSONFile string
+
+	Encrypt    bool
+	PassPhrase [32]byte
+}
+
 // FileStorageInterface provides methods for interactions with files
 type FileStorageInterface interface {
 	// Get returns all "good" sorted files
