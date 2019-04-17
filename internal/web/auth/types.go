@@ -1,12 +1,4 @@
-package cmd
-
-// ServerInterface provides methods for interactions web server
-type ServerInterface interface {
-	Start() error
-
-	// Shutdown gracefully shutdowns server
-	Shutdown() error
-}
+package auth
 
 // AuthServiceInterface provides methods for auth users
 type AuthServiceInterface interface {
@@ -24,8 +16,4 @@ type AuthServiceInterface interface {
 
 	// Shutdown gracefully shutdown FileStorage
 	Shutdown() error
-}
-
-type RateLimiterInterface interface {
-	Take(remoteAddr string) bool
 }

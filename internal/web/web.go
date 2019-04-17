@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/tags"
@@ -28,8 +27,8 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 type Server struct {
 	fileStorage     files.FileStorageInterface
 	tagStorage      tags.TagStorageInterface
-	authService     cmd.AuthServiceInterface
-	authRateLimiter cmd.RateLimiterInterface
+	authService     auth.AuthServiceInterface
+	authRateLimiter limiter.RateLimiterInterface
 
 	httpServer *http.Server
 

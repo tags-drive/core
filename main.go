@@ -10,7 +10,6 @@ import (
 
 	clog "github.com/ShoshinNikita/log/v2"
 
-	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/tags"
@@ -18,7 +17,7 @@ import (
 )
 
 type App struct {
-	Server      cmd.ServerInterface
+	Server      web.ServerInterface
 	FileStorage files.FileStorageInterface
 	TagStorage  tags.TagStorageInterface
 	Logger      *clog.Logger
