@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -20,50 +21,38 @@ import (
 
 const version = "v0.6.0"
 
-type globalConfig struct {
+type config struct {
 	Version string `ignored:"true"`
 
-	// Debug defines is debug mode
 	Debug bool `envconfig:"DBG" default:"false"`
 
-	// Port of the server
-	Port string `envconfig:"PORT" default:":80"`
-	// IsTLS defines should the program use https
-	IsTLS bool `envconfig:"TLS" default:"false"`
-	// Login is a user login
-	Login string `envconfig:"LOGIN" default:"user"`
-	// Password is a user password
-	Password string `envconfig:"PSWRD" default:"qwerty"`
-	// SkipLogin let use Tags Drive without loginning (for Debug only)
-	SkipLogin bool `envconfig:"SKIP_LOGIN" default:"false"`
-	// MaxTokenLife defines the max lifetime of a token (2 months)
-	MaxTokenLife time.Duration `envconfig:"MAX_TOKEN_LIFE" default:"1440h"`
-	// AuthCookieName defines name of cookie that contains token
-	AuthCookieName string `default:"auth"`
+	// Web
 
-	// Encrypt defines, should the program encrypt files. False by default
-	Encrypt bool `envconfig:"ENCRYPT" default:"false"`
-	// PassPhrase is used to encrypt files. Key is a sha256 sum of env "PASS_PHRASE"
-	PassPhrase [32]byte `ignored:"true"`
+	Port           string        `envconfig:"PORT" default:":80"`
+	IsTLS          bool          `envconfig:"TLS" default:"false"`
+	Login          string        `envconfig:"LOGIN" default:"user"`
+	Password       string        `envconfig:"PSWRD" default:"qwerty"`
+	SkipLogin      bool          `envconfig:"SKIP_LOGIN" default:"false"`     // Debug only
+	MaxTokenLife   time.Duration `envconfig:"MAX_TOKEN_LIFE" default:"1440h"` // default is 60 days
+	AuthCookieName string        `default:"auth"`                             // name of cookie that contains token
 
-	// StorageType is a type of storage
+	// Storage
+
+	Encrypt    bool     `envconfig:"ENCRYPT" default:"false"`
+	PassPhrase [32]byte `ignored:"true"` // sha256 sum of "PASS_PHRASE" env variable
+
 	StorageType string `envconfig:"STORAGE_TYPE" default:"json"`
 
-	// DataFolder is a folder where all files are kept
-	DataFolder string `default:"./data"`
-	// ResizedImagesFolder is a folder where all resized images are kept
+	DataFolder          string `default:"./data"`
 	ResizedImagesFolder string `default:"./data/resized"`
 
-	// FilesJSONFile is a json file with files information
-	FilesJSONFile string `default:"./configs/files.json"`
-	// TagsJSONFile is a json file with list of tags (with name and color)
-	TagsJSONFile string `default:"./configs/tags.json"`
-	// TokensJSONFile is a json file with list of tokens
-	TokensJSONFile string `default:"./configs/tokens.json"`
+	FilesJSONFile  string `default:"./configs/files.json"`  // for files
+	TagsJSONFile   string `default:"./configs/tags.json"`   // for tags
+	TokensJSONFile string `default:"./configs/tokens.json"` // for tokens
 }
 
 type App struct {
-	config globalConfig
+	config config
 
 	server      web.ServerInterface
 	fileStorage files.FileStorageInterface
@@ -72,40 +61,43 @@ type App struct {
 	logger *clog.Logger
 }
 
-func NewApp() (*App, error) {
-	var cnf globalConfig
+// PrepareNewApp parses globalConfig and inits services
+func PrepareNewApp() (*App, error) {
+	var cnf config
 	err := envconfig.Process("", &cnf)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't parse Config")
 	}
 
 	cnf.Version = version
+	phrase := os.Getenv("PASS_PHRASE")
+	cnf.PassPhrase = sha256.Sum256([]byte(phrase))
 
-	// Add PassPhrase
-	if cnf.Encrypt {
-		phrase := os.Getenv("PASS_PHRASE")
-		if phrase == "" {
-			return nil, errors.New("wrong env config: PASS_PHRASE can't be empty with ENCRYPT=true")
-		}
-		cnf.PassPhrase = sha256.Sum256([]byte(phrase))
+	// Checks
+	if cnf.Encrypt && phrase == "" {
+		return nil, errors.New("wrong env config: PASS_PHRASE can't be empty with ENCRYPT=true")
+	}
+
+	if cnf.SkipLogin && !cnf.Debug {
+		return nil, errors.New("wrong env config: SkipLogin can't be true in Production mode")
 	}
 
 	app := &App{config: cnf}
 
+	err = app.initServices()
+	if err != nil {
+		return nil, errors.Wrap(err, "can't init services")
+	}
+
 	return app, nil
 }
 
-func (app *App) Start() error {
-	lg := clog.NewProdLogger()
+// initServices inits storages and server
+func (app *App) initServices() error {
+	app.logger = clog.NewProdLogger()
 	if app.config.Debug {
-		lg = clog.NewDevLogger()
+		app.logger = clog.NewDevLogger()
 	}
-
-	app.logger = lg
-
-	app.logger.Printf("Tags Drive %s (https://github.com/tags-drive)\n\n", app.config.Version)
-	app.logger.Infoln("start")
-	app.PrintConfig()
 
 	var err error
 
@@ -158,11 +150,20 @@ func (app *App) Start() error {
 		return errors.Wrap(err, "can't init WebServer")
 	}
 
+	return nil
+}
+
+func (app *App) Start() error {
+	app.printConfig()
+
+	app.logger.Infoln("start")
+
 	shutdowned := make(chan struct{})
 
 	// fatalErr is used when server went down
 	fatalServerErr := make(chan struct{})
 
+	// Goroutine to shutdown services
 	go func() {
 		term := make(chan os.Signal, 1)
 		signal.Notify(term, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
@@ -196,8 +197,9 @@ func (app *App) Start() error {
 		close(shutdowned)
 	}()
 
-	err = app.server.Start()
-	if err != nil {
+	app.fileStorage.StartBackgroundServices()
+
+	if err := app.server.Start(); err != nil {
 		app.logger.Errorf("server error: %s\n", err)
 		close(fatalServerErr)
 	}
@@ -209,8 +211,8 @@ func (app *App) Start() error {
 	return nil
 }
 
-func (app *App) PrintConfig() {
-	app.logger.Infoln("Config:")
+func (app *App) printConfig() {
+	s := "Config:\n"
 
 	vars := []struct {
 		name string
@@ -229,12 +231,17 @@ func (app *App) PrintConfig() {
 	}
 
 	for _, v := range vars {
-		app.logger.Printf("      * %-11s %v\n", v.name, v.v)
+		s += fmt.Sprintf("  * %-11s %v\n", v.name, v.v)
 	}
+
+	app.logger.WriteString(s)
 }
 
 func main() {
-	app, err := NewApp()
+	log.SetFlags(0)
+	log.Printf("Tags Drive %s - https://github.com/tags-drive\n", version)
+
+	app, err := PrepareNewApp()
 	if err != nil {
 		log.Fatalln(err)
 	}
