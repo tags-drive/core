@@ -16,20 +16,20 @@ import (
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
-	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
+	"github.com/tags-drive/core/internal/storage/files/extensions"
 )
 
 // saveInterval is used in saveOnDisk. It defines interval between calls of jfs.write()
 const saveInterval = time.Second * 10
 
 // jsonFileStorage implements files.storage interface.
-// It is a map (id: cmd.FileInfo) with RWMutex
+// It is a map (id: FileInfo) with RWMutex
 type jsonFileStorage struct {
 	// maxID is max id of current files. It is computed in init() method
 	maxID int
-	files map[int]cmd.File
+	files map[int]File
 	mutex *sync.RWMutex
 
 	logger *clog.Logger
@@ -46,7 +46,7 @@ func newJsonFileStorage(lg *clog.Logger) *jsonFileStorage {
 
 	return &jsonFileStorage{
 		maxID:        0,
-		files:        make(map[int]cmd.File),
+		files:        make(map[int]File),
 		mutex:        new(sync.RWMutex),
 		logger:       lg,
 		json:         jsoniter.ConfigCompatibleWithStandardLibrary,
@@ -208,22 +208,22 @@ func (jfs jsonFileStorage) checkFile(id int) bool {
 	return ok
 }
 
-func (jfs jsonFileStorage) getFile(id int) (cmd.File, error) {
+func (jfs jsonFileStorage) getFile(id int) (File, error) {
 	jfs.mutex.RLock()
 	defer jfs.mutex.RUnlock()
 
 	f, ok := jfs.files[id]
 	if !ok {
-		return cmd.File{}, ErrFileIsNotExist
+		return File{}, ErrFileIsNotExist
 	}
 	return f, nil
 }
 
-// getFiles returns slice of cmd.FileInfo. If parsedExpr == "", it returns all files
-func (jfs jsonFileStorage) getFiles(parsedExpr aggregation.LogicalExpr, search string, isRegexp bool) (files []cmd.File) {
+// getFiles returns slice of FileInfo. If parsedExpr == "", it returns all files
+func (jfs jsonFileStorage) getFiles(parsedExpr aggregation.LogicalExpr, search string, isRegexp bool) (files []File) {
 	jfs.mutex.RLock()
 
-	files = make([]cmd.File, 0, len(jfs.files))
+	files = make([]File, 0, len(jfs.files))
 	for _, v := range jfs.files {
 		if aggregation.IsGoodFile(parsedExpr, v.Tags) {
 			files = append(files, v)
@@ -243,7 +243,7 @@ func (jfs jsonFileStorage) getFiles(parsedExpr aggregation.LogicalExpr, search s
 	}
 
 	// Need to remove files with incorrect name
-	var goodFiles []cmd.File
+	var goodFiles []File
 	for i := range files {
 		if isRegexp && reg.MatchString(files[i].Filename) {
 			goodFiles = append(goodFiles, files[i])
@@ -256,10 +256,10 @@ func (jfs jsonFileStorage) getFiles(parsedExpr aggregation.LogicalExpr, search s
 }
 
 // addFile adds an element into js.files and call js.write()
-// It also defines cmd.FileInfo.Origin and cmd.FileInfo.Preview (if file is image) as
+// It also defines FileInfo.Origin and FileInfo.Preview (if file is image) as
 // `params.DataFolder + "/" + id` and `params.ResizedImagesFolder + "/" + id`
-func (jfs *jsonFileStorage) addFile(filename string, fileType cmd.Ext, tags []int, size int64, addTime time.Time) (id int) {
-	fileInfo := cmd.File{Filename: filename,
+func (jfs *jsonFileStorage) addFile(filename string, fileType extensions.Ext, tags []int, size int64, addTime time.Time) (id int) {
+	fileInfo := File{Filename: filename,
 		Type:    fileType,
 		Tags:    tags,
 		Size:    size,
@@ -282,7 +282,7 @@ func (jfs *jsonFileStorage) addFile(filename string, fileType cmd.Ext, tags []in
 	fileInfo.ID = fileID
 
 	fileInfo.Origin = params.DataFolder + "/" + strconv.FormatInt(int64(fileID), 10)
-	if fileType.FileType == cmd.FileTypeImage {
+	if fileType.FileType == extensions.FileTypeImage {
 		fileInfo.Preview = params.ResizedImagesFolder + "/" + strconv.FormatInt(int64(fileID), 10)
 	}
 
@@ -294,9 +294,9 @@ func (jfs *jsonFileStorage) addFile(filename string, fileType cmd.Ext, tags []in
 }
 
 // renameFile renames a file
-func (jfs *jsonFileStorage) renameFile(id int, newName string) (cmd.File, error) {
+func (jfs *jsonFileStorage) renameFile(id int, newName string) (File, error) {
 	if !jfs.checkFile(id) {
-		return cmd.File{}, ErrFileIsNotExist
+		return File{}, ErrFileIsNotExist
 	}
 
 	jfs.mutex.Lock()
@@ -311,9 +311,9 @@ func (jfs *jsonFileStorage) renameFile(id int, newName string) (cmd.File, error)
 	return f, nil
 }
 
-func (jfs *jsonFileStorage) updateFileTags(id int, changedTagsID []int) (cmd.File, error) {
+func (jfs *jsonFileStorage) updateFileTags(id int, changedTagsID []int) (File, error) {
 	if !jfs.checkFile(id) {
-		return cmd.File{}, ErrFileIsNotExist
+		return File{}, ErrFileIsNotExist
 	}
 
 	if changedTagsID == nil {
@@ -332,9 +332,9 @@ func (jfs *jsonFileStorage) updateFileTags(id int, changedTagsID []int) (cmd.Fil
 	return f, nil
 }
 
-func (jfs *jsonFileStorage) updateFileDescription(id int, newDesc string) (cmd.File, error) {
+func (jfs *jsonFileStorage) updateFileDescription(id int, newDesc string) (File, error) {
 	if !jfs.checkFile(id) {
-		return cmd.File{}, ErrFileIsNotExist
+		return File{}, ErrFileIsNotExist
 	}
 
 	jfs.mutex.Lock()

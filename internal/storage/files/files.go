@@ -15,7 +15,6 @@ import (
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
-	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/files/extensions"
@@ -39,25 +38,25 @@ type storage interface {
 	init() error
 
 	// getFile returns a file with passed filename
-	getFile(id int) (cmd.File, error)
+	getFile(id int) (File, error)
 
 	// getFiles returns files
 	//     expr - parsed logical expression
 	//     search - string, which filename has to contain (lower case)
 	//     isRegexp - is expr a regular expression (if it is true, expr must be valid regular expression)
-	getFiles(expr aggregation.LogicalExpr, search string, isRegexp bool) (files []cmd.File)
+	getFiles(expr aggregation.LogicalExpr, search string, isRegexp bool) (files []File)
 
 	// add adds a file
-	addFile(filename string, fileType cmd.Ext, tags []int, size int64, addTime time.Time) (id int)
+	addFile(filename string, fileType extensions.Ext, tags []int, size int64, addTime time.Time) (id int)
 
 	// renameFile renames a file
-	renameFile(id int, newName string) (cmd.File, error)
+	renameFile(id int, newName string) (File, error)
 
 	// updateFileTags updates tags of a file
-	updateFileTags(id int, changedTagsID []int) (cmd.File, error)
+	updateFileTags(id int, changedTagsID []int) (File, error)
 
 	// updateFileDescription update description of a file
-	updateFileDescription(id int, newDesc string) (cmd.File, error)
+	updateFileDescription(id int, newDesc string) (File, error)
 
 	// deleteFile marks file deleted and sets TimeToDelete
 	// File can't be deleted several times (function should return ErrFileDeletedAgain)
@@ -116,21 +115,21 @@ func NewFileStorage(lg *clog.Logger) (*FileStorage, error) {
 	return fs, nil
 }
 
-func (fs FileStorage) Get(expr string, s cmd.FilesSortMode, search string, isRegexp bool, offset, count int) ([]cmd.File, error) {
+func (fs FileStorage) Get(expr string, s FilesSortMode, search string, isRegexp bool, offset, count int) ([]File, error) {
 	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
 	if err != nil {
-		return []cmd.File{}, err
+		return []File{}, err
 	}
 
 	search = strings.ToLower(search)
 	files := fs.storage.getFiles(parsedExpr, search, isRegexp)
 	if len(files) == 0 && offset == 0 {
 		// We don't return error, when there're no files and offset isn't set
-		return []cmd.File{}, nil
+		return []File{}, nil
 	}
 
 	if offset >= len(files) {
-		return []cmd.File{}, ErrOffsetOutOfBounds
+		return []File{}, ErrOffsetOutOfBounds
 	}
 
 	sortFiles(s, files)
@@ -142,12 +141,12 @@ func (fs FileStorage) Get(expr string, s cmd.FilesSortMode, search string, isReg
 	return files[offset : offset+count], nil
 }
 
-func (fs FileStorage) GetFile(id int) (cmd.File, error) {
+func (fs FileStorage) GetFile(id int) (File, error) {
 	return fs.storage.getFile(id)
 }
 
-func (fs FileStorage) GetRecent(number int) []cmd.File {
-	files, _ := fs.Get("", cmd.SortByTimeDesc, "", false, 0, number)
+func (fs FileStorage) GetRecent(number int) []File {
+	files, _ := fs.Get("", SortByTimeDesc, "", false, 0, number)
 	return files
 }
 
@@ -239,7 +238,7 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 
 	// Save file
 	switch fileType.FileType {
-	case cmd.FileTypeImage:
+	case extensions.FileTypeImage:
 		// Create 2 io.Reader from file
 		imageReader := new(bytes.Buffer)
 		fileReader := io.TeeReader(file, imageReader)
@@ -309,21 +308,21 @@ func copyToFile(src io.Reader, path string) error {
 }
 
 // Rename renames a file
-func (fs FileStorage) Rename(id int, newName string) (cmd.File, error) {
+func (fs FileStorage) Rename(id int, newName string) (File, error) {
 	file, err := fs.storage.renameFile(id, newName)
 	if err != nil {
-		return cmd.File{}, errors.Wrap(err, "can't rename file in a storage")
+		return File{}, errors.Wrap(err, "can't rename file in a storage")
 	}
 
 	// We don't rename a file on disk, because id is constant
 	return file, nil
 }
 
-func (fs FileStorage) ChangeTags(id int, tags []int) (cmd.File, error) {
+func (fs FileStorage) ChangeTags(id int, tags []int) (File, error) {
 	return fs.storage.updateFileTags(id, tags)
 }
 
-func (fs FileStorage) ChangeDescription(id int, newDescription string) (cmd.File, error) {
+func (fs FileStorage) ChangeDescription(id int, newDescription string) (File, error) {
 	return fs.storage.updateFileDescription(id, newDescription)
 }
 

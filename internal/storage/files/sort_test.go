@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/storage/files"
 )
 
@@ -17,7 +16,7 @@ func TestSortFiles(t *testing.T) {
 		return tm
 	}
 
-	isEqual := func(a, b []cmd.File) bool {
+	isEqual := func(a, b []files.File) bool {
 		if len(a) != len(b) {
 			return false
 		}
@@ -33,12 +32,12 @@ func TestSortFiles(t *testing.T) {
 	}
 
 	tests := []struct {
-		s     cmd.FilesSortMode
-		files []cmd.File
-		res   []cmd.File
+		s     files.FilesSortMode
+		files []files.File
+		res   []files.File
 	}{
-		{cmd.SortByNameAsc,
-			[]cmd.File{
+		{files.SortByNameAsc,
+			[]files.File{
 				{Filename: "1"},
 				{Filename: "100"},
 				{Filename: "3"},
@@ -46,7 +45,7 @@ func TestSortFiles(t *testing.T) {
 				{Filename: "21"},
 				{Filename: "20"},
 			},
-			[]cmd.File{
+			[]files.File{
 				{Filename: "1"},
 				{Filename: "2"},
 				{Filename: "3"},
@@ -55,22 +54,22 @@ func TestSortFiles(t *testing.T) {
 				{Filename: "100"},
 			},
 		},
-		{cmd.SortByNameAsc,
-			[]cmd.File{
+		{files.SortByNameAsc,
+			[]files.File{
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "aaa"},
 				{Filename: "fer"},
 			},
-			[]cmd.File{
+			[]files.File{
 				{Filename: "aaa"},
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "fer"},
 			},
 		},
-		{cmd.SortByNameDesc,
-			[]cmd.File{
+		{files.SortByNameDesc,
+			[]files.File{
 				{Filename: "1"},
 				{Filename: "100"},
 				{Filename: "3"},
@@ -78,7 +77,7 @@ func TestSortFiles(t *testing.T) {
 				{Filename: "21"},
 				{Filename: "20"},
 			},
-			[]cmd.File{
+			[]files.File{
 				{Filename: "100"},
 				{Filename: "21"},
 				{Filename: "20"},
@@ -87,57 +86,57 @@ func TestSortFiles(t *testing.T) {
 				{Filename: "1"},
 			},
 		},
-		{cmd.SortByNameDesc,
-			[]cmd.File{
+		{files.SortByNameDesc,
+			[]files.File{
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "aaa"},
 				{Filename: "fer"},
 			},
-			[]cmd.File{
+			[]files.File{
 				{Filename: "fer"},
 				{Filename: "cbd"},
 				{Filename: "abc"},
 				{Filename: "aaa"},
 			},
 		},
-		{cmd.SortByTimeAsc,
-			[]cmd.File{
+		{files.SortByTimeAsc,
+			[]files.File{
 				{AddTime: getTime("05-05-2018 15:45:35")},
 				{AddTime: getTime("05-05-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:16:35")},
 				{AddTime: getTime("05-04-2018 15:22:35")},
 			},
-			[]cmd.File{
+			[]files.File{
 				{AddTime: getTime("05-04-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:16:35")},
 				{AddTime: getTime("05-05-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:45:35")},
-			},
-		},
-		{cmd.SortByTimeDesc,
-			[]cmd.File{
-				{AddTime: getTime("05-05-2018 15:45:35")},
-				{AddTime: getTime("05-05-2018 15:22:35")},
-				{AddTime: getTime("05-05-2018 15:16:35")},
-				{AddTime: getTime("05-04-2018 15:22:35")},
-			},
-			[]cmd.File{
-				{AddTime: getTime("05-05-2018 15:45:35")},
-				{AddTime: getTime("05-05-2018 15:22:35")},
-				{AddTime: getTime("05-05-2018 15:16:35")},
-				{AddTime: getTime("05-04-2018 15:22:35")},
 			},
 		},
-		{cmd.SortBySizeAsc,
-			[]cmd.File{
+		{files.SortByTimeDesc,
+			[]files.File{
+				{AddTime: getTime("05-05-2018 15:45:35")},
+				{AddTime: getTime("05-05-2018 15:22:35")},
+				{AddTime: getTime("05-05-2018 15:16:35")},
+				{AddTime: getTime("05-04-2018 15:22:35")},
+			},
+			[]files.File{
+				{AddTime: getTime("05-05-2018 15:45:35")},
+				{AddTime: getTime("05-05-2018 15:22:35")},
+				{AddTime: getTime("05-05-2018 15:16:35")},
+				{AddTime: getTime("05-04-2018 15:22:35")},
+			},
+		},
+		{files.SortBySizeAsc,
+			[]files.File{
 				{Size: 15},
 				{Size: 1515},
 				{Size: 1885},
 				{Size: 1365},
 				{Size: 1551561651},
 			},
-			[]cmd.File{
+			[]files.File{
 				{Size: 15},
 				{Size: 1365},
 				{Size: 1515},
@@ -145,15 +144,15 @@ func TestSortFiles(t *testing.T) {
 				{Size: 1551561651},
 			},
 		},
-		{cmd.SortBySizeDecs,
-			[]cmd.File{
+		{files.SortBySizeDecs,
+			[]files.File{
 				{Size: 15},
 				{Size: 1515},
 				{Size: 1885},
 				{Size: 1365},
 				{Size: 1551561651},
 			},
-			[]cmd.File{
+			[]files.File{
 				{Size: 1551561651},
 				{Size: 1885},
 				{Size: 1515},

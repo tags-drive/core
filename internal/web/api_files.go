@@ -11,7 +11,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 	filesPck "github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
@@ -98,7 +97,7 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 		expr     = r.FormValue("expr")
 		search   = r.FormValue("search")
 		isRegexp = r.FormValue("regexp") != ""
-		sortMode = cmd.SortByNameAsc
+		sortMode = filesPck.SortByNameAsc
 		order    = getParam("asc", r.FormValue("order"), "asc", "desc")
 		offset   = 0
 		count    = 0
@@ -148,21 +147,21 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 	switch r.FormValue("sort") {
 	case "name":
 		if order == "asc" {
-			sortMode = cmd.SortByNameAsc
+			sortMode = filesPck.SortByNameAsc
 		} else {
-			sortMode = cmd.SortByNameDesc
+			sortMode = filesPck.SortByNameDesc
 		}
 	case "size":
 		if order == "asc" {
-			sortMode = cmd.SortBySizeAsc
+			sortMode = filesPck.SortBySizeAsc
 		} else {
-			sortMode = cmd.SortBySizeDecs
+			sortMode = filesPck.SortBySizeDecs
 		}
 	case "time":
 		if order == "asc" {
-			sortMode = cmd.SortByTimeAsc
+			sortMode = filesPck.SortByTimeAsc
 		} else {
-			sortMode = cmd.SortByTimeDesc
+			sortMode = filesPck.SortByTimeDesc
 		}
 	}
 

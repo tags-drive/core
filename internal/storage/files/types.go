@@ -1,9 +1,11 @@
-package cmd
+package files
 
 import (
 	"io"
 	"mime/multipart"
 	"time"
+
+	"github.com/tags-drive/core/internal/storage/files/extensions"
 )
 
 // FileStorageInterface provides methods for interactions with files
@@ -51,11 +53,11 @@ type FileStorageInterface interface {
 
 // File contains the information about a file
 type File struct {
-	ID       int    `json:"id"`
-	Filename string `json:"filename"`
-	Type     Ext    `json:"type"`
-	Origin   string `json:"origin"`            // Origin is a path to a file (params.DataFolder/filename)
-	Preview  string `json:"preview,omitempty"` // Preview is a path to a resized image (only if Type.FileType == FileTypeImage)
+	ID       int            `json:"id"`
+	Filename string         `json:"filename"`
+	Type     extensions.Ext `json:"type"`
+	Origin   string         `json:"origin"`            // Origin is a path to a file (params.DataFolder/filename)
+	Preview  string         `json:"preview,omitempty"` // Preview is a path to a resized image (only if Type.FileType == FileTypeImage)
 	//
 	Tags        []int     `json:"tags"`
 	Description string    `json:"description"`
@@ -75,45 +77,4 @@ const (
 	SortByTimeDesc
 	SortBySizeAsc
 	SortBySizeDecs
-)
-
-// Ext is a struct which contains type of the original file and type for preview
-type Ext struct {
-	Ext         string      `json:"ext"`
-	FileType    FileType    `json:"fileType"`
-	Supported   bool        `json:"supported"`
-	PreviewType PreviewType `json:"previewType"`
-}
-
-type FileType string
-
-// File types
-const (
-	FileTypeUnsupported FileType = "unsupported"
-
-	FileTypeArchive  FileType = "archive"
-	FileTypeAudio    FileType = "audio"
-	FileTypeImage    FileType = "image"
-	FileTypeLanguage FileType = "lang"
-	FileTypeText     FileType = "text"
-	FileTypeVideo    FileType = "video"
-)
-
-type PreviewType string
-
-// Preview types
-const (
-	PreviewTypeUnsupported PreviewType = ""
-
-	// audio
-	PreviewTypeAudioMP3 PreviewType = "audio/mpeg"
-	PreviewTypeAudioOGG PreviewType = "audio/ogg"
-	PreviewTypeAudioWAV PreviewType = "audio/wav"
-	// image
-	PreviewTypeImage PreviewType = "image"
-	// video
-	PreviewTypeVideoMP4  PreviewType = "video/mp4"
-	PreviewTypeVideoWebM PreviewType = "video/webm"
-	// text
-	PreviewTypeText PreviewType = "text"
 )

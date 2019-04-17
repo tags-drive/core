@@ -19,7 +19,7 @@ import (
 
 type App struct {
 	Server      cmd.ServerInterface
-	FileStorage cmd.FileStorageInterface
+	FileStorage files.FileStorageInterface
 	TagStorage  cmd.TagStorageInterface
 	Logger      *clog.Logger
 }

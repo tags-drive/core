@@ -12,6 +12,7 @@ import (
 
 	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
+	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/web/auth"
 	"github.com/tags-drive/core/internal/web/limiter"
 )
@@ -24,7 +25,7 @@ const (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type Server struct {
-	fileStorage     cmd.FileStorageInterface
+	fileStorage     files.FileStorageInterface
 	tagStorage      cmd.TagStorageInterface
 	authService     cmd.AuthServiceInterface
 	authRateLimiter cmd.RateLimiterInterface
@@ -35,7 +36,7 @@ type Server struct {
 }
 
 // NewWebServer just creates new Web struct. It doesn't call any Init functions
-func NewWebServer(fs cmd.FileStorageInterface, ts cmd.TagStorageInterface, lg *clog.Logger) (*Server, error) {
+func NewWebServer(fs files.FileStorageInterface, ts cmd.TagStorageInterface, lg *clog.Logger) (*Server, error) {
 	s := &Server{
 		fileStorage: fs,
 		tagStorage:  ts,
