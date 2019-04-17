@@ -16,7 +16,6 @@ import (
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
-	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/files/extensions"
 )
@@ -27,6 +26,8 @@ const saveInterval = time.Second * 10
 // jsonFileStorage implements files.storage interface.
 // It is a map (id: FileInfo) with RWMutex
 type jsonFileStorage struct {
+	config Config
+
 	// maxID is max id of current files. It is computed in init() method
 	maxID int
 	files map[int]File
@@ -40,11 +41,12 @@ type jsonFileStorage struct {
 	changes *uint32
 }
 
-func newJsonFileStorage(lg *clog.Logger) *jsonFileStorage {
+func newJsonFileStorage(cnf Config, lg *clog.Logger) *jsonFileStorage {
 	changes := new(uint32)
 	atomic.StoreUint32(changes, 0)
 
 	return &jsonFileStorage{
+		config:       cnf,
 		maxID:        0,
 		files:        make(map[int]File),
 		mutex:        new(sync.RWMutex),
@@ -57,17 +59,17 @@ func newJsonFileStorage(lg *clog.Logger) *jsonFileStorage {
 
 func (jfs *jsonFileStorage) init() error {
 	// Create folders
-	err := os.MkdirAll(params.DataFolder, 0666)
+	err := os.MkdirAll(jfs.config.DataFolder, 0666)
 	if err != nil {
-		return errors.Wrapf(err, "can't create a folder %s", params.DataFolder)
+		return errors.Wrapf(err, "can't create a folder %s", jfs.config.DataFolder)
 	}
 
-	err = os.MkdirAll(params.ResizedImagesFolder, 0666)
+	err = os.MkdirAll(jfs.config.ResizedImagesFolder, 0666)
 	if err != nil {
-		return errors.Wrapf(err, "can't create a folder %s", params.ResizedImagesFolder)
+		return errors.Wrapf(err, "can't create a folder %s", jfs.config.ResizedImagesFolder)
 	}
 
-	f, err := os.OpenFile(params.FilesJSONFile, os.O_RDWR, 0666)
+	f, err := os.OpenFile(jfs.config.FilesJSONFile, os.O_RDWR, 0666)
 	if err != nil {
 		// Have to create a new file
 		if os.IsNotExist(err) {
@@ -82,7 +84,7 @@ func (jfs *jsonFileStorage) init() error {
 			return nil
 		}
 
-		return errors.Wrapf(err, "can't open file %s", params.FilesJSONFile)
+		return errors.Wrapf(err, "can't open file %s", jfs.config.FilesJSONFile)
 	}
 
 	defer f.Close()
@@ -104,10 +106,10 @@ func (jfs *jsonFileStorage) init() error {
 }
 
 func (jfs jsonFileStorage) createNewFile() error {
-	jfs.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.FilesJSONFile)
+	jfs.logger.Infof("file %s doesn't exist. Need to create a new file\n", jfs.config.FilesJSONFile)
 
 	// Just create a new file
-	f, err := os.OpenFile(params.FilesJSONFile, os.O_CREATE|os.O_RDWR, 0666)
+	f, err := os.OpenFile(jfs.config.FilesJSONFile, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		return errors.Wrap(err, "can't create a new file")
 	}
@@ -141,27 +143,27 @@ func (jfs *jsonFileStorage) saveOnDisk() {
 	}
 }
 
-// write writes js.info into params.Files
+// write writes js.info into jfs.config.FilesJSONFile
 func (jfs jsonFileStorage) write() {
 	jfs.mutex.RLock()
 	defer jfs.mutex.RUnlock()
 
-	f, err := os.OpenFile(params.FilesJSONFile, os.O_TRUNC|os.O_RDWR, 0666)
+	f, err := os.OpenFile(jfs.config.FilesJSONFile, os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
-		jfs.logger.Errorf("can't open file %s: %s\n", params.FilesJSONFile, err)
+		jfs.logger.Errorf("can't open file %s: %s\n", jfs.config.FilesJSONFile, err)
 		return
 	}
 	defer f.Close()
 
-	if !params.Encrypt {
+	if !jfs.config.Encrypt {
 		// Encode directly into the file
 		enc := jfs.json.NewEncoder(f)
-		if params.Debug {
+		if jfs.config.Debug {
 			enc.SetIndent("", "  ")
 		}
 		err := enc.Encode(jfs.files)
 		if err != nil {
-			jfs.logger.Warnf("can't write '%s': %s\n", params.FilesJSONFile, err)
+			jfs.logger.Warnf("can't write '%s': %s\n", jfs.config.FilesJSONFile, err)
 		}
 
 		return
@@ -170,28 +172,28 @@ func (jfs jsonFileStorage) write() {
 	// Encode into buffer
 	buff := bytes.NewBuffer([]byte{})
 	enc := jfs.json.NewEncoder(buff)
-	if params.Debug {
+	if jfs.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(jfs.files)
 
-	// Write into the file (params.Encrypt is true, if we are here)
-	_, err = sio.Encrypt(f, buff, sio.Config{Key: params.PassPhrase[:]})
+	// Write into the file (jfs.config.Encrypt is true, if we are here)
+	_, err = sio.Encrypt(f, buff, sio.Config{Key: jfs.config.PassPhrase[:]})
 
 	if err != nil {
-		jfs.logger.Warnf("can't write '%s': %s\n", params.FilesJSONFile, err)
+		jfs.logger.Warnf("can't write '%s': %s\n", jfs.config.FilesJSONFile, err)
 	}
 }
 
 // decode decodes js.info
 func (jfs *jsonFileStorage) decode(r io.Reader) error {
-	if !params.Encrypt {
+	if !jfs.config.Encrypt {
 		return jfs.json.NewDecoder(r).Decode(&jfs.files)
 	}
 
 	// Have to decrypt at first
 	buff := bytes.NewBuffer([]byte{})
-	_, err := sio.Decrypt(buff, r, sio.Config{Key: params.PassPhrase[:]})
+	_, err := sio.Decrypt(buff, r, sio.Config{Key: jfs.config.PassPhrase[:]})
 	if err != nil {
 		return err
 	}
@@ -257,7 +259,7 @@ func (jfs jsonFileStorage) getFiles(parsedExpr aggregation.LogicalExpr, search s
 
 // addFile adds an element into js.files and call js.write()
 // It also defines FileInfo.Origin and FileInfo.Preview (if file is image) as
-// `params.DataFolder + "/" + id` and `params.ResizedImagesFolder + "/" + id`
+// `jfs.config.DataFolder + "/" + id` and `jfs.config.ResizedImagesFolder + "/" + id`
 func (jfs *jsonFileStorage) addFile(filename string, fileType extensions.Ext, tags []int, size int64, addTime time.Time) (id int) {
 	fileInfo := File{Filename: filename,
 		Type:    fileType,
@@ -281,9 +283,9 @@ func (jfs *jsonFileStorage) addFile(filename string, fileType extensions.Ext, ta
 	fileID = jfs.maxID
 	fileInfo.ID = fileID
 
-	fileInfo.Origin = params.DataFolder + "/" + strconv.FormatInt(int64(fileID), 10)
+	fileInfo.Origin = jfs.config.DataFolder + "/" + strconv.FormatInt(int64(fileID), 10)
 	if fileType.FileType == extensions.FileTypeImage {
-		fileInfo.Preview = params.ResizedImagesFolder + "/" + strconv.FormatInt(int64(fileID), 10)
+		fileInfo.Preview = jfs.config.ResizedImagesFolder + "/" + strconv.FormatInt(int64(fileID), 10)
 	}
 
 	jfs.files[jfs.maxID] = fileInfo

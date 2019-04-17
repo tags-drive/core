@@ -3,8 +3,6 @@ package tags
 import (
 	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/pkg/errors"
-
-	"github.com/tags-drive/core/internal/params"
 )
 
 // storage is an internal storage for tags metadata
@@ -31,22 +29,25 @@ type storage interface {
 
 // TagStorage exposes methods for interactions with files
 type TagStorage struct {
+	config Config
+
 	storage storage
 	logger  *clog.Logger
 }
 
 // NewTagStorage creates new FileStorage
-func NewTagStorage(lg *clog.Logger) (*TagStorage, error) {
+func NewTagStorage(cnf Config, lg *clog.Logger) (*TagStorage, error) {
 	var st storage
 
-	switch params.StorageType {
-	case params.JSONStorage:
-		st = newJsonTagStorage(lg)
+	switch cnf.StorageType {
+	case "json":
+		fallthrough
 	default:
-		st = newJsonTagStorage(lg)
+		st = newJsonTagStorage(cnf, lg)
 	}
 
 	ts := &TagStorage{
+		config:  cnf,
 		storage: st,
 		logger:  lg,
 	}
