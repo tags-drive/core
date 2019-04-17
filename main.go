@@ -17,8 +17,6 @@ import (
 	"github.com/tags-drive/core/internal/web"
 )
 
-const version = "v0.6.0"
-
 type App struct {
 	Server      cmd.ServerInterface
 	FileStorage cmd.FileStorageInterface
@@ -36,7 +34,7 @@ func main() {
 		lg = clog.NewDevLogger()
 	}
 
-	lg.Printf("Tags Drive %s (https://github.com/tags-drive)\n\n", version)
+	lg.Printf("Tags Drive %s (https://github.com/tags-drive)\n\n", params.Version)
 
 	lg.Infoln("start")
 

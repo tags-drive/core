@@ -2,6 +2,8 @@ package params
 
 import "time"
 
+const Version = "v0.6.0"
+
 // Folders
 const (
 	// DataFolder is a folder where all files are kept
