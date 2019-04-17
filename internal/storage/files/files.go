@@ -15,8 +15,6 @@ import (
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
-	"github.com/tags-drive/core/cmd"
-	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/files/extensions"
 	"github.com/tags-drive/core/internal/storage/files/resizing"
@@ -39,25 +37,25 @@ type storage interface {
 	init() error
 
 	// getFile returns a file with passed filename
-	getFile(id int) (cmd.File, error)
+	getFile(id int) (File, error)
 
 	// getFiles returns files
 	//     expr - parsed logical expression
 	//     search - string, which filename has to contain (lower case)
 	//     isRegexp - is expr a regular expression (if it is true, expr must be valid regular expression)
-	getFiles(expr aggregation.LogicalExpr, search string, isRegexp bool) (files []cmd.File)
+	getFiles(expr aggregation.LogicalExpr, search string, isRegexp bool) (files []File)
 
 	// add adds a file
-	addFile(filename string, fileType cmd.Ext, tags []int, size int64, addTime time.Time) (id int)
+	addFile(filename string, fileType extensions.Ext, tags []int, size int64, addTime time.Time) (id int)
 
 	// renameFile renames a file
-	renameFile(id int, newName string) (cmd.File, error)
+	renameFile(id int, newName string) (File, error)
 
 	// updateFileTags updates tags of a file
-	updateFileTags(id int, changedTagsID []int) (cmd.File, error)
+	updateFileTags(id int, changedTagsID []int) (File, error)
 
 	// updateFileDescription update description of a file
-	updateFileDescription(id int, newDesc string) (cmd.File, error)
+	updateFileDescription(id int, newDesc string) (File, error)
 
 	// deleteFile marks file deleted and sets TimeToDelete
 	// File can't be deleted several times (function should return ErrFileDeletedAgain)
@@ -86,22 +84,25 @@ type storage interface {
 
 // FileStorage exposes methods for interactions with files
 type FileStorage struct {
+	config Config
+
 	storage storage
 	logger  *clog.Logger
 }
 
 // NewFileStorage creates new FileStorage
-func NewFileStorage(lg *clog.Logger) (*FileStorage, error) {
+func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	var st storage
 
-	switch params.StorageType {
-	case params.JSONStorage:
-		st = newJsonFileStorage(lg)
+	switch cnf.StorageType {
+	case "json":
+		fallthrough
 	default:
-		st = newJsonFileStorage(lg)
+		st = newJsonFileStorage(cnf, lg)
 	}
 
 	fs := &FileStorage{
+		config:  cnf,
 		storage: st,
 		logger:  lg,
 	}
@@ -111,26 +112,28 @@ func NewFileStorage(lg *clog.Logger) (*FileStorage, error) {
 		return nil, errors.Wrapf(err, "can't init files storage")
 	}
 
-	go fs.scheduleDeleting()
-
 	return fs, nil
 }
 
-func (fs FileStorage) Get(expr string, s cmd.FilesSortMode, search string, isRegexp bool, offset, count int) ([]cmd.File, error) {
+func (fs FileStorage) StartBackgroundServices() {
+	go fs.scheduleDeleting()
+}
+
+func (fs FileStorage) Get(expr string, s FilesSortMode, search string, isRegexp bool, offset, count int) ([]File, error) {
 	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
 	if err != nil {
-		return []cmd.File{}, err
+		return []File{}, err
 	}
 
 	search = strings.ToLower(search)
 	files := fs.storage.getFiles(parsedExpr, search, isRegexp)
 	if len(files) == 0 && offset == 0 {
 		// We don't return error, when there're no files and offset isn't set
-		return []cmd.File{}, nil
+		return []File{}, nil
 	}
 
 	if offset >= len(files) {
-		return []cmd.File{}, ErrOffsetOutOfBounds
+		return []File{}, ErrOffsetOutOfBounds
 	}
 
 	sortFiles(s, files)
@@ -142,12 +145,12 @@ func (fs FileStorage) Get(expr string, s cmd.FilesSortMode, search string, isReg
 	return files[offset : offset+count], nil
 }
 
-func (fs FileStorage) GetFile(id int) (cmd.File, error) {
+func (fs FileStorage) GetFile(id int) (File, error) {
 	return fs.storage.getFile(id)
 }
 
-func (fs FileStorage) GetRecent(number int) []cmd.File {
-	files, _ := fs.Get("", cmd.SortByTimeDesc, "", false, 0, number)
+func (fs FileStorage) GetRecent(number int) []File {
+	files, _ := fs.Get("", SortByTimeDesc, "", false, 0, number)
 	return files
 }
 
@@ -164,7 +167,7 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 			continue
 		}
 
-		path := params.DataFolder + "/" + strconv.FormatInt(int64(id), 10)
+		path := fs.config.DataFolder + "/" + strconv.FormatInt(int64(id), 10)
 		f, err := os.Open(path)
 		if err != nil {
 			fs.logger.Errorf("can't load file \"%s\"\n", fileInfo.Filename)
@@ -187,8 +190,8 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 			continue
 		}
 
-		if params.Encrypt {
-			_, err = sio.Decrypt(wr, f, sio.Config{Key: params.PassPhrase[:]})
+		if fs.config.Encrypt {
+			_, err = sio.Decrypt(wr, f, sio.Config{Key: fs.config.PassPhrase[:]})
 		} else {
 			_, err = io.Copy(wr, f)
 		}
@@ -235,17 +238,17 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 		}
 	}()
 
-	originPath := params.DataFolder + "/" + strconv.FormatInt(int64(newFileID), 10)
+	originPath := fs.config.DataFolder + "/" + strconv.FormatInt(int64(newFileID), 10)
 
 	// Save file
 	switch fileType.FileType {
-	case cmd.FileTypeImage:
+	case extensions.FileTypeImage:
 		// Create 2 io.Reader from file
 		imageReader := new(bytes.Buffer)
 		fileReader := io.TeeReader(file, imageReader)
 
 		// Save an original image
-		err = copyToFile(fileReader, originPath)
+		err = fs.copyToFile(fileReader, originPath)
 		if err != nil {
 			panic(err)
 		}
@@ -253,7 +256,7 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 		// After saving the original file we can ignore errors and only log them.
 
 		// Convert imageReader into image.Image
-		previewPath := params.ResizedImagesFolder + "/" + strconv.Itoa(newFileID)
+		previewPath := fs.config.ResizedImagesFolder + "/" + strconv.Itoa(newFileID)
 		img, err := resizing.Decode(imageReader)
 		if err != nil {
 			fs.logger.Errorf("can't decode an image %s: %s\n", f.Filename, err)
@@ -267,13 +270,13 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 			fs.logger.Errorf("can't encode a resized image %s: %s\n", f.Filename, err)
 			break
 		}
-		err = copyToFile(r, previewPath)
+		err = fs.copyToFile(r, previewPath)
 		if err != nil {
 			fs.logger.Errorf("can't save a resized image %s: %s\n", f.Filename, err)
 		}
 	default:
 		// Save a file
-		err := copyToFile(file, originPath)
+		err := fs.copyToFile(file, originPath)
 		if err != nil {
 			panic(err)
 		}
@@ -283,7 +286,7 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 }
 
 // copyToFile copies data from src to new created file
-func copyToFile(src io.Reader, path string) error {
+func (fs FileStorage) copyToFile(src io.Reader, path string) error {
 	// We trunc file, if it already exists
 	newFile, err := os.Create(path)
 	if err != nil {
@@ -291,8 +294,8 @@ func copyToFile(src io.Reader, path string) error {
 	}
 
 	// Write file
-	if params.Encrypt {
-		_, err = sio.Encrypt(newFile, src, sio.Config{Key: params.PassPhrase[:]})
+	if fs.config.Encrypt {
+		_, err = sio.Encrypt(newFile, src, sio.Config{Key: fs.config.PassPhrase[:]})
 	} else {
 		_, err = io.Copy(newFile, src)
 	}
@@ -309,21 +312,21 @@ func copyToFile(src io.Reader, path string) error {
 }
 
 // Rename renames a file
-func (fs FileStorage) Rename(id int, newName string) (cmd.File, error) {
+func (fs FileStorage) Rename(id int, newName string) (File, error) {
 	file, err := fs.storage.renameFile(id, newName)
 	if err != nil {
-		return cmd.File{}, errors.Wrap(err, "can't rename file in a storage")
+		return File{}, errors.Wrap(err, "can't rename file in a storage")
 	}
 
 	// We don't rename a file on disk, because id is constant
 	return file, nil
 }
 
-func (fs FileStorage) ChangeTags(id int, tags []int) (cmd.File, error) {
+func (fs FileStorage) ChangeTags(id int, tags []int) (File, error) {
 	return fs.storage.updateFileTags(id, tags)
 }
 
-func (fs FileStorage) ChangeDescription(id int, newDescription string) (cmd.File, error) {
+func (fs FileStorage) ChangeDescription(id int, newDescription string) (File, error) {
 	return fs.storage.updateFileDescription(id, newDescription)
 }
 

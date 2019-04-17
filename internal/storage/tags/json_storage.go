@@ -10,22 +10,22 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
-
-	"github.com/tags-drive/core/cmd"
-	"github.com/tags-drive/core/internal/params"
 )
 
 type jsonTagStorage struct {
-	tags  cmd.Tags
+	config Config
+
+	tags  Tags
 	mutex *sync.RWMutex
 
 	logger *clog.Logger
 	json   jsoniter.API
 }
 
-func newJsonTagStorage(lg *clog.Logger) *jsonTagStorage {
+func newJsonTagStorage(cnf Config, lg *clog.Logger) *jsonTagStorage {
 	return &jsonTagStorage{
-		tags:   make(cmd.Tags),
+		config: cnf,
+		tags:   make(Tags),
 		mutex:  new(sync.RWMutex),
 		logger: lg,
 		json:   jsoniter.ConfigCompatibleWithStandardLibrary,
@@ -33,14 +33,14 @@ func newJsonTagStorage(lg *clog.Logger) *jsonTagStorage {
 }
 
 func (jts *jsonTagStorage) init() error {
-	f, err := os.OpenFile(params.TagsJSONFile, os.O_RDWR, 0666)
+	f, err := os.OpenFile(jts.config.TagsJSONFile, os.O_RDWR, 0666)
 	if err != nil {
 		// Have to create a new file
 		if os.IsNotExist(err) {
 			return jts.createNewFile()
 		}
 
-		return errors.Wrapf(err, "can't open file %s", params.TagsJSONFile)
+		return errors.Wrapf(err, "can't open file %s", jts.config.TagsJSONFile)
 	}
 	defer f.Close()
 
@@ -48,10 +48,10 @@ func (jts *jsonTagStorage) init() error {
 }
 
 func (jts *jsonTagStorage) createNewFile() error {
-	jts.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.TagsJSONFile)
+	jts.logger.Infof("file %s doesn't exist. Need to create a new file\n", jts.config.TagsJSONFile)
 
 	// Just create a new file
-	f, err := os.OpenFile(params.TagsJSONFile, os.O_CREATE|os.O_RDWR, 0666)
+	f, err := os.OpenFile(jts.config.TagsJSONFile, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		return errors.Wrap(err, "can't create a new file")
 	}
@@ -67,22 +67,22 @@ func (jts jsonTagStorage) write() {
 	jts.mutex.RLock()
 	defer jts.mutex.RUnlock()
 
-	f, err := os.OpenFile(params.TagsJSONFile, os.O_TRUNC|os.O_RDWR, 0666)
+	f, err := os.OpenFile(jts.config.TagsJSONFile, os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
-		jts.logger.Errorf("can't open file %s: %s\n", params.TagsJSONFile, err)
+		jts.logger.Errorf("can't open file %s: %s\n", jts.config.TagsJSONFile, err)
 		return
 	}
 	defer f.Close()
 
-	if !params.Encrypt {
+	if !jts.config.Encrypt {
 		// Encode directly into the file
 		enc := jts.json.NewEncoder(f)
-		if params.Debug {
+		if jts.config.Debug {
 			enc.SetIndent("", "  ")
 		}
 		err := enc.Encode(jts.tags)
 		if err != nil {
-			jts.logger.Warnf("can't write '%s': %s", params.TagsJSONFile, err)
+			jts.logger.Warnf("can't write '%s': %s", jts.config.TagsJSONFile, err)
 		}
 
 		return
@@ -91,27 +91,27 @@ func (jts jsonTagStorage) write() {
 	// Encode into buffer
 	buff := bytes.NewBuffer([]byte{})
 	enc := jts.json.NewEncoder(buff)
-	if params.Debug {
+	if jts.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(jts.tags)
 
-	// Write into the file (params.Encrypt is true, if we are here)
-	_, err = sio.Encrypt(f, buff, sio.Config{Key: params.PassPhrase[:]})
+	// Write into the file (jts.config.Encrypt is true, if we are here)
+	_, err = sio.Encrypt(f, buff, sio.Config{Key: jts.config.PassPhrase[:]})
 
 	if err != nil {
-		jts.logger.Warnf("can't write '%s': %s\n", params.TagsJSONFile, err)
+		jts.logger.Warnf("can't write '%s': %s\n", jts.config.TagsJSONFile, err)
 	}
 }
 
 func (jts *jsonTagStorage) decode(r io.Reader) error {
-	if !params.Encrypt {
+	if !jts.config.Encrypt {
 		return jts.json.NewDecoder(r).Decode(&jts.tags)
 	}
 
 	// Have to decrypt at first
 	buff := bytes.NewBuffer([]byte{})
-	_, err := sio.Decrypt(buff, r, sio.Config{Key: params.PassPhrase[:]})
+	_, err := sio.Decrypt(buff, r, sio.Config{Key: jts.config.PassPhrase[:]})
 	if err != nil {
 		return err
 	}
@@ -119,14 +119,14 @@ func (jts *jsonTagStorage) decode(r io.Reader) error {
 	return jts.json.NewDecoder(buff).Decode(&jts.tags)
 }
 
-func (jts jsonTagStorage) getAll() cmd.Tags {
+func (jts jsonTagStorage) getAll() Tags {
 	jts.mutex.RLock()
 	defer jts.mutex.RUnlock()
 
 	return jts.tags
 }
 
-func (jts *jsonTagStorage) addTag(tag cmd.Tag) {
+func (jts *jsonTagStorage) addTag(tag Tag) {
 	jts.mutex.Lock()
 
 	// Get max ID (max)
@@ -145,12 +145,12 @@ func (jts *jsonTagStorage) addTag(tag cmd.Tag) {
 	jts.write()
 }
 
-func (jts *jsonTagStorage) updateTag(id int, newName, newColor string) (cmd.Tag, error) {
+func (jts *jsonTagStorage) updateTag(id int, newName, newColor string) (Tag, error) {
 	jts.mutex.Lock()
 
 	if _, ok := jts.tags[id]; !ok {
 		jts.mutex.Unlock()
-		return cmd.Tag{}, errors.New("tag doesn't exist")
+		return Tag{}, errors.New("tag doesn't exist")
 	}
 
 	tag := jts.tags[id]

@@ -4,35 +4,33 @@ import (
 	"errors"
 	"strings"
 	"sync"
-
-	"github.com/tags-drive/core/cmd"
 )
 
 var (
 	// UnsupportedExt is used for unsupported file extension
-	UnsupportedExt    = cmd.Ext{Supported: false, FileType: cmd.FileTypeUnsupported}
+	UnsupportedExt    = Ext{Supported: false, FileType: FileTypeUnsupported}
 	errUnsupportedExt = errors.New("unsupported extension")
 )
 
 type extensions struct {
-	exts map[string]cmd.Ext
+	exts map[string]Ext
 	mut  *sync.RWMutex
 }
 
-func (e *extensions) add(ext cmd.Ext) {
+func (e *extensions) add(ext Ext) {
 	e.mut.Lock()
 	defer e.mut.Unlock()
 
 	e.exts[ext.Ext] = ext
 }
 
-func (e *extensions) get(ext string) (cmd.Ext, error) {
+func (e *extensions) get(ext string) (Ext, error) {
 	e.mut.RLock()
 	defer e.mut.RUnlock()
 
 	res, ok := e.exts[ext]
 	if !ok {
-		return cmd.Ext{}, errUnsupportedExt
+		return Ext{}, errUnsupportedExt
 	}
 
 	return res, nil
@@ -42,7 +40,7 @@ var allExtensions extensions
 
 func init() {
 	allExtensions = extensions{
-		exts: make(map[string]cmd.Ext),
+		exts: make(map[string]Ext),
 		mut:  new(sync.RWMutex),
 	}
 
@@ -52,8 +50,8 @@ func init() {
 }
 
 // GetExt returns Ext according to passed file ext.
-// If there's no such extension, it returns cmd.UnsupportedExt
-func GetExt(ext string) cmd.Ext {
+// If there's no such extension, it returns UnsupportedExt
+func GetExt(ext string) Ext {
 	if len(ext) == 0 {
 		return UnsupportedExt
 	}

@@ -5,8 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-
-	"github.com/tags-drive/core/internal/params"
 )
 
 // GET /api/tags
@@ -20,7 +18,7 @@ func (s Server) returnTags(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if params.Debug {
+	if s.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(allTags)
@@ -89,7 +87,7 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if params.Debug {
+	if s.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(updatedTag)

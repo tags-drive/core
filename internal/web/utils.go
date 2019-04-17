@@ -3,13 +3,11 @@ package web
 import (
 	"net/http"
 	"sync"
-
-	"github.com/tags-drive/core/internal/params"
 )
 
 // processError is a wrapper over http.Error
 func (s Server) processError(w http.ResponseWriter, err string, code int) {
-	if params.Debug {
+	if s.config.Debug {
 		s.logger.Errorf("request error: %s (code: %d)\n", err, code)
 	} else {
 		// We should log server errors

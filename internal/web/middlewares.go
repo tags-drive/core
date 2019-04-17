@@ -7,19 +7,17 @@ import (
 
 	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/minio/sio"
-
-	"github.com/tags-drive/core/internal/params"
 )
 
 func (s Server) authMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if params.SkipLogin {
+		if s.config.SkipLogin {
 			h.ServeHTTP(w, r)
 			return
 		}
 
 		validToken := func() bool {
-			c, err := r.Cookie(params.AuthCookieName)
+			c, err := r.Cookie(s.config.AuthCookieName)
 			if err != nil {
 				return false
 			}
@@ -44,7 +42,7 @@ func (s Server) authMiddleware(h http.Handler) http.Handler {
 }
 
 func (s Server) decryptMiddleware(dir http.Dir) http.Handler {
-	if !params.Encrypt {
+	if !s.config.Encrypt {
 		return http.FileServer(dir)
 	}
 
@@ -57,7 +55,7 @@ func (s Server) decryptMiddleware(dir http.Dir) http.Handler {
 		}
 		defer f.Close()
 
-		_, err = sio.Decrypt(w, f, sio.Config{Key: params.PassPhrase[:]})
+		_, err = sio.Decrypt(w, f, sio.Config{Key: s.config.PassPhrase[:]})
 		if err != nil {
 			s.processError(w, err.Error(), http.StatusInternalServerError)
 			return

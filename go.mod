@@ -7,6 +7,7 @@ require (
 	github.com/fvbommel/util v0.0.0-20180919145318-efcd4e0f9787
 	github.com/gorilla/mux v1.7.1
 	github.com/json-iterator/go v1.1.6
+	github.com/kelseyhightower/envconfig v1.3.0
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.7 // indirect
 	github.com/minio/sio v0.0.0-20190118043801-035b4ef8c449

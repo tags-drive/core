@@ -1,4 +1,14 @@
-package cmd
+package tags
+
+type Config struct {
+	Debug bool
+
+	StorageType  string
+	TagsJSONFile string
+
+	Encrypt    bool
+	PassPhrase [32]byte
+}
 
 // TagStorageInterface provides methods for interactions with tags
 type TagStorageInterface interface {

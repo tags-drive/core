@@ -1,13 +1,14 @@
 package files
 
 import (
+	"crypto/sha256"
 	"os"
 	"testing"
 	"time"
 
 	clog "github.com/ShoshinNikita/log/v2"
 
-	"github.com/tags-drive/core/cmd"
+	"github.com/tags-drive/core/internal/storage/files/extensions"
 )
 
 func areArraysEqualInt(a, b []int) bool {
@@ -51,7 +52,16 @@ func areArraysEqualString(a, b []string) bool {
 }
 
 func newStorage() *jsonFileStorage {
-	return newJsonFileStorage(clog.NewProdLogger())
+	cnf := Config{
+		Debug:               false,
+		DataFolder:          "./data",
+		ResizedImagesFolder: "./data/resizing",
+		StorageType:         "json",
+		FilesJSONFile:       "files.json",
+		Encrypt:             true,
+		PassPhrase:          sha256.Sum256([]byte("sha256")),
+	}
+	return newJsonFileStorage(cnf, clog.NewProdLogger())
 }
 
 // addDefaultFiles adds next files into storage:
@@ -80,13 +90,12 @@ func addDefaultFiles(storage *jsonFileStorage) {
 	now := time.Now()
 
 	for _, f := range files {
-		storage.addFile(f.filename, cmd.Ext{}, f.tags, 0, now)
+		storage.addFile(f.filename, extensions.Ext{}, f.tags, 0, now)
 	}
 }
 
-// removeConfigFile remove "configs/files.json"
-func removeConfigFile() {
-	os.Remove("configs/files.json")
+func removeConfigFile(path string) {
+	os.Remove(path)
 }
 
 func TestMain(m *testing.M) {
@@ -199,7 +208,7 @@ func TestAddTagsToFiles(t *testing.T) {
 		}
 	}
 
-	removeConfigFile()
+	removeConfigFile(storage.config.FilesJSONFile)
 }
 
 func TestRemoveTagsFromFiles(t *testing.T) {
@@ -277,7 +286,7 @@ func TestRemoveTagsFromFiles(t *testing.T) {
 		}
 	}
 
-	removeConfigFile()
+	removeConfigFile(storage.config.FilesJSONFile)
 }
 
 func TestGetFiles(t *testing.T) {
@@ -297,7 +306,7 @@ func TestGetFiles(t *testing.T) {
 
 	now := time.Now()
 	for _, f := range files {
-		storage.addFile(f.filename, cmd.Ext{}, []int{}, 0, now)
+		storage.addFile(f.filename, extensions.Ext{}, []int{}, 0, now)
 	}
 
 	requests := []struct {
@@ -337,5 +346,5 @@ func TestGetFiles(t *testing.T) {
 		}
 	}
 
-	removeConfigFile()
+	removeConfigFile(storage.config.FilesJSONFile)
 }

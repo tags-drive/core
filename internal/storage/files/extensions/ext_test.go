@@ -2,8 +2,6 @@ package extensions
 
 import (
 	"testing"
-
-	"github.com/tags-drive/core/cmd"
 )
 
 func TestGetExt(t *testing.T) {
@@ -14,7 +12,7 @@ func TestGetExt(t *testing.T) {
 
 	tests := []struct {
 		ext string
-		res cmd.Ext
+		res Ext
 	}{
 		{"jpg", jpg},
 		{".jpg", jpg},

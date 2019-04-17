@@ -1,9 +1,5 @@
 package extensions
 
-import (
-	. "github.com/tags-drive/core/cmd"
-)
-
 // List with all supported types of files
 var extensionsList = []Ext{
 	// Archives

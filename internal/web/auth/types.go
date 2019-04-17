@@ -1,15 +1,22 @@
-package cmd
+package auth
 
-// ServerInterface provides methods for interactions web server
-type ServerInterface interface {
-	Start() error
+import "time"
 
-	// Shutdown gracefully shutdowns server
-	Shutdown() error
+type Config struct {
+	Debug bool
+
+	TokensJSONFile string
+	Encrypt        bool
+	PassPhrase     [32]byte
+
+	MaxTokenLife time.Duration
 }
 
 // AuthServiceInterface provides methods for auth users
 type AuthServiceInterface interface {
+	// Start starts all background services
+	StartBackgroundServices()
+
 	// GenerateToken generates a new token. GenerateToken doesn't add new token, just return it!
 	GenerateToken() string
 
@@ -24,8 +31,4 @@ type AuthServiceInterface interface {
 
 	// Shutdown gracefully shutdown FileStorage
 	Shutdown() error
-}
-
-type RateLimiterInterface interface {
-	Take(remoteAddr string) bool
 }

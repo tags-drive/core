@@ -25,16 +25,17 @@ This repository contains backend part of **Tags Drive**
 
 ### Environment variables
 
-| Variable    | Default | Description                                                              |
-| ----------- | ------- | ------------------------------------------------------------------------ |
-| PORT        | 80      | Port for website                                                         |
-| TLS         | true    | Should **Tags Drive** use https                                          |
-| LOGIN       | user    | Login for login                                                          |
-| PSWRD       | qwerty  | Password for login                                                       |
-| ENCRYPT     | false   | Should the **Tags Drive** encrypt uploaded files                         |
-| DBG         | false   |                                                                          |
-| SKIP_LOGIN  | false   | Let use **Tags Drive** without loginning                                 |
-| PASS_PHRASE | ""      | Passphrase is used to encrypt files. It can't be empty if `ENCRYPT=true` |
+| Variable       | Default | Description                                                              |
+| -------------- | ------- | ------------------------------------------------------------------------ |
+| PORT           | 80      | Port for website                                                         |
+| TLS            | true    | Should **Tags Drive** use https                                          |
+| LOGIN          | user    | Login for login                                                          |
+| PSWRD          | qwerty  | Password for login                                                       |
+| ENCRYPT        | false   | Should the **Tags Drive** encrypt uploaded files                         |
+| DBG            | false   |                                                                          |
+| SKIP_LOGIN     | false   | Let use **Tags Drive** without loginning                                 |
+| PASS_PHRASE    | ""      | Passphrase is used to encrypt files. It can't be empty if `ENCRYPT=true` |
+| MAX_TOKEN_LIFE | 1440h   | Max lifetime of a token (default is 60 days)                             |
 
 ## Development
 
