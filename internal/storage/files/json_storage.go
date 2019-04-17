@@ -37,10 +37,13 @@ type jsonFileStorage struct {
 
 	shutdownChan chan struct{}
 	// number of changes since last write() call
-	changes uint32
+	changes *uint32
 }
 
 func newJsonFileStorage(lg *clog.Logger) *jsonFileStorage {
+	changes := new(uint32)
+	atomic.StoreUint32(changes, 0)
+
 	return &jsonFileStorage{
 		maxID:        0,
 		files:        make(map[int]cmd.File),
@@ -48,6 +51,7 @@ func newJsonFileStorage(lg *clog.Logger) *jsonFileStorage {
 		logger:       lg,
 		json:         jsoniter.ConfigCompatibleWithStandardLibrary,
 		shutdownChan: make(chan struct{}),
+		changes:      changes,
 	}
 }
 
@@ -122,9 +126,9 @@ func (jfs *jsonFileStorage) saveOnDisk() {
 	for {
 		select {
 		case <-ticker.C:
-			changed := atomic.LoadUint32(&jfs.changes) != 0
+			changed := atomic.LoadUint32(jfs.changes) != 0
 			// Reset jfs.changes
-			atomic.StoreUint32(&jfs.changes, 0)
+			atomic.StoreUint32(jfs.changes, 0)
 
 			if changed {
 				jfs.write()
@@ -284,7 +288,7 @@ func (jfs *jsonFileStorage) addFile(filename string, fileType cmd.Ext, tags []in
 
 	jfs.files[jfs.maxID] = fileInfo
 
-	atomic.AddUint32(&jfs.changes, 1)
+	atomic.AddUint32(jfs.changes, 1)
 
 	return fileID
 }
@@ -302,7 +306,7 @@ func (jfs *jsonFileStorage) renameFile(id int, newName string) (cmd.File, error)
 	f.Filename = newName
 	jfs.files[id] = f
 
-	atomic.AddUint32(&jfs.changes, 1)
+	atomic.AddUint32(jfs.changes, 1)
 
 	return f, nil
 }
@@ -323,7 +327,7 @@ func (jfs *jsonFileStorage) updateFileTags(id int, changedTagsID []int) (cmd.Fil
 	f.Tags = changedTagsID
 	jfs.files[id] = f
 
-	atomic.AddUint32(&jfs.changes, 1)
+	atomic.AddUint32(jfs.changes, 1)
 
 	return f, nil
 }
@@ -340,7 +344,7 @@ func (jfs *jsonFileStorage) updateFileDescription(id int, newDesc string) (cmd.F
 	f.Description = newDesc
 	jfs.files[id] = f
 
-	atomic.AddUint32(&jfs.changes, 1)
+	atomic.AddUint32(jfs.changes, 1)
 
 	return f, nil
 }
@@ -365,7 +369,7 @@ func (jfs *jsonFileStorage) deleteFile(id int) error {
 	f.TimeToDelete = deleteTime
 	jfs.files[id] = f
 
-	atomic.AddUint32(&jfs.changes, 1)
+	atomic.AddUint32(jfs.changes, 1)
 
 	return nil
 }
@@ -381,7 +385,7 @@ func (jfs *jsonFileStorage) deleteFileForce(id int) error {
 
 	delete(jfs.files, id)
 
-	atomic.AddUint32(&jfs.changes, 1)
+	atomic.AddUint32(jfs.changes, 1)
 
 	return nil
 }
@@ -404,7 +408,7 @@ func (jfs *jsonFileStorage) recover(id int) {
 	f.TimeToDelete = time.Time{}
 	jfs.files[id] = f
 
-	atomic.AddUint32(&jfs.changes, 1)
+	atomic.AddUint32(jfs.changes, 1)
 }
 
 func (jfs *jsonFileStorage) addTagsToFiles(filesIDs, tagsID []int) {
@@ -448,7 +452,7 @@ func (jfs *jsonFileStorage) addTagsToFiles(filesIDs, tagsID []int) {
 		jfs.files[id] = f
 	}
 
-	atomic.AddUint32(&jfs.changes, 1)
+	atomic.AddUint32(jfs.changes, 1)
 }
 
 func (jfs *jsonFileStorage) removeTagsFromFiles(filesIDs, tagsID []int) {
@@ -494,7 +498,7 @@ func (jfs *jsonFileStorage) removeTagsFromFiles(filesIDs, tagsID []int) {
 		jfs.files[id] = f
 	}
 
-	atomic.AddUint32(&jfs.changes, 1)
+	atomic.AddUint32(jfs.changes, 1)
 }
 
 func (jfs *jsonFileStorage) deleteTagFromFiles(tagID int) {
@@ -518,7 +522,7 @@ func (jfs *jsonFileStorage) deleteTagFromFiles(tagID int) {
 		jfs.files[id] = f
 	}
 
-	atomic.AddUint32(&jfs.changes, 1)
+	atomic.AddUint32(jfs.changes, 1)
 }
 
 // getExpiredDeletedFiles returns ids of files with expired TimeToDelete
@@ -540,6 +544,10 @@ func (jfs *jsonFileStorage) getExpiredDeletedFiles() []int {
 func (jfs jsonFileStorage) shutdown() error {
 	// Stop saveOnDisk goroutine
 	close(jfs.shutdownChan)
+
+	// Wait for all locks
+	jfs.mutex.Lock()
+	jfs.mutex.Unlock()
 
 	// Write changes
 	jfs.write()
