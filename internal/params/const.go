@@ -8,12 +8,12 @@ const (
 	DataFolder = "./data"
 	// ResizedImagesFolder is a folder where all resized images are kept
 	ResizedImagesFolder = "./data/resized"
-	// Files is a json file with files information
-	Files = "./configs/files.json"
-	// TokensFile is a json file with list of tokens
-	TokensFile = "./configs/tokens.json"
-	// TagsFile is a json file with list of tags (with name and color)
-	TagsFile = "./configs/tags.json"
+	// FilesJSONFile is a json file with files information
+	FilesJSONFile = "./configs/files.json"
+	// TokensJSONFile is a json file with list of tokens
+	TokensJSONFile = "./configs/tokens.json"
+	// TagsJSONFile is a json file with list of tags (with name and color)
+	TagsJSONFile = "./configs/tags.json"
 )
 
 // Web const vars

@@ -33,14 +33,14 @@ func newJsonTagStorage(lg *clog.Logger) *jsonTagStorage {
 }
 
 func (jts *jsonTagStorage) init() error {
-	f, err := os.OpenFile(params.TagsFile, os.O_RDWR, 0666)
+	f, err := os.OpenFile(params.TagsJSONFile, os.O_RDWR, 0666)
 	if err != nil {
 		// Have to create a new file
 		if os.IsNotExist(err) {
 			return jts.createNewFile()
 		}
 
-		return errors.Wrapf(err, "can't open file %s", params.TagsFile)
+		return errors.Wrapf(err, "can't open file %s", params.TagsJSONFile)
 	}
 	defer f.Close()
 
@@ -48,10 +48,10 @@ func (jts *jsonTagStorage) init() error {
 }
 
 func (jts *jsonTagStorage) createNewFile() error {
-	jts.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.TagsFile)
+	jts.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.TagsJSONFile)
 
 	// Just create a new file
-	f, err := os.OpenFile(params.TagsFile, os.O_CREATE|os.O_RDWR, 0666)
+	f, err := os.OpenFile(params.TagsJSONFile, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		return errors.Wrap(err, "can't create a new file")
 	}
@@ -67,9 +67,9 @@ func (jts jsonTagStorage) write() {
 	jts.mutex.RLock()
 	defer jts.mutex.RUnlock()
 
-	f, err := os.OpenFile(params.TagsFile, os.O_TRUNC|os.O_RDWR, 0666)
+	f, err := os.OpenFile(params.TagsJSONFile, os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
-		jts.logger.Errorf("can't open file %s: %s\n", params.TagsFile, err)
+		jts.logger.Errorf("can't open file %s: %s\n", params.TagsJSONFile, err)
 		return
 	}
 	defer f.Close()
@@ -82,7 +82,7 @@ func (jts jsonTagStorage) write() {
 		}
 		err := enc.Encode(jts.tags)
 		if err != nil {
-			jts.logger.Warnf("can't write '%s': %s", params.TagsFile, err)
+			jts.logger.Warnf("can't write '%s': %s", params.TagsJSONFile, err)
 		}
 
 		return
@@ -100,7 +100,7 @@ func (jts jsonTagStorage) write() {
 	_, err = sio.Encrypt(f, buff, sio.Config{Key: params.PassPhrase[:]})
 
 	if err != nil {
-		jts.logger.Warnf("can't write '%s': %s\n", params.TagsFile, err)
+		jts.logger.Warnf("can't write '%s': %s\n", params.TagsJSONFile, err)
 	}
 }
 

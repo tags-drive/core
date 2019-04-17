@@ -63,7 +63,7 @@ func (jfs *jsonFileStorage) init() error {
 		return errors.Wrapf(err, "can't create a folder %s", params.ResizedImagesFolder)
 	}
 
-	f, err := os.OpenFile(params.Files, os.O_RDWR, 0666)
+	f, err := os.OpenFile(params.FilesJSONFile, os.O_RDWR, 0666)
 	if err != nil {
 		// Have to create a new file
 		if os.IsNotExist(err) {
@@ -78,7 +78,7 @@ func (jfs *jsonFileStorage) init() error {
 			return nil
 		}
 
-		return errors.Wrapf(err, "can't open file %s", params.Files)
+		return errors.Wrapf(err, "can't open file %s", params.FilesJSONFile)
 	}
 
 	defer f.Close()
@@ -100,10 +100,10 @@ func (jfs *jsonFileStorage) init() error {
 }
 
 func (jfs jsonFileStorage) createNewFile() error {
-	jfs.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.Files)
+	jfs.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.FilesJSONFile)
 
 	// Just create a new file
-	f, err := os.OpenFile(params.Files, os.O_CREATE|os.O_RDWR, 0666)
+	f, err := os.OpenFile(params.FilesJSONFile, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		return errors.Wrap(err, "can't create a new file")
 	}
@@ -142,9 +142,9 @@ func (jfs jsonFileStorage) write() {
 	jfs.mutex.RLock()
 	defer jfs.mutex.RUnlock()
 
-	f, err := os.OpenFile(params.Files, os.O_TRUNC|os.O_RDWR, 0666)
+	f, err := os.OpenFile(params.FilesJSONFile, os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
-		jfs.logger.Errorf("can't open file %s: %s\n", params.Files, err)
+		jfs.logger.Errorf("can't open file %s: %s\n", params.FilesJSONFile, err)
 		return
 	}
 	defer f.Close()
@@ -157,7 +157,7 @@ func (jfs jsonFileStorage) write() {
 		}
 		err := enc.Encode(jfs.files)
 		if err != nil {
-			jfs.logger.Warnf("can't write '%s': %s\n", params.Files, err)
+			jfs.logger.Warnf("can't write '%s': %s\n", params.FilesJSONFile, err)
 		}
 
 		return
@@ -175,7 +175,7 @@ func (jfs jsonFileStorage) write() {
 	_, err = sio.Encrypt(f, buff, sio.Config{Key: params.PassPhrase[:]})
 
 	if err != nil {
-		jfs.logger.Warnf("can't write '%s': %s\n", params.Files, err)
+		jfs.logger.Warnf("can't write '%s': %s\n", params.FilesJSONFile, err)
 	}
 }
 

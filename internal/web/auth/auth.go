@@ -38,10 +38,10 @@ func NewAuthService(lg *clog.Logger) (*Auth, error) {
 		shutdowned: make(chan struct{}),
 	}
 
-	f, err := os.Open(params.TokensFile)
+	f, err := os.Open(params.TokensJSONFile)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return nil, errors.Wrapf(err, "can't open file %s", params.TokensFile)
+			return nil, errors.Wrapf(err, "can't open file %s", params.TokensJSONFile)
 		}
 
 		// Have to create a new file
@@ -93,9 +93,9 @@ func NewAuthService(lg *clog.Logger) (*Auth, error) {
 }
 
 func (a Auth) createNewFile() error {
-	a.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.TokensFile)
+	a.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.TokensJSONFile)
 
-	f, err := os.OpenFile(params.TokensFile, os.O_CREATE|os.O_RDWR, 0666)
+	f, err := os.OpenFile(params.TokensJSONFile, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		return errors.Wrap(err, "can't create a new file")
 	}

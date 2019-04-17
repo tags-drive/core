@@ -14,9 +14,9 @@ func (a Auth) write() {
 	a.mutex.RLock()
 	defer a.mutex.RUnlock()
 
-	f, err := os.OpenFile(params.TokensFile, os.O_TRUNC|os.O_RDWR, 0666)
+	f, err := os.OpenFile(params.TokensJSONFile, os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
-		a.logger.Errorf("can't open file %s: %s\n", params.TokensFile, err)
+		a.logger.Errorf("can't open file %s: %s\n", params.TokensJSONFile, err)
 		return
 	}
 	defer f.Close()
@@ -29,7 +29,7 @@ func (a Auth) write() {
 		}
 		err := enc.Encode(a.tokens)
 		if err != nil {
-			a.logger.Warnf("can't write '%s': %s\n", params.TokensFile, err)
+			a.logger.Warnf("can't write '%s': %s\n", params.TokensJSONFile, err)
 		}
 
 		return
@@ -47,7 +47,7 @@ func (a Auth) write() {
 	_, err = sio.Encrypt(f, buff, sio.Config{Key: params.PassPhrase[:]})
 
 	if err != nil {
-		a.logger.Warnf("can't write '%s': %s\n", params.TokensFile, err)
+		a.logger.Warnf("can't write '%s': %s\n", params.TokensJSONFile, err)
 	}
 }
 
