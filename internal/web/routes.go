@@ -20,6 +20,7 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		{"/", "GET", s.index, true},
 		{"/mobile", "GET", s.mobile, true},
 		{"/login", "GET", s.login, false},
+		{"/version", "GET", s.backendVersion, false},
 
 		// Auth
 		{"/api/login", "POST", s.authentication, false},

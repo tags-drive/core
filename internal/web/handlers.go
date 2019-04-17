@@ -69,6 +69,14 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 	f.Close()
 }
 
+// GET /version
+//
+// Response: backend version
+//
+func (s Server) backendVersion(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(params.Version))
+}
+
 // extensionHandler servers extensions
 func (s Server) extensionHandler(dir http.Dir) http.Handler {
 	const blankFilename = "_blank.png"
