@@ -14,6 +14,9 @@ type Config struct {
 
 // AuthServiceInterface provides methods for auth users
 type AuthServiceInterface interface {
+	// Start starts all background services
+	StartBackgroundServices()
+
 	// GenerateToken generates a new token. GenerateToken doesn't add new token, just return it!
 	GenerateToken() string
 

@@ -112,9 +112,11 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 		return nil, errors.Wrapf(err, "can't init files storage")
 	}
 
-	go fs.scheduleDeleting()
-
 	return fs, nil
+}
+
+func (fs FileStorage) StartBackgroundServices() {
+	go fs.scheduleDeleting()
 }
 
 func (fs FileStorage) Get(expr string, s FilesSortMode, search string, isRegexp bool, offset, count int) ([]File, error) {

@@ -35,7 +35,7 @@ type Server struct {
 	logger *clog.Logger
 }
 
-// NewWebServer just creates new Web struct. It doesn't call any Init functions
+// NewWebServer just creates new Web struct
 func NewWebServer(cnf Config, fs files.FileStorageInterface, ts tags.TagStorageInterface, lg *clog.Logger) (*Server, error) {
 	s := &Server{
 		config:      cnf,
@@ -102,6 +102,9 @@ func (s *Server) Start() error {
 			return s.httpServer.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key")
 		}
 	}
+
+	// Start background services
+	s.authService.StartBackgroundServices()
 
 	s.logger.Infoln("start web server")
 

@@ -72,26 +72,28 @@ func NewAuthService(cnf Config, lg *clog.Logger) (*Auth, error) {
 		f.Close()
 	}
 
-	// Expiration function
+	return service, nil
+}
+
+func (a *Auth) StartBackgroundServices() {
+	// Start expiration function
 	go func() {
 		// Check tokens right now
-		lg.Infoln("check expired tokens")
-		service.expire()
+		a.logger.Infoln("check expired tokens")
+		a.expire()
 
 		ticker := time.NewTicker(time.Hour * 6)
 		for {
 			select {
 			case <-ticker.C:
-				lg.Infoln("check expired tokens")
-				service.expire()
-			case <-service.shutdowned:
+				a.logger.Infoln("check expired tokens")
+				a.expire()
+			case <-a.shutdowned:
 				ticker.Stop()
 				return
 			}
 		}
 	}()
-
-	return service, nil
 }
 
 func (a Auth) createNewFile() error {

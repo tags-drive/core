@@ -23,6 +23,9 @@ type Config struct {
 
 // FileStorageInterface provides methods for interactions with files
 type FileStorageInterface interface {
+	// Start starts all background services
+	StartBackgroundServices()
+
 	// Get returns all "good" sorted files
 	//
 	// If expr isn't valid, Get returns ErrBadExpessionSyntax
