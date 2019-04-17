@@ -21,7 +21,7 @@ import (
 
 const version = "v0.6.0"
 
-type commonOptions struct {
+type globalConfig struct {
 	Version string `ignored:"true"`
 
 	// Debug defines is debug mode
@@ -64,45 +64,45 @@ type commonOptions struct {
 }
 
 type App struct {
+	config globalConfig
+
 	server      web.ServerInterface
 	fileStorage files.FileStorageInterface
 	tagStorage  tags.TagStorageInterface
 
 	logger *clog.Logger
-
-	options commonOptions
 }
 
 func NewApp() (*App, error) {
-	var opts commonOptions
-	err := envconfig.Process("", &opts)
+	var cnf globalConfig
+	err := envconfig.Process("", &cnf)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't parse Config")
 	}
 
-	opts.Version = version
+	cnf.Version = version
 
 	// Add PassPhrase
-	if opts.Encrypt {
+	if cnf.Encrypt {
 		phrase := os.Getenv("PASS_PHRASE")
 		if phrase == "" {
 			return nil, errors.New("wrong env config: PASS_PHRASE can't be empty with ENCRYPT=true")
 		}
-		opts.PassPhrase = sha256.Sum256([]byte(phrase))
+		cnf.PassPhrase = sha256.Sum256([]byte(phrase))
 	}
 
-	app := &App{options: opts}
+	app := &App{config: cnf}
 
 	return app, nil
 }
 
 func (app *App) Start() error {
 	lg := clog.NewProdLogger()
-	if app.options.Debug {
+	if app.config.Debug {
 		lg = clog.NewDevLogger()
 	}
 
-	lg.Printf("Tags Drive %s (https://github.com/tags-drive)\n\n", app.options.Version)
+	lg.Printf("Tags Drive %s (https://github.com/tags-drive)\n\n", app.config.Version)
 
 	lg.Infoln("start")
 
@@ -116,13 +116,13 @@ func (app *App) Start() error {
 
 	// File storage
 	fileStorageConfig := files.Config{
-		Debug:               app.options.Debug,
-		DataFolder:          app.options.DataFolder,
-		ResizedImagesFolder: app.options.ResizedImagesFolder,
-		StorageType:         app.options.StorageType,
-		FilesJSONFile:       app.options.FilesJSONFile,
-		Encrypt:             app.options.Encrypt,
-		PassPhrase:          app.options.PassPhrase,
+		Debug:               app.config.Debug,
+		DataFolder:          app.config.DataFolder,
+		ResizedImagesFolder: app.config.ResizedImagesFolder,
+		StorageType:         app.config.StorageType,
+		FilesJSONFile:       app.config.FilesJSONFile,
+		Encrypt:             app.config.Encrypt,
+		PassPhrase:          app.config.PassPhrase,
 	}
 	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, lg)
 	if err != nil {
@@ -131,11 +131,11 @@ func (app *App) Start() error {
 
 	// Tag storage
 	tagStorageConfig := tags.Config{
-		Debug:        app.options.Debug,
-		StorageType:  app.options.StorageType,
-		TagsJSONFile: app.options.TagsJSONFile,
-		Encrypt:      app.options.Encrypt,
-		PassPhrase:   app.options.PassPhrase,
+		Debug:        app.config.Debug,
+		StorageType:  app.config.StorageType,
+		TagsJSONFile: app.config.TagsJSONFile,
+		Encrypt:      app.config.Encrypt,
+		PassPhrase:   app.config.PassPhrase,
 	}
 	app.tagStorage, err = tags.NewTagStorage(tagStorageConfig, lg)
 	if err != nil {
@@ -144,19 +144,19 @@ func (app *App) Start() error {
 
 	// Web server
 	serverConfig := web.Config{
-		Debug:          app.options.Debug,
-		DataFolder:     app.options.DataFolder,
-		Port:           app.options.Port,
-		IsTLS:          app.options.IsTLS,
-		Login:          app.options.Login,
-		Password:       app.options.Password,
-		SkipLogin:      app.options.SkipLogin,
-		AuthCookieName: app.options.AuthCookieName,
-		MaxTokenLife:   app.options.MaxTokenLife,
-		TokensJSONFile: app.options.TokensJSONFile,
-		Encrypt:        app.options.Encrypt,
-		PassPhrase:     app.options.PassPhrase,
-		Version:        app.options.Version,
+		Debug:          app.config.Debug,
+		DataFolder:     app.config.DataFolder,
+		Port:           app.config.Port,
+		IsTLS:          app.config.IsTLS,
+		Login:          app.config.Login,
+		Password:       app.config.Password,
+		SkipLogin:      app.config.SkipLogin,
+		AuthCookieName: app.config.AuthCookieName,
+		MaxTokenLife:   app.config.MaxTokenLife,
+		TokensJSONFile: app.config.TokensJSONFile,
+		Encrypt:        app.config.Encrypt,
+		PassPhrase:     app.config.PassPhrase,
+		Version:        app.config.Version,
 	}
 	app.server, err = web.NewWebServer(serverConfig, app.fileStorage, app.tagStorage, lg)
 	if err != nil {
@@ -221,14 +221,14 @@ func (app *App) paramsToString() string {
 		name string
 		v    interface{}
 	}{
-		{"Port", app.options.Port},
-		{"Login", app.options.Login},
-		{"Password", strings.Repeat("*", len(app.options.Password))},
-		{"TLS", app.options.IsTLS},
-		{"Encrypt", app.options.Encrypt},
-		{"StorageType", app.options.StorageType},
-		{"Debug", app.options.Debug},
-		{"SkipLogin", app.options.SkipLogin},
+		{"Port", app.config.Port},
+		{"Login", app.config.Login},
+		{"Password", strings.Repeat("*", len(app.config.Password))},
+		{"TLS", app.config.IsTLS},
+		{"Encrypt", app.config.Encrypt},
+		{"StorageType", app.config.StorageType},
+		{"Debug", app.config.Debug},
+		{"SkipLogin", app.config.SkipLogin},
 	}
 
 	for _, v := range vars {
