@@ -24,43 +24,31 @@ func areTagsEqual(a, b Tags) bool {
 	return true
 }
 
-func newStorage() *jsonTagStorage {
-	return newJsonTagStorage(clog.NewProdLogger())
+func removeConfigFile(path string) {
+	os.Remove(path)
 }
 
-func TestMain(m *testing.M) {
-	// All tests are called sequentially. Every test creates new instance of jsonTagStorage.
-	// So we hadn't to remove tags.json file because of it is trunced in jsonTagStorage.write() func.
-
-	// Create folder storage/tags/configs
-	err := os.Mkdir("configs", 0666)
-	if err != nil && !os.IsExist(err) {
-		clog.Fatalln(err)
-		return
+func newStorage() *jsonTagStorage {
+	cnf := Config{
+		Debug:        false,
+		StorageType:  "json",
+		TagsJSONFile: "tags.json",
+		Encrypt:      false,
+		// PassPhrase:   sha256.Sum256([]byte("sha256")),
 	}
-
-	// We will create tags.json in TestInit function
-	code := m.Run()
-
-	// Remove test file
-	err = os.RemoveAll("configs")
-	if err != nil {
-		clog.Fatalln(err)
-		return
-	}
-
-	os.Exit(code)
+	return newJsonTagStorage(cnf, clog.NewProdLogger())
 }
 
 func TestInit(t *testing.T) {
 	testStorage := newStorage()
+	testStorage.init()
 
 	err := testStorage.init()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	f, err := os.Open("configs/tags.json")
+	f, err := os.Open(testStorage.config.TagsJSONFile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,6 +65,8 @@ func TestInit(t *testing.T) {
 
 	// Write new tag. It must be saved in file
 	testStorage.addTag(Tag{Name: "first", Color: "#ffffff"})
+
+	removeConfigFile(testStorage.config.TagsJSONFile)
 }
 
 func TestInit2(t *testing.T) {
@@ -93,10 +83,13 @@ func TestInit2(t *testing.T) {
 	if len(tags) != 1 || !testStorage.check(1) || tags[1] != tagInFile {
 		t.Errorf("wrong file content: len(tags): %d, allTags: %v", len(tags), tags)
 	}
+
+	removeConfigFile(testStorage.config.TagsJSONFile)
 }
 
 func TestAdd(t *testing.T) {
 	testStorage := newStorage()
+	testStorage.init()
 
 	tags := []Tag{
 		{Name: "test1", Color: "#fffff0"},
@@ -125,10 +118,13 @@ func TestAdd(t *testing.T) {
 	if !areTagsEqual(result, answer) {
 		t.Errorf("Want: %v\n\nGot: %v", answer, result)
 	}
+
+	removeConfigFile(testStorage.config.TagsJSONFile)
 }
 
 func TestDelete(t *testing.T) {
 	testStorage := newStorage()
+	testStorage.init()
 
 	// Default tags
 	startTags := []Tag{
@@ -181,6 +177,8 @@ func TestDelete(t *testing.T) {
 	if !areTagsEqual(result, answer) {
 		t.Errorf("Want: %v\n\nGot: %v", answer, result)
 	}
+
+	removeConfigFile(testStorage.config.TagsJSONFile)
 }
 
 func TestUpdate(t *testing.T) {
@@ -237,6 +235,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	testStorage := newStorage()
+	testStorage.init()
 
 	wg := new(sync.WaitGroup)
 	for _, tag := range startTags {
@@ -264,4 +263,6 @@ func TestUpdate(t *testing.T) {
 	}
 
 	wg.Wait()
+
+	removeConfigFile(testStorage.config.TagsJSONFile)
 }

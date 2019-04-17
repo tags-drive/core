@@ -31,6 +31,10 @@ func isEqual(a, b []string) bool {
 	return true
 }
 
+func removeConfigFile(path string) {
+	os.Remove(path)
+}
+
 func toStringSlice(t []tokenStruct) (s []string) {
 	for _, tt := range t {
 		s = append(s, tt.Token)
@@ -39,46 +43,23 @@ func toStringSlice(t []tokenStruct) (s []string) {
 }
 
 func newAuth() *Auth {
-	return &Auth{
+	cnf := Config{
+		Debug:          false,
+		TokensJSONFile: "tokens.json",
+		Encrypt:        false,
+		MaxTokenLife:   time.Hour,
+	}
+
+	auth := &Auth{
+		config:     cnf,
 		mutex:      new(sync.RWMutex),
 		tokens:     originalTokens(),
 		logger:     clog.NewProdLogger(),
 		shutdowned: make(chan struct{}),
 	}
-}
+	auth.createNewFile()
 
-func TestMain(m *testing.M) {
-	// Create tokens.json file in folder web/auth/configs. This file is used for test tokens.write()
-	err := os.Mkdir("configs", 0666)
-	if err != nil && !os.IsExist(err) {
-		clog.Fatalln(err)
-		return
-	}
-
-	f, err := os.Create("configs/tokens.json")
-	if err != nil {
-		clog.Fatalln(err)
-		return
-	}
-	// We have to close the file to remove it
-	f.Close()
-
-	// Every test tokens is equal
-	code := m.Run()
-
-	// Remove test file
-	err = os.Remove("configs/tokens.json")
-	if err != nil {
-		clog.Fatalln(err)
-		return
-	}
-	err = os.Remove("configs")
-	if err != nil {
-		clog.Fatalln(err)
-		return
-	}
-
-	os.Exit(code)
+	return auth
 }
 
 // originalTokens returns []tokenStruct. The function creates new slice every time.
@@ -125,6 +106,7 @@ func TestAdd(t *testing.T) {
 	}
 
 	tt.Shutdown()
+	removeConfigFile(tt.config.TokensJSONFile)
 }
 
 func TestDelete(t *testing.T) {
@@ -178,6 +160,9 @@ func TestDelete(t *testing.T) {
 	if !isEqual(want, got) {
 		t.Errorf("Wrong delete result Want: %v Got: %v", want, got)
 	}
+
+	tt.Shutdown()
+	removeConfigFile(tt.config.TokensJSONFile)
 }
 
 func TestCheck(t *testing.T) {
@@ -196,6 +181,7 @@ func TestCheck(t *testing.T) {
 	}
 
 	tt.Shutdown()
+	removeConfigFile(tt.config.TokensJSONFile)
 }
 
 func TestExpire(t *testing.T) {
@@ -240,4 +226,5 @@ func TestExpire(t *testing.T) {
 	}
 
 	testTokens.Shutdown()
+	removeConfigFile(testTokens.config.TokensJSONFile)
 }

@@ -1,6 +1,7 @@
 package files
 
 import (
+	"crypto/sha256"
 	"os"
 	"testing"
 	"time"
@@ -51,7 +52,16 @@ func areArraysEqualString(a, b []string) bool {
 }
 
 func newStorage() *jsonFileStorage {
-	return newJsonFileStorage(clog.NewProdLogger())
+	cnf := Config{
+		Debug:               false,
+		DataFolder:          "./data",
+		ResizedImagesFolder: "./data/resizing",
+		StorageType:         "json",
+		FilesJSONFile:       "files.json",
+		Encrypt:             true,
+		PassPhrase:          sha256.Sum256([]byte("sha256")),
+	}
+	return newJsonFileStorage(cnf, clog.NewProdLogger())
 }
 
 // addDefaultFiles adds next files into storage:
@@ -84,9 +94,8 @@ func addDefaultFiles(storage *jsonFileStorage) {
 	}
 }
 
-// removeConfigFile remove "configs/files.json"
-func removeConfigFile() {
-	os.Remove("configs/files.json")
+func removeConfigFile(path string) {
+	os.Remove(path)
 }
 
 func TestMain(m *testing.M) {
@@ -199,7 +208,7 @@ func TestAddTagsToFiles(t *testing.T) {
 		}
 	}
 
-	removeConfigFile()
+	removeConfigFile(storage.config.FilesJSONFile)
 }
 
 func TestRemoveTagsFromFiles(t *testing.T) {
@@ -277,7 +286,7 @@ func TestRemoveTagsFromFiles(t *testing.T) {
 		}
 	}
 
-	removeConfigFile()
+	removeConfigFile(storage.config.FilesJSONFile)
 }
 
 func TestGetFiles(t *testing.T) {
@@ -337,5 +346,5 @@ func TestGetFiles(t *testing.T) {
 		}
 	}
 
-	removeConfigFile()
+	removeConfigFile(storage.config.FilesJSONFile)
 }
