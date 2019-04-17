@@ -24,15 +24,14 @@ const (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type Server struct {
-	fileStorage cmd.FileStorageInterface
-	tagStorage  cmd.TagStorageInterface
-	authService cmd.AuthServiceInterface
-
-	logger *clog.Logger
+	fileStorage     cmd.FileStorageInterface
+	tagStorage      cmd.TagStorageInterface
+	authService     cmd.AuthServiceInterface
+	authRateLimiter cmd.RateLimiterInterface
 
 	httpServer *http.Server
 
-	authRateLimiter *limiter.RateLimiter
+	logger *clog.Logger
 }
 
 type route struct {

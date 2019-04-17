@@ -25,3 +25,7 @@ type AuthServiceInterface interface {
 	// Shutdown gracefully shutdown FileStorage
 	Shutdown() error
 }
+
+type RateLimiterInterface interface {
+	Take(remoteAddr string) bool
+}
