@@ -9,11 +9,13 @@ import (
 )
 
 var (
+	usualDEBUG = []byte("[DBG] ")
 	usualINFO  = []byte("[INF] ")
 	usualWARN  = []byte("[WRN] ")
 	usualERR   = []byte("[ERR] ")
 	usualFATAL = []byte("[FAT] ")
 
+	coloredDEBUG = []byte(color.HiMagentaString(string(usualDEBUG)))
 	coloredINFO  = []byte(color.CyanString(string(usualINFO)))
 	coloredWARN  = []byte(color.YellowString(string(usualWARN)))
 	coloredERR   = []byte(color.RedString(string(usualERR)))
@@ -68,6 +70,13 @@ func (l Logger) getTime(t time.Time) []byte {
 		return []byte(timePrintf("%s ", t.Format(l.timeLayout)))
 	}
 	return []byte(t.Format(l.timeLayout) + " ")
+}
+
+func (l Logger) getDebugMsg() []byte {
+	if l.printColor {
+		return coloredDEBUG
+	}
+	return usualDEBUG
 }
 
 func (l Logger) getInfoMsg() []byte {

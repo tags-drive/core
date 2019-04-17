@@ -1,16 +1,18 @@
 // Package log provides functions for pretty print
 //
 // Patterns of functions print:
-// * Print(), Printf(), Println():
-//   (?time) msg
-// * Info(), Infof(), Infoln():
-//   (?time) [INF] msg
-// * Warn(), Warnf(), Warnln():
-//   (?time) [WRN] warning
-// * Error(), Errorf(), Errorln():
-//   (?time) [ERR] (?file:line) error
-// * Fatal(), Fatalf(), Fatalln():
-//   (?time) [FAT] (?file:line) error
+//
+// * (?time) msg - Print(), Printf(), Println():
+//
+// * (?time) [DBG] msg - Debug(), Debugf(), Debugln():
+//
+// * (?time) [INF] msg - Info(), Infof(), Infoln():
+//
+// * (?time) [WRN] warning - Warn(), Warnf(), Warnln():
+//
+// * (?time) [ERR] (?file:line) error - Error(), Errorf(), Errorln():
+//
+// * (?time) [FAT] (?file:line) error - Fatal(), Fatalf(), Fatalln():
 //
 // Time pattern: MM.dd.yyyy hh:mm:ss (01.30.2018 05:5:59)
 //
@@ -36,6 +38,7 @@ type Logger struct {
 
 	global bool
 
+	debug          bool
 	printTime      bool
 	printColor     bool
 	printErrorLine bool
@@ -66,6 +69,7 @@ func NewProdLogger() *Logger {
 
 type Config struct {
 	output         io.Writer
+	debug          bool
 	printTime      bool
 	printColor     bool
 	printErrorLine bool
@@ -75,6 +79,7 @@ type Config struct {
 func NewDevConfig() *Config {
 	return &Config{
 		output:         color.Output,
+		debug:          true,
 		printTime:      true,
 		printColor:     true,
 		printErrorLine: true,
@@ -85,6 +90,7 @@ func NewDevConfig() *Config {
 func NewProdConfig() *Config {
 	return &Config{
 		output:         os.Stdout,
+		debug:          false,
 		printTime:      true,
 		printColor:     false,
 		printErrorLine: true,
@@ -107,6 +113,7 @@ func (c *Config) Build() *Logger {
 		l.output = os.Stdout
 	}
 
+	l.debug = c.debug
 	l.printTime = c.printTime
 	l.printColor = c.printColor
 	l.printErrorLine = c.printErrorLine
@@ -117,6 +124,12 @@ func (c *Config) Build() *Logger {
 	}
 
 	return l
+}
+
+// Debug sets Config.debug to b
+func (c *Config) Debug(b bool) *Config {
+	c.debug = b
+	return c
 }
 
 // PrintTime sets Config.printTime to b

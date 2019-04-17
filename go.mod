@@ -1,7 +1,7 @@
 module github.com/tags-drive/core
 
 require (
-	github.com/ShoshinNikita/log/v2 v2.0.0
+	github.com/ShoshinNikita/log/v2 v2.1.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/disintegration/imaging v1.6.0
 	github.com/fvbommel/util v0.0.0-20180919145318-efcd4e0f9787
@@ -16,6 +16,6 @@ require (
 	github.com/stretchr/testify v1.3.0
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a // indirect
-	golang.org/x/image v0.0.0-20190321063152-3fc05d484e9f // indirect
-	golang.org/x/sys v0.0.0-20190412213103-97732733099d // indirect
+	golang.org/x/image v0.0.0-20190417020941-4e30a6eb7d9a // indirect
+	golang.org/x/sys v0.0.0-20190416152802-12500544f89f // indirect
 )
