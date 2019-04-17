@@ -176,19 +176,19 @@ func (app *App) Start() error {
 		}
 
 		// Shutdowns. Server must be first
-		app.logger.Infoln("shutdown WebServer")
+		app.logger.Debugln("shutdown WebServer")
 		err := app.server.Shutdown()
 		if err != nil {
 			app.logger.Warnf("can't shutdown server gracefully: %s\n", err)
 		}
 
-		app.logger.Infoln("shutdown FileStorage")
+		app.logger.Debugln("shutdown FileStorage")
 		err = app.fileStorage.Shutdown()
 		if err != nil {
 			app.logger.Warnf("can't shutdown FileStorage gracefully: %s\n", err)
 		}
 
-		app.logger.Infoln("shutdown TagStorage")
+		app.logger.Debugln("shutdown TagStorage")
 		err = app.tagStorage.Shutdown()
 		if err != nil {
 			app.logger.Warnf("can't shutdown TagStorage gracefully: %s\n", err)

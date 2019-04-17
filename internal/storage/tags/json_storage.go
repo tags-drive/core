@@ -48,7 +48,7 @@ func (jts *jsonTagStorage) init() error {
 }
 
 func (jts *jsonTagStorage) createNewFile() error {
-	jts.logger.Infof("file %s doesn't exist. Need to create a new file\n", jts.config.TagsJSONFile)
+	jts.logger.Debugf("file %s doesn't exist. Need to create a new file\n", jts.config.TagsJSONFile)
 
 	// Just create a new file
 	f, err := os.OpenFile(jts.config.TagsJSONFile, os.O_CREATE|os.O_RDWR, 0666)

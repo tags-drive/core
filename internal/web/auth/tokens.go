@@ -103,7 +103,7 @@ func (a *Auth) expire() {
 		if now.Before(tok.Expires) {
 			freshTokens = append(freshTokens, tok)
 		} else {
-			a.logger.Infof("token \"%s\" expired\n", tok.Token)
+			a.logger.Debugf("token \"%s\" expired\n", tok.Token)
 		}
 	}
 

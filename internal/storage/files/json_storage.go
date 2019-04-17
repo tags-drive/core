@@ -106,7 +106,7 @@ func (jfs *jsonFileStorage) init() error {
 }
 
 func (jfs jsonFileStorage) createNewFile() error {
-	jfs.logger.Infof("file %s doesn't exist. Need to create a new file\n", jfs.config.FilesJSONFile)
+	jfs.logger.Debugf("file %s doesn't exist. Need to create a new file\n", jfs.config.FilesJSONFile)
 
 	// Just create a new file
 	f, err := os.OpenFile(jfs.config.FilesJSONFile, os.O_CREATE|os.O_RDWR, 0666)

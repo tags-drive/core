@@ -79,14 +79,14 @@ func (a *Auth) StartBackgroundServices() {
 	// Start expiration function
 	go func() {
 		// Check tokens right now
-		a.logger.Infoln("check expired tokens")
+		a.logger.Debugln("check expired tokens")
 		a.expire()
 
 		ticker := time.NewTicker(time.Hour * 6)
 		for {
 			select {
 			case <-ticker.C:
-				a.logger.Infoln("check expired tokens")
+				a.logger.Debugln("check expired tokens")
 				a.expire()
 			case <-a.shutdowned:
 				ticker.Stop()
@@ -97,7 +97,7 @@ func (a *Auth) StartBackgroundServices() {
 }
 
 func (a Auth) createNewFile() error {
-	a.logger.Infof("file %s doesn't exist. Need to create a new file\n", a.config.TokensJSONFile)
+	a.logger.Debugf("file %s doesn't exist. Need to create a new file\n", a.config.TokensJSONFile)
 
 	f, err := os.OpenFile(a.config.TokensJSONFile, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {

@@ -381,16 +381,16 @@ func (fs FileStorage) scheduleDeleting() {
 	ticker := time.NewTicker(time.Hour * 12)
 
 	for ; true; <-ticker.C {
-		fs.logger.Infoln("delete old files")
+		fs.logger.Debugln("delete old files")
 
 		var err error
 		for _, id := range fs.storage.getExpiredDeletedFiles() {
 			file, _ := fs.storage.getFile(id)
 			err = fs.DeleteForce(id)
 			if err != nil {
-				fs.logger.Errorf("can't delete file \"%s\": %s\n", file.Filename, err)
+				fs.logger.Errorf("can't remove file \"%s\" from trash: %s\n", file.Filename, err)
 			} else {
-				fs.logger.Infof("file \"%s\" was successfully deleted\n", file.Filename)
+				fs.logger.Debugf("file \"%s\" was successfully deleted\n", file.Filename)
 			}
 		}
 	}

@@ -106,7 +106,7 @@ func (s *Server) Start() error {
 	// Start background services
 	s.authService.StartBackgroundServices()
 
-	s.logger.Infoln("start web server")
+	s.logger.Debugln("start web server")
 
 	// http.ErrServerClosed is a valid error
 	if err := listenAndServe(); err != nil && err != http.ErrServerClosed {
