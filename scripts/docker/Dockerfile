@@ -6,7 +6,7 @@ ENV CGO_ENABLED=0
 COPY . /temp
 
 # Build binary
-RUN cd /temp && go build -o tags-drive --mod=vendor
+RUN cd /temp && go build -o tags-drive --mod=vendor ./cmd/tags-drive/main.go
 
 
 FROM alpine
