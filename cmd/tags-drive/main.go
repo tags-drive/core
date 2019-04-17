@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/sha256"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -102,17 +101,13 @@ func (app *App) Start() error {
 		lg = clog.NewDevLogger()
 	}
 
-	lg.Printf("Tags Drive %s (https://github.com/tags-drive)\n\n", app.config.Version)
+	app.logger = lg
 
-	lg.Infoln("start")
-
-	// Print options
-	lg.Infoln("options:")
-	lg.Println(app.paramsToString())
+	app.logger.Printf("Tags Drive %s (https://github.com/tags-drive)\n\n", app.config.Version)
+	app.logger.Infoln("start")
+	app.PrintConfig()
 
 	var err error
-
-	app.logger = lg
 
 	// File storage
 	fileStorageConfig := files.Config{
@@ -124,7 +119,7 @@ func (app *App) Start() error {
 		Encrypt:             app.config.Encrypt,
 		PassPhrase:          app.config.PassPhrase,
 	}
-	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, lg)
+	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, app.logger)
 	if err != nil {
 		return errors.Wrap(err, "can't create new FileStorage")
 	}
@@ -137,7 +132,7 @@ func (app *App) Start() error {
 		Encrypt:      app.config.Encrypt,
 		PassPhrase:   app.config.PassPhrase,
 	}
-	app.tagStorage, err = tags.NewTagStorage(tagStorageConfig, lg)
+	app.tagStorage, err = tags.NewTagStorage(tagStorageConfig, app.logger)
 	if err != nil {
 		return errors.Wrap(err, "can't create new TagStorage")
 	}
@@ -158,7 +153,7 @@ func (app *App) Start() error {
 		PassPhrase:     app.config.PassPhrase,
 		Version:        app.config.Version,
 	}
-	app.server, err = web.NewWebServer(serverConfig, app.fileStorage, app.tagStorage, lg)
+	app.server, err = web.NewWebServer(serverConfig, app.fileStorage, app.tagStorage, app.logger)
 	if err != nil {
 		return errors.Wrap(err, "can't init WebServer")
 	}
@@ -174,28 +169,28 @@ func (app *App) Start() error {
 
 		select {
 		case <-term:
-			lg.Warnln("interrupt signal")
+			app.logger.Warnln("interrupt signal")
 		case <-fatalServerErr:
 			// Nothing
 		}
 
 		// Shutdowns. Server must be first
-		lg.Infoln("shutdown WebServer")
+		app.logger.Infoln("shutdown WebServer")
 		err := app.server.Shutdown()
 		if err != nil {
-			lg.Warnf("can't shutdown server gracefully: %s\n", err)
+			app.logger.Warnf("can't shutdown server gracefully: %s\n", err)
 		}
 
-		lg.Infoln("shutdown FileStorage")
+		app.logger.Infoln("shutdown FileStorage")
 		err = app.fileStorage.Shutdown()
 		if err != nil {
-			lg.Warnf("can't shutdown FileStorage gracefully: %s\n", err)
+			app.logger.Warnf("can't shutdown FileStorage gracefully: %s\n", err)
 		}
 
-		lg.Infoln("shutdown TagStorage")
+		app.logger.Infoln("shutdown TagStorage")
 		err = app.tagStorage.Shutdown()
 		if err != nil {
-			lg.Warnf("can't shutdown TagStorage gracefully: %s\n", err)
+			app.logger.Warnf("can't shutdown TagStorage gracefully: %s\n", err)
 		}
 
 		close(shutdowned)
@@ -203,40 +198,39 @@ func (app *App) Start() error {
 
 	err = app.server.Start()
 	if err != nil {
-		lg.Errorf("server error: %s\n", err)
+		app.logger.Errorf("server error: %s\n", err)
 		close(fatalServerErr)
 	}
 
 	<-shutdowned
 
-	lg.Infoln("stop")
+	app.logger.Infoln("stop")
 
 	return nil
 }
 
-func (app *App) paramsToString() string {
-	s := "\n"
+func (app *App) PrintConfig() {
+	app.logger.Infoln("Config:")
 
 	vars := []struct {
 		name string
 		v    interface{}
 	}{
+		{"Debug", app.config.Debug},
+		//
 		{"Port", app.config.Port},
+		{"TLS", app.config.IsTLS},
 		{"Login", app.config.Login},
 		{"Password", strings.Repeat("*", len(app.config.Password))},
-		{"TLS", app.config.IsTLS},
-		{"Encrypt", app.config.Encrypt},
-		{"StorageType", app.config.StorageType},
-		{"Debug", app.config.Debug},
 		{"SkipLogin", app.config.SkipLogin},
+		//
+		{"StorageType", app.config.StorageType},
+		{"Encrypt", app.config.Encrypt},
 	}
 
 	for _, v := range vars {
-		s += fmt.Sprintf("\t* %-11s %v\n", v.name, v.v)
+		app.logger.Printf("      * %-11s %v\n", v.name, v.v)
 	}
-
-	// Remove the last '\n'
-	return s[:len(s)-1]
 }
 
 func main() {
