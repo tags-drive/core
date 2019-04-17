@@ -34,13 +34,6 @@ type Server struct {
 	logger *clog.Logger
 }
 
-type route struct {
-	path     string
-	methods  string
-	handler  http.HandlerFunc
-	needAuth bool
-}
-
 // NewWebServer just creates new Web struct. It doesn't call any Init functions
 func NewWebServer(fs cmd.FileStorageInterface, ts cmd.TagStorageInterface, lg *clog.Logger) (*Server, error) {
 	s := &Server{
@@ -125,18 +118,4 @@ func (s Server) Shutdown() error {
 	}
 
 	return serverErr
-}
-
-// processError is a wrapper over http.Error
-func (s Server) processError(w http.ResponseWriter, err string, code int) {
-	if params.Debug {
-		s.logger.Errorf("request error: %s (code: %d)\n", err, code)
-	} else {
-		// We should log server errors
-		if 500 <= code && code < 600 {
-			s.logger.Errorf("request error: %s (code: %d)\n", err, code)
-		}
-	}
-
-	http.Error(w, err, code)
 }

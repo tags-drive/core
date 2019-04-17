@@ -32,14 +32,14 @@ type multiplyResponse struct {
 	Status   string `json:"status"` // Status isn't empty when IsError == false
 }
 
-func getParam(def, passed string, options ...string) (s string) {
-	s = def
-	if passed == def {
+func getParam(defaultVal, passedVal string, validOptions ...string) (s string) {
+	s = defaultVal
+	if passedVal == defaultVal {
 		return
 	}
-	for _, opt := range options {
-		if passed == opt {
-			return passed
+	for _, opt := range validOptions {
+		if passedVal == opt {
+			return passedVal
 		}
 	}
 
@@ -95,16 +95,16 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 //
 func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 	var (
-		order    = getParam("asc", r.FormValue("order"), "asc", "desc")
 		expr     = r.FormValue("expr")
 		search   = r.FormValue("search")
 		isRegexp = r.FormValue("regexp") != ""
+		sortMode = cmd.SortByNameAsc
+		order    = getParam("asc", r.FormValue("order"), "asc", "desc")
 		offset   = 0
 		count    = 0
-		sortMode = cmd.SortByNameAsc
 	)
 
-	// Check is regexp valid
+	// Check if a regexp is valid
 	if isRegexp {
 		_, err := regexp.Compile(search)
 		if err != nil {

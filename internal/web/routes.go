@@ -7,6 +7,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type route struct {
+	path     string
+	methods  string
+	handler  http.HandlerFunc
+	needAuth bool
+}
+
 func (s *Server) addDefaultRoutes(router *mux.Router) {
 	routes := []route{
 		// Pages

@@ -1,12 +1,9 @@
 package web
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"io"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/tags-drive/core/internal/params"
 )
@@ -75,17 +72,14 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 // extensionHandler servers extensions
 func (s Server) extensionHandler(dir http.Dir) http.Handler {
 	const blankFilename = "_blank.png"
+	const iconExt = ".png"
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ext := r.URL.Path
-		f, err := dir.Open(ext + ".png")
-		if err != nil {
-			// return blank icon
-			f, err = dir.Open(blankFilename)
-			if err != nil {
-				return
-			}
-			_, err = io.Copy(w, f)
+
+		if f, err := dir.Open(ext + iconExt); err == nil {
+			// Return existing icon
+			io.Copy(w, f)
 			if err != nil {
 				s.logger.Errorf("can't io.Copy() %s.png: %s\n", ext, err)
 			}
@@ -93,22 +87,18 @@ func (s Server) extensionHandler(dir http.Dir) http.Handler {
 			return
 		}
 
-		io.Copy(w, f)
+		// return blank icon
+		f, err := dir.Open(blankFilename)
+		if err != nil {
+			return
+		}
+		_, err = io.Copy(w, f)
 		if err != nil {
 			s.logger.Errorf("can't io.Copy() %s.png: %s\n", ext, err)
 		}
 		f.Close()
+		return
 	})
-}
-
-// setDebugHeaders sets headers:
-//   "Access-Control-Allow-Origin" - "*"
-//   "Access-Control-Allow-Methods" - "POST, GET, OPTIONS, PUT, DELETE"
-//   "Access-Control-Allow-Headers" - "Content-Type"
-func setDebugHeaders(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
 
 func mock(w http.ResponseWriter, r *http.Request) {
