@@ -4,7 +4,6 @@ import (
 	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/pkg/errors"
 
-	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 )
 
@@ -13,13 +12,13 @@ type storage interface {
 	init() error
 
 	// getAll returns all tags
-	getAll() cmd.Tags
+	getAll() Tags
 
 	// addTag adds a new tag
-	addTag(tag cmd.Tag)
+	addTag(tag Tag)
 
 	// updateTag updates name and color of tag with id == tagID
-	updateTag(id int, newName, newColor string) (cmd.Tag, error)
+	updateTag(id int, newName, newColor string) (Tag, error)
 
 	// deleteTag deletes a tag
 	deleteTag(id int)
@@ -60,23 +59,23 @@ func NewTagStorage(lg *clog.Logger) (*TagStorage, error) {
 	return ts, nil
 }
 
-// Get returns cmd.Tag. If a tag doesn't exist, it returns cmd.Tag{}, false
-func (ts TagStorage) Get(id int) (cmd.Tag, bool) {
+// Get returns Tag. If a tag doesn't exist, it returns Tag{}, false
+func (ts TagStorage) Get(id int) (Tag, bool) {
 	allTags := ts.GetAll()
 	tag, ok := allTags[id]
 	return tag, ok
 }
 
-func (ts TagStorage) GetAll() cmd.Tags {
+func (ts TagStorage) GetAll() Tags {
 	return ts.storage.getAll()
 }
 
 func (ts TagStorage) Add(name, color string) {
-	t := cmd.Tag{Name: name, Color: color}
+	t := Tag{Name: name, Color: color}
 	ts.storage.addTag(t)
 }
 
-func (ts TagStorage) Change(id int, newName, newColor string) (cmd.Tag, error) {
+func (ts TagStorage) Change(id int, newName, newColor string) (Tag, error) {
 	return ts.storage.updateTag(id, newName, newColor)
 }
 

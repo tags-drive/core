@@ -1,4 +1,4 @@
-package cmd
+package tags
 
 // TagStorageInterface provides methods for interactions with tags
 type TagStorageInterface interface {

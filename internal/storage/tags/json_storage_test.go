@@ -8,11 +8,9 @@ import (
 	"testing"
 
 	clog "github.com/ShoshinNikita/log/v2"
-
-	"github.com/tags-drive/core/cmd"
 )
 
-func areTagsEqual(a, b cmd.Tags) bool {
+func areTagsEqual(a, b Tags) bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -78,7 +76,7 @@ func TestInit(t *testing.T) {
 	}
 
 	// Write new tag. It must be saved in file
-	testStorage.addTag(cmd.Tag{Name: "first", Color: "#ffffff"})
+	testStorage.addTag(Tag{Name: "first", Color: "#ffffff"})
 }
 
 func TestInit2(t *testing.T) {
@@ -90,7 +88,7 @@ func TestInit2(t *testing.T) {
 	}
 	tags := testStorage.getAll()
 
-	tagInFile := cmd.Tag{ID: 1, Name: "first", Color: "#ffffff"}
+	tagInFile := Tag{ID: 1, Name: "first", Color: "#ffffff"}
 
 	if len(tags) != 1 || !testStorage.check(1) || tags[1] != tagInFile {
 		t.Errorf("wrong file content: len(tags): %d, allTags: %v", len(tags), tags)
@@ -100,7 +98,7 @@ func TestInit2(t *testing.T) {
 func TestAdd(t *testing.T) {
 	testStorage := newStorage()
 
-	tags := []cmd.Tag{
+	tags := []Tag{
 		{Name: "test1", Color: "#fffff0"},
 		{Name: "test2", Color: "#ffff0f"},
 		{Name: "test3", Color: "#fff0ff"},
@@ -109,13 +107,13 @@ func TestAdd(t *testing.T) {
 		{Name: "test6", Color: "#0fffff"},
 	}
 
-	answer := cmd.Tags{
-		1: cmd.Tag{ID: 1, Name: "test1", Color: "#fffff0"},
-		2: cmd.Tag{ID: 2, Name: "test2", Color: "#ffff0f"},
-		3: cmd.Tag{ID: 3, Name: "test3", Color: "#fff0ff"},
-		4: cmd.Tag{ID: 4, Name: "test4", Color: "#ff0fff"},
-		5: cmd.Tag{ID: 5, Name: "test5", Color: "#f0ffff"},
-		6: cmd.Tag{ID: 6, Name: "test6", Color: "#0fffff"},
+	answer := Tags{
+		1: Tag{ID: 1, Name: "test1", Color: "#fffff0"},
+		2: Tag{ID: 2, Name: "test2", Color: "#ffff0f"},
+		3: Tag{ID: 3, Name: "test3", Color: "#fff0ff"},
+		4: Tag{ID: 4, Name: "test4", Color: "#ff0fff"},
+		5: Tag{ID: 5, Name: "test5", Color: "#f0ffff"},
+		6: Tag{ID: 6, Name: "test6", Color: "#0fffff"},
 	}
 
 	for _, tag := range tags {
@@ -133,7 +131,7 @@ func TestDelete(t *testing.T) {
 	testStorage := newStorage()
 
 	// Default tags
-	startTags := []cmd.Tag{
+	startTags := []Tag{
 		{Name: "test1", Color: "#fffff0"},
 		{Name: "test2", Color: "#ffff0f"},
 		{Name: "test3", Color: "#fff0ff"},
@@ -151,18 +149,18 @@ func TestDelete(t *testing.T) {
 	}
 
 	// Check
-	answer := cmd.Tags{
-		2: cmd.Tag{ID: 2, Name: "test2", Color: "#ffff0f"},
-		4: cmd.Tag{ID: 4, Name: "test4", Color: "#ff0fff"},
-		6: cmd.Tag{ID: 6, Name: "test6", Color: "#0fffff"},
+	answer := Tags{
+		2: Tag{ID: 2, Name: "test2", Color: "#ffff0f"},
+		4: Tag{ID: 4, Name: "test4", Color: "#ff0fff"},
+		6: Tag{ID: 6, Name: "test6", Color: "#0fffff"},
 	}
 	result := testStorage.getAll()
 	if !areTagsEqual(result, answer) {
 		t.Errorf("Want: %v\n\nGot: %v", answer, result)
 	}
 
-	// Add new cmd.Tags
-	newTags := []cmd.Tag{
+	// Add new Tags
+	newTags := []Tag{
 		{Name: "123", Color: "#ff0000"},
 		{Name: "456", Color: "#00ff00"},
 		{Name: "789", Color: "#0000ff"},
@@ -171,13 +169,13 @@ func TestDelete(t *testing.T) {
 		testStorage.addTag(tag)
 	}
 
-	answer = cmd.Tags{
-		2: cmd.Tag{ID: 2, Name: "test2", Color: "#ffff0f"},
-		4: cmd.Tag{ID: 4, Name: "test4", Color: "#ff0fff"},
-		6: cmd.Tag{ID: 6, Name: "test6", Color: "#0fffff"},
-		7: cmd.Tag{ID: 7, Name: "123", Color: "#ff0000"},
-		8: cmd.Tag{ID: 8, Name: "456", Color: "#00ff00"},
-		9: cmd.Tag{ID: 9, Name: "789", Color: "#0000ff"},
+	answer = Tags{
+		2: Tag{ID: 2, Name: "test2", Color: "#ffff0f"},
+		4: Tag{ID: 4, Name: "test4", Color: "#ff0fff"},
+		6: Tag{ID: 6, Name: "test6", Color: "#0fffff"},
+		7: Tag{ID: 7, Name: "123", Color: "#ff0000"},
+		8: Tag{ID: 8, Name: "456", Color: "#00ff00"},
+		9: Tag{ID: 9, Name: "789", Color: "#0000ff"},
 	}
 	result = testStorage.getAll()
 	if !areTagsEqual(result, answer) {
@@ -186,7 +184,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	startTags := []cmd.Tag{
+	startTags := []Tag{
 		{Name: "test1", Color: "#fffff0"},
 		{Name: "test2", Color: "#ffff0f"},
 		{Name: "test3", Color: "#fff0ff"},
@@ -203,37 +201,37 @@ func TestUpdate(t *testing.T) {
 
 	tests := []struct {
 		update toUpdate
-		answer cmd.Tag
+		answer Tag
 		ok     bool
 	}{
 		// No changes
 		{
 			toUpdate{id: 1, name: "", color: ""},
-			cmd.Tag{ID: 1, Name: "test1", Color: "#fffff0"},
+			Tag{ID: 1, Name: "test1", Color: "#fffff0"},
 			true,
 		},
 		// Change name
 		{
 			toUpdate{id: 5, name: "hello", color: ""},
-			cmd.Tag{ID: 5, Name: "hello", Color: "#f0ffff"},
+			Tag{ID: 5, Name: "hello", Color: "#f0ffff"},
 			true,
 		},
 		// Change color (without #)
 		{
 			toUpdate{id: 4, name: "", color: "ff0000"},
-			cmd.Tag{ID: 4, Name: "test4", Color: "#ff0000"},
+			Tag{ID: 4, Name: "test4", Color: "#ff0000"},
 			true,
 		},
 		// Change name and color
 		{
 			toUpdate{id: 2, name: "123", color: "#efefef"},
-			cmd.Tag{ID: 2, Name: "123", Color: "#efefef"},
+			Tag{ID: 2, Name: "123", Color: "#efefef"},
 			true,
 		},
 		// Wrong id
 		{
 			toUpdate{id: 89, name: "123", color: "#efefef"},
-			cmd.Tag{},
+			Tag{},
 			false,
 		},
 	}
@@ -248,7 +246,7 @@ func TestUpdate(t *testing.T) {
 	for i, tt := range tests {
 		wg.Add(1)
 
-		go func(testID int, up toUpdate, ansTag cmd.Tag, ansOk bool) {
+		go func(testID int, up toUpdate, ansTag Tag, ansOk bool) {
 			defer wg.Done()
 
 			testStorage.updateTag(up.id, up.name, up.color)

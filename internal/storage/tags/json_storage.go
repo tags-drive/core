@@ -11,12 +11,11 @@ import (
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
-	"github.com/tags-drive/core/cmd"
 	"github.com/tags-drive/core/internal/params"
 )
 
 type jsonTagStorage struct {
-	tags  cmd.Tags
+	tags  Tags
 	mutex *sync.RWMutex
 
 	logger *clog.Logger
@@ -25,7 +24,7 @@ type jsonTagStorage struct {
 
 func newJsonTagStorage(lg *clog.Logger) *jsonTagStorage {
 	return &jsonTagStorage{
-		tags:   make(cmd.Tags),
+		tags:   make(Tags),
 		mutex:  new(sync.RWMutex),
 		logger: lg,
 		json:   jsoniter.ConfigCompatibleWithStandardLibrary,
@@ -119,14 +118,14 @@ func (jts *jsonTagStorage) decode(r io.Reader) error {
 	return jts.json.NewDecoder(buff).Decode(&jts.tags)
 }
 
-func (jts jsonTagStorage) getAll() cmd.Tags {
+func (jts jsonTagStorage) getAll() Tags {
 	jts.mutex.RLock()
 	defer jts.mutex.RUnlock()
 
 	return jts.tags
 }
 
-func (jts *jsonTagStorage) addTag(tag cmd.Tag) {
+func (jts *jsonTagStorage) addTag(tag Tag) {
 	jts.mutex.Lock()
 
 	// Get max ID (max)
@@ -145,12 +144,12 @@ func (jts *jsonTagStorage) addTag(tag cmd.Tag) {
 	jts.write()
 }
 
-func (jts *jsonTagStorage) updateTag(id int, newName, newColor string) (cmd.Tag, error) {
+func (jts *jsonTagStorage) updateTag(id int, newName, newColor string) (Tag, error) {
 	jts.mutex.Lock()
 
 	if _, ok := jts.tags[id]; !ok {
 		jts.mutex.Unlock()
-		return cmd.Tag{}, errors.New("tag doesn't exist")
+		return Tag{}, errors.New("tag doesn't exist")
 	}
 
 	tag := jts.tags[id]
