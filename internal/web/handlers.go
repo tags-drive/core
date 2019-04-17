@@ -4,8 +4,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-
-	"github.com/tags-drive/core/internal/params"
 )
 
 const (
@@ -50,7 +48,7 @@ func (s Server) mobile(w http.ResponseWriter, r *http.Request) {
 //
 func (s Server) login(w http.ResponseWriter, r *http.Request) {
 	// Redirect to / if user is authorized
-	c, err := r.Cookie(params.AuthCookieName)
+	c, err := r.Cookie(s.config.AuthCookieName)
 	if err == nil && s.authService.CheckToken(c.Value) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
@@ -74,7 +72,7 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 // Response: backend version
 //
 func (s Server) backendVersion(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(params.Version))
+	w.Write([]byte(s.config.Version))
 }
 
 // extensionHandler servers extensions

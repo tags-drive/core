@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/tags-drive/core/internal/params"
 	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/tags"
 	"github.com/tags-drive/core/internal/web/auth"
@@ -25,6 +24,7 @@ const (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type Server struct {
+	config          Config
 	fileStorage     files.FileStorageInterface
 	tagStorage      tags.TagStorageInterface
 	authService     auth.AuthServiceInterface
@@ -36,8 +36,9 @@ type Server struct {
 }
 
 // NewWebServer just creates new Web struct. It doesn't call any Init functions
-func NewWebServer(fs files.FileStorageInterface, ts tags.TagStorageInterface, lg *clog.Logger) (*Server, error) {
+func NewWebServer(cnf Config, fs files.FileStorageInterface, ts tags.TagStorageInterface, lg *clog.Logger) (*Server, error) {
 	s := &Server{
+		config:      cnf,
 		fileStorage: fs,
 		tagStorage:  ts,
 		logger:      lg,
@@ -45,7 +46,14 @@ func NewWebServer(fs files.FileStorageInterface, ts tags.TagStorageInterface, lg
 
 	var err error
 
-	s.authService, err = auth.NewAuthService(lg)
+	authConfig := auth.Config{
+		Debug:          cnf.Debug,
+		TokensJSONFile: cnf.TokensJSONFile,
+		Encrypt:        cnf.Encrypt,
+		PassPhrase:     cnf.PassPhrase,
+		MaxTokenLife:   cnf.MaxTokenLife,
+	}
+	s.authService, err = auth.NewAuthService(authConfig, lg)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +74,7 @@ func (s *Server) Start() error {
 	router.PathPrefix("/static/").Handler(staticHandler)
 
 	// For uploaded files
-	uploadedFilesHandler := http.StripPrefix("/data/", s.decryptMiddleware(http.Dir(params.DataFolder+"/")))
+	uploadedFilesHandler := http.StripPrefix("/data/", s.decryptMiddleware(http.Dir(s.config.DataFolder+"/")))
 	router.PathPrefix("/data/").Handler(cacheMiddleware(uploadedFilesHandler, 60*60*24*14)) // cache for 14 days
 
 	// For exitensions
@@ -76,20 +84,20 @@ func (s *Server) Start() error {
 	// Add usual routes
 	s.addDefaultRoutes(router)
 
-	if params.Debug {
+	if s.config.Debug {
 		s.addDebugRoutes(router)
 		s.addPprofRoutes(router)
 	}
 
 	var handler http.Handler = router
-	if params.Debug {
+	if s.config.Debug {
 		handler = s.debugMiddleware(router)
 	}
 
-	s.httpServer = &http.Server{Addr: params.Port, Handler: handler}
+	s.httpServer = &http.Server{Addr: s.config.Port, Handler: handler}
 
 	listenAndServe := s.httpServer.ListenAndServe
-	if params.IsTLS {
+	if s.config.IsTLS {
 		listenAndServe = func() error {
 			return s.httpServer.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key")
 		}

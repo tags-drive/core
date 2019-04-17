@@ -11,7 +11,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/tags-drive/core/internal/params"
 	filesPck "github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 )
@@ -72,7 +71,7 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if params.Debug {
+	if s.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 
@@ -180,7 +179,7 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if params.Debug {
+	if s.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 
@@ -208,7 +207,7 @@ func (s Server) returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if params.Debug {
+	if s.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(files)
@@ -332,7 +331,7 @@ func (s Server) upload(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if params.Debug {
+	if s.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(responses)
@@ -413,7 +412,7 @@ func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if params.Debug {
+	if s.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(updatedFile)
@@ -465,7 +464,7 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if params.Debug {
+	if s.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(updatedFile)
@@ -495,7 +494,7 @@ func (s Server) changeFileDescription(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if params.Debug {
+	if s.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(updatedFile)
@@ -682,7 +681,7 @@ func (s Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if params.Debug {
+	if s.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(responses)

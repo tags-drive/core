@@ -114,17 +114,51 @@ func (app *App) Start() error {
 
 	app.logger = lg
 
-	app.fileStorage, err = files.NewFileStorage(lg)
+	// File storage
+	fileStorageConfig := files.Config{
+		Debug:               app.options.Debug,
+		DataFolder:          app.options.DataFolder,
+		ResizedImagesFolder: app.options.ResizedImagesFolder,
+		StorageType:         app.options.StorageType,
+		FilesJSONFile:       app.options.FilesJSONFile,
+		Encrypt:             app.options.Encrypt,
+		PassPhrase:          app.options.PassPhrase,
+	}
+	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, lg)
 	if err != nil {
 		return errors.Wrap(err, "can't create new FileStorage")
 	}
 
-	app.tagStorage, err = tags.NewTagStorage(lg)
+	// Tag storage
+	tagStorageConfig := tags.Config{
+		Debug:        app.options.Debug,
+		StorageType:  app.options.StorageType,
+		TagsJSONFile: app.options.TagsJSONFile,
+		Encrypt:      app.options.Encrypt,
+		PassPhrase:   app.options.PassPhrase,
+	}
+	app.tagStorage, err = tags.NewTagStorage(tagStorageConfig, lg)
 	if err != nil {
 		return errors.Wrap(err, "can't create new TagStorage")
 	}
 
-	app.server, err = web.NewWebServer(app.fileStorage, app.tagStorage, lg)
+	// Web server
+	serverConfig := web.Config{
+		Debug:          app.options.Debug,
+		DataFolder:     app.options.DataFolder,
+		Port:           app.options.Port,
+		IsTLS:          app.options.IsTLS,
+		Login:          app.options.Login,
+		Password:       app.options.Password,
+		SkipLogin:      app.options.SkipLogin,
+		AuthCookieName: app.options.AuthCookieName,
+		MaxTokenLife:   app.options.MaxTokenLife,
+		TokensJSONFile: app.options.TokensJSONFile,
+		Encrypt:        app.options.Encrypt,
+		PassPhrase:     app.options.PassPhrase,
+		Version:        app.options.Version,
+	}
+	app.server, err = web.NewWebServer(serverConfig, app.fileStorage, app.tagStorage, lg)
 	if err != nil {
 		return errors.Wrap(err, "can't init WebServer")
 	}

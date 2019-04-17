@@ -1,5 +1,7 @@
 package web
 
+import "time"
+
 type Config struct {
 	Debug bool
 
@@ -10,9 +12,9 @@ type Config struct {
 
 	Login          string
 	Password       string
-	SkipLogin      string
+	SkipLogin      bool
 	AuthCookieName string
-	MaxTokenLife   string
+	MaxTokenLife   time.Duration
 	TokensJSONFile string
 
 	Encrypt    bool

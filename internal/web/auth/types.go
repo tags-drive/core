@@ -1,5 +1,17 @@
 package auth
 
+import "time"
+
+type Config struct {
+	Debug bool
+
+	TokensJSONFile string
+	Encrypt        bool
+	PassPhrase     [32]byte
+
+	MaxTokenLife time.Duration
+}
+
 // AuthServiceInterface provides methods for auth users
 type AuthServiceInterface interface {
 	// GenerateToken generates a new token. GenerateToken doesn't add new token, just return it!

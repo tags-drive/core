@@ -10,12 +10,13 @@ import (
 	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
-	"github.com/tags-drive/core/internal/params"
 )
 
 const maxTokenSize = 30
 
 type Auth struct {
+	config Config
+
 	tokens []tokenStruct // we can use array instead of map because number of tokens is small and O(n) is enough
 	mutex  *sync.RWMutex
 
@@ -31,17 +32,18 @@ type tokenStruct struct {
 }
 
 // NewAuthService create new Auth and inits tokens
-func NewAuthService(lg *clog.Logger) (*Auth, error) {
+func NewAuthService(cnf Config, lg *clog.Logger) (*Auth, error) {
 	service := &Auth{
+		config:     cnf,
 		mutex:      new(sync.RWMutex),
 		logger:     lg,
 		shutdowned: make(chan struct{}),
 	}
 
-	f, err := os.Open(params.TokensJSONFile)
+	f, err := os.Open(service.config.TokensJSONFile)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return nil, errors.Wrapf(err, "can't open file %s", params.TokensJSONFile)
+			return nil, errors.Wrapf(err, "can't open file %s", cnf.TokensJSONFile)
 		}
 
 		// Have to create a new file
@@ -52,12 +54,12 @@ func NewAuthService(lg *clog.Logger) (*Auth, error) {
 	} else {
 		var err error
 
-		if !params.Encrypt {
+		if !cnf.Encrypt {
 			err = json.NewDecoder(f).Decode(&service.tokens)
 		} else {
 			// Have to decrypt at first
 			buff := bytes.NewBuffer([]byte{})
-			_, err = sio.Decrypt(buff, f, sio.Config{Key: params.PassPhrase[:]})
+			_, err = sio.Decrypt(buff, f, sio.Config{Key: cnf.PassPhrase[:]})
 			if err == nil {
 				err = json.NewDecoder(buff).Decode(&service.tokens)
 			}
@@ -93,29 +95,29 @@ func NewAuthService(lg *clog.Logger) (*Auth, error) {
 }
 
 func (a Auth) createNewFile() error {
-	a.logger.Infof("file %s doesn't exist. Need to create a new file\n", params.TokensJSONFile)
+	a.logger.Infof("file %s doesn't exist. Need to create a new file\n", a.config.TokensJSONFile)
 
-	f, err := os.OpenFile(params.TokensJSONFile, os.O_CREATE|os.O_RDWR, 0666)
+	f, err := os.OpenFile(a.config.TokensJSONFile, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		return errors.Wrap(err, "can't create a new file")
 	}
 	defer f.Close()
 
 	// Write empty structure
-	if !params.Encrypt {
+	if !a.config.Encrypt {
 		return json.NewEncoder(f).Encode(a.tokens)
 	}
 
 	// Encode into buffer
 	buff := bytes.NewBuffer([]byte{})
 	enc := json.NewEncoder(buff)
-	if params.Debug {
+	if a.config.Debug {
 		enc.SetIndent("", "  ")
 	}
 	enc.Encode(a.tokens)
 
 	// Write into the file (params.Encrypt is true, if we are here)
-	_, err = sio.Encrypt(f, buff, sio.Config{Key: params.PassPhrase[:]})
+	_, err = sio.Encrypt(f, buff, sio.Config{Key: a.config.PassPhrase[:]})
 
 	return err
 }

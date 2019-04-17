@@ -5,8 +5,6 @@ import (
 	"encoding/hex"
 	"net/http"
 	"time"
-
-	"github.com/tags-drive/core/internal/params"
 )
 
 // POST /api/login
@@ -39,8 +37,8 @@ func (s Server) authentication(w http.ResponseWriter, r *http.Request) {
 		password = r.FormValue("password")
 	)
 
-	if password != encrypt(params.Password) || login != params.Login {
-		if login != params.Login {
+	if password != encrypt(s.config.Password) || login != s.config.Login {
+		if login != s.config.Login {
 			s.processError(w, "invalid login", http.StatusBadRequest)
 		} else {
 			s.processError(w, "invalid password", http.StatusBadRequest)
@@ -54,7 +52,7 @@ func (s Server) authentication(w http.ResponseWriter, r *http.Request) {
 
 	token := s.authService.GenerateToken()
 	s.authService.AddToken(token)
-	http.SetCookie(w, &http.Cookie{Name: params.AuthCookieName, Value: token, HttpOnly: true, Expires: time.Now().Add(params.MaxTokenLife)})
+	http.SetCookie(w, &http.Cookie{Name: s.config.AuthCookieName, Value: token, HttpOnly: true, Expires: time.Now().Add(s.config.MaxTokenLife)})
 }
 
 // POST /api/logout – deletes auth cookie
@@ -64,7 +62,7 @@ func (s Server) authentication(w http.ResponseWriter, r *http.Request) {
 // Response: -
 //
 func (s Server) logout(w http.ResponseWriter, r *http.Request) {
-	c, err := r.Cookie(params.AuthCookieName)
+	c, err := r.Cookie(s.config.AuthCookieName)
 	if err != nil {
 		return
 	}
@@ -74,5 +72,5 @@ func (s Server) logout(w http.ResponseWriter, r *http.Request) {
 	token := c.Value
 	s.authService.DeleteToken(token)
 	// Delete cookie
-	http.SetCookie(w, &http.Cookie{Name: params.AuthCookieName, Expires: time.Unix(0, 0)})
+	http.SetCookie(w, &http.Cookie{Name: s.config.AuthCookieName, Expires: time.Unix(0, 0)})
 }
