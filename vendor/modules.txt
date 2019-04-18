@@ -10,8 +10,12 @@ github.com/fatih/color
 github.com/fvbommel/util/sortorder
 # github.com/gorilla/mux v1.7.1
 github.com/gorilla/mux
+# github.com/jessevdk/go-flags v1.4.0
+github.com/jessevdk/go-flags
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
+# github.com/kelseyhightower/envconfig v1.3.0
+github.com/kelseyhightower/envconfig
 # github.com/mattn/go-colorable v0.1.1
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.7
