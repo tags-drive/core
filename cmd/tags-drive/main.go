@@ -81,6 +81,10 @@ func PrepareNewApp() (*App, error) {
 	cnf.PassPhrase = sha256.Sum256([]byte(phrase))
 
 	// Checks
+	if len(cnf.Port) > 0 && cnf.Port[0] != ':' {
+		cnf.Port = ":" + cnf.Port
+	}
+
 	if cnf.Encrypt && phrase == "" {
 		return nil, errors.New("wrong env config: PASS_PHRASE can't be empty with ENCRYPT=true")
 	}
