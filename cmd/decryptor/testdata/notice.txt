@@ -1,0 +1,2 @@
+Files in ./data are the same as files in folder ./internal/storage/files/resizing/testdata.
+They are just encrypted with PASS_PHRASE=test
