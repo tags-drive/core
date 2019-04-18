@@ -24,6 +24,6 @@ def setupEnv(file: str):
 setupEnv("./scripts/run/run.env")
 
 try:
-    os.system("go run -race ./cmd/tags-drive/main.go")
+    os.system("go run ./cmd/tags-drive/main.go")
 except KeyboardInterrupt:
     pass
