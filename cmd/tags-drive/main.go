@@ -63,6 +63,13 @@ type App struct {
 
 // PrepareNewApp parses globalConfig and inits services
 func PrepareNewApp() (*App, error) {
+	defer func() {
+		// Reset sensitive env vars
+		os.Setenv("LOGIN", "CLEARED")
+		os.Setenv("PSWRD", "CLEARED")
+		os.Setenv("PASS_PHRASE", "CLEARED")
+	}()
+
 	var cnf config
 	err := envconfig.Process("", &cnf)
 	if err != nil {
