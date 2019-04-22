@@ -2,7 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/tags-drive/core)](https://goreportcard.com/report/github.com/tags-drive/core)
 
-This repository contains backend part of **Tags Drive**
+This repository contains the backend part of **Tags Drive**
 
 ##
 
@@ -25,24 +25,24 @@ This repository contains backend part of **Tags Drive**
 
 ### Environment variables
 
-| Variable       | Default | Description                                                              |
-| -------------- | ------- | ------------------------------------------------------------------------ |
-| PORT           | 80      | Port for website                                                         |
-| TLS            | true    | Should **Tags Drive** use https                                          |
-| LOGIN          | user    | Login for login                                                          |
-| PSWRD          | qwerty  | Password for login                                                       |
-| ENCRYPT        | false   | Should the **Tags Drive** encrypt uploaded files                         |
-| DBG            | false   |                                                                          |
-| SKIP_LOGIN     | false   | Let use **Tags Drive** without loginning                                 |
-| PASS_PHRASE    | ""      | Passphrase is used to encrypt files. It can't be empty if `ENCRYPT=true` |
-| MAX_TOKEN_LIFE | 1440h   | Max lifetime of a token (default is 60 days)                             |
+| Variable       | Default | Description                                                        |
+| -------------- | ------- | ------------------------------------------------------------------ |
+| PORT           | 80      | Port for http server                                               |
+| TLS            | true    | Enable HTTPS                                                       |
+| LOGIN          | user    | Set your login                                                     |
+| PSWRD          | qwerty  | Set your password                                                  |
+| ENCRYPT        | false   | Encrypt uploaded files                                             |
+| DBG            | false   |                                                                    |
+| SKIP_LOGIN     | false   | Skip the log-in procedure                                          |
+| PASS_PHRASE    | ""      | A phrase for file encryption. Cannot be empty if `ENCRYPT == true` |
+| MAX_TOKEN_LIFE | 1440h   | The max lifetime of a token (default lifetime is 60 days)          |
 
 ## Development
 
-There are two Python scripts to run a local version:
+There are two Python scripts that you can use to run a local version of the backend part:
 
-- [scripts/run/run.py](scripts/run/run.py) – run a local version with `go run`. You can control env vars by editing [.env file](scripts/run/run.env). It is the fastest way to launch the local version, but you need installed `Go`.
-- [scripts/docker/run_docker.py](scripts/docker/run_docker.py) – build a Docker image and run a container. There are some command-line args (run `python scripts/docker/run_docker.py --help` to learn all args)
+- [scripts/run/run.py](scripts/run/run.py) – run a local version with `go run`. You can set env vars by editing the [.env file](scripts/run/run.env). It is the fastest way to launch the local version, but you need to have Go installed.
+- [scripts/docker/run_docker.py](scripts/docker/run_docker.py) – build a Docker image and run a container. There are some command-line args (run `python scripts/docker/run_docker.py --help` to show all args)
 
 ## File structure
 
@@ -69,7 +69,7 @@ There are two Python scripts to run a local version:
 
 #### JSON storage
 
-- `files.json` - contains json map of all files
+- `files.json` - contains a json map of all files
 
   <details>
     <summary>Example</summary>
@@ -99,7 +99,7 @@ There are two Python scripts to run a local version:
 
   </details>
 
-- `tags.json` - contains json map of all tags
+- `tags.json` - contains a json map of all tags
 
   <details>
     <summary>Example</summary>
@@ -122,11 +122,11 @@ There are two Python scripts to run a local version:
 
 ### Data folder
 
-Folder `data` is used as a file storage
+The `data` folder is used as a file storage.
 
 ### SSL folder
 
-Folder `ssl` contains TLS certificate files `cert.cert`, `key.key`
+The `ssl` folder contains TLS certificate files `cert.cert` and `key.key`
 
 Use this command to generate self-signed TLS certificate:
 
@@ -159,7 +159,7 @@ Use this command to generate self-signed TLS certificate:
 
     type PreviewType string
 
-    // Ext is a struct which contains type of the original file and type for preview
+    // Ext is a struct which contains a type of the original file and a type for a preview
     type Ext struct {
       Ext         string      `json:"ext"`
       FileType    FileType    `json:"fileType"`
@@ -219,40 +219,40 @@ Use this command to generate self-signed TLS certificate:
 - `GET /api/files`
 
   **Params:**
-  - **expr**: logical expression. Example: `!(12&15)&(12|15)` means all files with single tag with id `12` or `15`
-  - **search**: text (or regexp) for search
-  - **regexp**: is search a regular expression (it is true when regexp != "")
+  - **expr**: logical expression. Example: `!(12&15)&(12|15)` means all files that have single tag with the id `12` or `15`
+  - **search**: a text/regexp search
+  - **regexp**: enable regexp search (it is `true` when **regexp** param is not an empty string)
   - **sort**: name | size | time
   - **order**: asc | desc
   - **offset**: lower bound `[offset:]`
-  - **count**: number of returned files (`[offset:offset+count]`). If count == 0, all files will be returned. Default is 0
+  - **count**: number of returned files (`[offset:offset+count]`). If count == 0, all files will be returned. Default value is 0
 
   **Response:** json array of [`FileInfo`](#fileinfo). Status code is `204` when offset is out of bounds.
 
 - `GET /api/files/recent`
 
   **Params:**
-  - **number**: number of returned files (5 is a default value)
+  - **number**: number of returned files (5 is the default value)
 
   **Response:** json array of [`FileInfo`](#fileinfo)
 
 - `GET /api/files/download`
 
   **Params:**
-  - **ids**: list of ids of files for downloading separated by comma `ids=1,2,54,9`
+  - **ids**: list of file ids for downloading separated by commas `ids=1,2,54,9`
 
   **Response:** zip archive
 
 - `POST /api/files`
   
   **Params:**
-  - **tags**: tags: list of tags, separated by comma (`tags=1,2,3`)
+  - **tags**: tags: list of tags separated by commas (`tags=1,2,3`)
 
   **Body** must be `multipart/form-data`
 
   **Response:** json array of [`multiplyResponse`](#multiplyresponse)
 
-#### File info changing
+#### Changing file info
 
 - `PUT /api/file/{id}/name`
 
@@ -266,7 +266,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Params:**
   - **id**: file id
-  - **tags**: updated list of tags, separated by comma (`tags=1,2,3`)
+  - **tags**: updated list of tags separated by commas (`tags=1,2,3`)
 
   **Response:** updated file (json object of [`FileInfo`](#fileinfo))
 
@@ -278,7 +278,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** updated file (json object of [`FileInfo`](#fileinfo))
 
-#### Bulk file tags changing
+#### Editing tags of multiple files
 
 - `POST /api/files/tags`
 
@@ -301,15 +301,15 @@ Use this command to generate self-signed TLS certificate:
 - `DELETE /api/files`
 
   **Params:**
-  - **ids**: list of ids of files for deleting separated by comma `ids=1,2,54,9`
-  - **force**: should file be deleted right now (if it isn't empty, file will be deleted right now)
+  - **ids**: list of file ids for deleting separated by commas `ids=1,2,54,9`
+  - **force**: enable instant deletion (if not empty, files will be deleted immediately)
 
   **Response:** json array of [`multiplyResponse`](#multiplyresponse)
 
 - `POST /api/files/recover`
 
   **Params**:
-  - **ids**: list ids of files for recovering (list of ids separated by comma `ids=1,2,54,9`)
+  - **ids**: list of file ids for recovering (list of ids separated by comma `ids=1,2,54,9`)
 
   **Response**: -
 
@@ -324,24 +324,24 @@ Use this command to generate self-signed TLS certificate:
 - `POST /api/tags`
 
   **Params:**
-  - **name**: name of a new tag
-  - **color**: color of a new tag (`#ffffff` by default)
+  - **name**: new tags name
+  - **color**: new tags colour (`#ffffff` by default)
 
   **Response:** -
 
 - `PUT /api/tag/{id}`
 
   **Params:**
-  - **id**: id of a tag
-  - **name**: new name of a tag (can be empty)
-  - **color**: new color of a tag (can be empty)
+  - **id**: tag id
+  - **name**: new tag name (can be empty)
+  - **color**: new tag colour (can be empty)
 
   **Response:** updated tag (json object of [`Tag`](#Tag))
 
 - `DELETE /api/tags`
 
   **Params:**
-  - **id**: id of a tag (one tag at a time)
+  - **id**: tag id (one tag at a time)
 
   **Response:** -
 
