@@ -14,6 +14,7 @@ This repository contains the backend part of **Tags Drive**
   - [Data folder](#data-folder)
   - [SSL folder](#ssl-folder)
 - [API](#api)
+  - [General endpoints](#general-endpoints)
   - [Auth](#auth)
   - [General structures](#general-structures)
   - [Files](#files)
@@ -133,6 +134,13 @@ Use this command to generate self-signed TLS certificate:
 `openssl req -x509 -nodes -newkey rsa:2048 -sha256 -keyout key.key -out cert.cert`
 
 ## API
+
+### General endpoints
+
+- `GET /` – main page
+- `GET /mobile` – mobile version
+- `GET /login` – login page
+- `GET /version` – returns version of the backend part
 
 ### Auth
 
