@@ -63,27 +63,6 @@ func TestInit(t *testing.T) {
 		t.Errorf("Wrong file content: %s", string(data))
 	}
 
-	// Write new tag. It must be saved in file
-	testStorage.addTag(Tag{Name: "first", Color: "#ffffff"})
-
-	removeConfigFile(testStorage.config.TagsJSONFile)
-}
-
-func TestInit2(t *testing.T) {
-	testStorage := newStorage()
-
-	err := testStorage.init()
-	if err != nil {
-		t.Fatal(err)
-	}
-	tags := testStorage.getAll()
-
-	tagInFile := Tag{ID: 1, Name: "first", Color: "#ffffff"}
-
-	if len(tags) != 1 || !testStorage.check(1) || tags[1] != tagInFile {
-		t.Errorf("wrong file content: len(tags): %d, allTags: %v", len(tags), tags)
-	}
-
 	removeConfigFile(testStorage.config.TagsJSONFile)
 }
 
