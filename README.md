@@ -25,23 +25,23 @@ This repository contains the backend part of **Tags Drive**
 
 ### Environment variables
 
-| Variable       | Default | Description                                                              |
-| -------------- | ------- | ------------------------------------------------------------------------ |
-| PORT           | 80      | Assign your website’s port                                                        |
-| TLS            | true    | Enable HTTPS                                        |
-| LOGIN          | user    | Set your login                                                        |
-| PSWRD          | qwerty  | Set your password                                                     |
-| ENCRYPT        | false   | Encrypt uploaded files                         |
-| DBG            | false   |                                                                          |
-| SKIP_LOGIN     | false   | Skip the log-in procedure                                |
-| PASS_PHRASE    | ""      | Set a phrase for file encryption. Cannot be empty if `ENCRYPT == true` |
-| MAX_TOKEN_LIFE | 1440h   | Set the max lifetime of a token (default lifetime is 60 days)                             |
+| Variable       | Default | Description                                                        |
+| -------------- | ------- | ------------------------------------------------------------------ |
+| PORT           | 80      | Port for http server                                               |
+| TLS            | true    | Enable HTTPS                                                       |
+| LOGIN          | user    | Set your login                                                     |
+| PSWRD          | qwerty  | Set your password                                                  |
+| ENCRYPT        | false   | Encrypt uploaded files                                             |
+| DBG            | false   |                                                                    |
+| SKIP_LOGIN     | false   | Skip the log-in procedure                                          |
+| PASS_PHRASE    | ""      | A phrase for file encryption. Cannot be empty if `ENCRYPT == true` |
+| MAX_TOKEN_LIFE | 1440h   | The max lifetime of a token (default lifetime is 60 days)          |
 
 ## Development
 
-There are two Python scripts that you can use to run a local version of the program:
+There are two Python scripts that you can use to run a local version of the backend part:
 
-- [scripts/run/run.py](scripts/run/run.py) – run **Tags Drive** with `go run`. You can set env vars by editing the [.env file](scripts/run/run.env). It is the fastest way to launch the local version, but you need to have Go installed.
+- [scripts/run/run.py](scripts/run/run.py) – run a local version with `go run`. You can set env vars by editing the [.env file](scripts/run/run.env). It is the fastest way to launch the local version, but you need to have Go installed.
 - [scripts/docker/run_docker.py](scripts/docker/run_docker.py) – build a Docker image and run a container. There are some command-line args (run `python scripts/docker/run_docker.py --help` to show all args)
 
 ## File structure
@@ -220,9 +220,9 @@ Use this command to generate self-signed TLS certificate:
 
   **Params:**
   - **expr**: logical expression. Example: `!(12&15)&(12|15)` means all files that have single tag with the id `12` or `15`
-  - **search**: a text/regexp search query
-  - **regexp**: allow regexp search queries (`true` when `regexp != ""`)
-  - **sort**: by name | size | time
+  - **search**: a text/regexp search
+  - **regexp**: enable regexp search (it is `true` when **regexp** param is not an empty string)
+  - **sort**: name | size | time
   - **order**: asc | desc
   - **offset**: lower bound `[offset:]`
   - **count**: number of returned files (`[offset:offset+count]`). If count == 0, all files will be returned. Default value is 0
@@ -278,7 +278,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** updated file (json object of [`FileInfo`](#fileinfo))
 
-#### Changing bulk file tags
+#### Editing tags of multiple files
 
 - `POST /api/files/tags`
 
@@ -324,8 +324,8 @@ Use this command to generate self-signed TLS certificate:
 - `POST /api/tags`
 
   **Params:**
-  - **name**: new tag’s name
-  - **color**: new tag’s colour (`#ffffff` by default)
+  - **name**: new tags name
+  - **color**: new tags colour (`#ffffff` by default)
 
   **Response:** -
 
