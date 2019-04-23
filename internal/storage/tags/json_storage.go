@@ -175,6 +175,27 @@ func (jts *jsonTagStorage) updateTag(id int, newName, newColor string) (Tag, err
 	return tag, nil
 }
 
+func (jts *jsonTagStorage) updateGroup(id int, newGroup string) (Tag, error) {
+	jts.mutex.Lock()
+
+	if _, ok := jts.tags[id]; !ok {
+		jts.mutex.Unlock()
+		return Tag{}, errors.New("tag doesn't exist")
+	}
+
+	tag := jts.tags[id]
+
+	tag.Group = newGroup
+
+	jts.tags[id] = tag
+
+	jts.mutex.Unlock()
+
+	jts.write()
+
+	return tag, nil
+}
+
 func (jts *jsonTagStorage) deleteTag(id int) {
 	jts.mutex.Lock()
 	// We can skip files.DeleteTag(id), if tag doesn't exist

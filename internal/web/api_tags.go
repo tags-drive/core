@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/tags-drive/core/internal/storage/tags"
 )
 
 // GET /api/tags
@@ -64,11 +65,8 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 		newColor = r.FormValue("color")
 	)
 
-	var (
-		id  int
-		err error
-	)
-	if id, err = strconv.Atoi(tagID); err != nil {
+	id, err := strconv.Atoi(tagID)
+	if err != nil {
 		s.processError(w, "tag id isn't valid", http.StatusBadRequest)
 		return
 	}
@@ -79,11 +77,17 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedTag, err := s.tagStorage.Change(id, newName, newColor)
-	if err != nil {
-		s.processError(w, err.Error(), http.StatusInternalServerError)
-		return
+	var updatedTag tags.Tag
+
+	if newName != "" || newColor != "" {
+		// name or color was passed, we should update tag
+		updatedTag, err = s.tagStorage.UpdateTag(id, newName, newColor)
+		if err != nil {
+			s.processError(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
+
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)

@@ -18,6 +18,9 @@ type storage interface {
 	// updateTag updates name and color of tag with id == tagID
 	updateTag(id int, newName, newColor string) (Tag, error)
 
+	// updateGroup updates only group of a tag
+	updateGroup(id int, newGroup string) (Tag, error)
+
 	// deleteTag deletes a tag
 	deleteTag(id int)
 
@@ -76,8 +79,12 @@ func (ts TagStorage) Add(name, color string) {
 	ts.storage.addTag(t)
 }
 
-func (ts TagStorage) Change(id int, newName, newColor string) (Tag, error) {
+func (ts TagStorage) UpdateTag(id int, newName, newColor string) (updatedTag Tag, err error) {
 	return ts.storage.updateTag(id, newName, newColor)
+}
+
+func (ts TagStorage) UpdateGroup(id int, newGroup string) (updatedTag Tag, err error) {
+	return ts.storage.updateGroup(id, newGroup)
 }
 
 func (ts TagStorage) Delete(id int) {

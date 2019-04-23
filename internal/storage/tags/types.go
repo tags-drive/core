@@ -21,9 +21,12 @@ type TagStorageInterface interface {
 	// Add adds a new tag with passed name and color
 	Add(name, color string)
 
-	// Change changes a tag with passed id.
-	// If pass empty newName (or newColor), field Name (or Color) won't be changed.
-	Change(id int, newName, newColor string) (updatedTag Tag, err error)
+	// UpdateTag changes name and color of a tag with passed id.
+	// If newName/newColor is an empty string, it won't be changed.
+	UpdateTag(id int, newName, newColor string) (updatedTag Tag, err error)
+
+	// UpdateGroup changes only group a tag with passed id.
+	UpdateGroup(id int, newGroup string) (updatedTag Tag, err error)
 
 	// Delete deletes a tag with passed id
 	Delete(id int)
