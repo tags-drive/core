@@ -1,8 +1,6 @@
 package web
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"net/http"
 	"time"
 )
@@ -21,23 +19,13 @@ func (s Server) authentication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	encrypt := func(s string) string {
-		const repeats = 11
-
-		hash := sha256.Sum256([]byte(s))
-		for i := 0; i < repeats-1; i++ {
-			hash = sha256.Sum256([]byte(hex.EncodeToString(hash[:])))
-		}
-		return hex.EncodeToString(hash[:])
-	}
-
 	var (
 		login = r.FormValue("login")
 		// password is already encrypted
 		password = r.FormValue("password")
 	)
 
-	if password != encrypt(s.config.Password) || login != s.config.Login {
+	if password != s.config.Password || login != s.config.Login {
 		if login != s.config.Login {
 			s.processError(w, "invalid login", http.StatusBadRequest)
 		} else {

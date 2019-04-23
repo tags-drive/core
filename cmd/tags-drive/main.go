@@ -2,11 +2,11 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -77,6 +77,9 @@ func PrepareNewApp() (*App, error) {
 	}
 
 	cnf.Version = version
+	// Encrypt password
+	cnf.Password = encryptPassword(cnf.Password)
+	// Get PassPhrase
 	phrase := os.Getenv("PASS_PHRASE")
 	cnf.PassPhrase = sha256.Sum256([]byte(phrase))
 
@@ -101,6 +104,18 @@ func PrepareNewApp() (*App, error) {
 	}
 
 	return app, nil
+}
+
+const encryptRepeats = 11
+
+func encryptPassword(s string) string {
+	hash := sha256.Sum256([]byte(s))
+
+	for i := 1; i < encryptRepeats; i++ {
+		hash = sha256.Sum256([]byte(hex.EncodeToString(hash[:])))
+	}
+
+	return hex.EncodeToString(hash[:])
 }
 
 // initServices inits storages and server
@@ -234,7 +249,6 @@ func (app *App) printConfig() {
 		{"Port", app.config.Port},
 		{"TLS", app.config.IsTLS},
 		{"Login", app.config.Login},
-		{"Password", strings.Repeat("*", len(app.config.Password))},
 		{"SkipLogin", app.config.SkipLogin},
 		//
 		{"StorageType", app.config.StorageType},
