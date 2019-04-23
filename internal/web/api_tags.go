@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/tags-drive/core/internal/storage/tags"
 )
 
 // GET /api/tags
@@ -54,6 +55,7 @@ func (s Server) addTag(w http.ResponseWriter, r *http.Request) {
 //   - id: id of a tag
 //   - name: new name of a tag (can be empty)
 //   - color: new color of a tag (can be empty)
+//   - group: new group of a tag (can be empty)
 //
 // Response: update tag
 //
@@ -64,11 +66,8 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 		newColor = r.FormValue("color")
 	)
 
-	var (
-		id  int
-		err error
-	)
-	if id, err = strconv.Atoi(tagID); err != nil {
+	id, err := strconv.Atoi(tagID)
+	if err != nil {
 		s.processError(w, "tag id isn't valid", http.StatusBadRequest)
 		return
 	}
@@ -79,10 +78,25 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedTag, err := s.tagStorage.Change(id, newName, newColor)
-	if err != nil {
-		s.processError(w, err.Error(), http.StatusInternalServerError)
-		return
+	var updatedTag tags.Tag
+
+	if newName != "" || newColor != "" {
+		// name or color was passed, we should update tag
+		updatedTag, err = s.tagStorage.UpdateTag(id, newName, newColor)
+		if err != nil {
+			s.processError(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if values, ok := r.Form["group"]; ok && len(values) > 0 {
+		// group was passed
+		newGroup := values[0]
+		updatedTag, err = s.tagStorage.UpdateGroup(id, newGroup)
+		if err != nil {
+			s.processError(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

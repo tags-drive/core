@@ -199,6 +199,7 @@ Use this command to generate self-signed TLS certificate:
     ID    int    `json:"id"`
     Name  string `json:"name"`
     Color string `json:"color"`
+    Group string `json:"group"`
   }
 
   type Tags map[int]Tag
@@ -343,6 +344,7 @@ Use this command to generate self-signed TLS certificate:
   - **id**: tag id
   - **name**: new tag name (can be empty)
   - **color**: new tag colour (can be empty)
+  - **group**: new tag group (can be empty)
 
   **Response:** updated tag (json object of [`Tag`](#Tag))
 
