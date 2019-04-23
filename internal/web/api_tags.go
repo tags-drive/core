@@ -55,6 +55,7 @@ func (s Server) addTag(w http.ResponseWriter, r *http.Request) {
 //   - id: id of a tag
 //   - name: new name of a tag (can be empty)
 //   - color: new color of a tag (can be empty)
+//   - group: new group of a tag (can be empty)
 //
 // Response: update tag
 //
@@ -88,6 +89,15 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if values, ok := r.Form["group"]; ok && len(values) > 0 {
+		// group was passed
+		newGroup := values[0]
+		updatedTag, err = s.tagStorage.UpdateGroup(id, newGroup)
+		if err != nil {
+			s.processError(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
