@@ -74,8 +74,8 @@ func (ts TagStorage) GetAll() Tags {
 	return ts.storage.getAll()
 }
 
-func (ts TagStorage) Add(name, color string) {
-	t := Tag{Name: name, Color: color}
+func (ts TagStorage) Add(name, color, group string) {
+	t := Tag{Name: name, Color: color, Group: group}
 	ts.storage.addTag(t)
 }
 

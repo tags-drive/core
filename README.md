@@ -333,8 +333,9 @@ Use this command to generate self-signed TLS certificate:
 - `POST /api/tags`
 
   **Params:**
-  - **name**: new tags name
-  - **color**: new tags colour (`#ffffff` by default)
+  - **name**: name of a new tag
+  - **color**: color of a new tag (`#ffffff` by default)
+  - **group**: group of a new tag (empty by default)
 
   **Response:** -
 
@@ -343,7 +344,7 @@ Use this command to generate self-signed TLS certificate:
   **Params:**
   - **id**: tag id
   - **name**: new tag name (can be empty)
-  - **color**: new tag colour (can be empty)
+  - **color**: new tag color (can be empty)
   - **group**: new tag group (can be empty)
 
   **Response:** updated tag (json object of [`Tag`](#Tag))

@@ -19,7 +19,7 @@ type TagStorageInterface interface {
 	GetAll() Tags
 
 	// Add adds a new tag with passed name and color
-	Add(name, color string)
+	Add(name, color, group string)
 
 	// UpdateTag changes name and color of a tag with passed id.
 	// If newName/newColor is an empty string, it won't be changed.

@@ -30,12 +30,15 @@ func (s Server) returnTags(w http.ResponseWriter, r *http.Request) {
 // Params:
 //   - name: name of a new tag
 //   - color: color of a new tag (`#ffffff` by default)
+//   - group: group of a new tag (empty by default)
 //
 // Response: -
 //
 func (s Server) addTag(w http.ResponseWriter, r *http.Request) {
 	tagName := r.FormValue("name")
 	tagColor := r.FormValue("color")
+	tagGroup := r.FormValue("group")
+
 	if tagName == "" {
 		s.processError(w, "tag is empty", http.StatusBadRequest)
 		return
@@ -45,7 +48,7 @@ func (s Server) addTag(w http.ResponseWriter, r *http.Request) {
 		tagColor = "#ffffff"
 	}
 
-	s.tagStorage.Add(tagName, tagColor)
+	s.tagStorage.Add(tagName, tagColor, tagGroup)
 	w.WriteHeader(http.StatusCreated)
 }
 
