@@ -71,22 +71,22 @@ func TestAddAndDelete(t *testing.T) {
 		{
 			testType: add,
 			tagsToAdd: []Tag{
-				{Name: "test1", Color: "#fffff0"},
+				{Name: "test1", Color: "#fffff0", Group: "test"},
 			},
 			result: Tags{
-				1: Tag{ID: 1, Name: "test1", Color: "#fffff0"},
+				1: Tag{ID: 1, Name: "test1", Color: "#fffff0", Group: "test"},
 			},
 		},
 		{
 			testType: add,
 			tagsToAdd: []Tag{
 				{Name: "test2", Color: "#ffff0f"},
-				{Name: "test3", Color: "#fff0ff"},
+				{Name: "test3", Color: "#fff0ff", Group: "123"},
 			},
 			result: Tags{
-				1: Tag{ID: 1, Name: "test1", Color: "#fffff0"},
+				1: Tag{ID: 1, Name: "test1", Color: "#fffff0", Group: "test"},
 				2: Tag{ID: 2, Name: "test2", Color: "#ffff0f"},
-				3: Tag{ID: 3, Name: "test3", Color: "#fff0ff"},
+				3: Tag{ID: 3, Name: "test3", Color: "#fff0ff", Group: "123"},
 			},
 		},
 		{
@@ -97,9 +97,9 @@ func TestAddAndDelete(t *testing.T) {
 				{Name: "test6", Color: "#0fffff"},
 			},
 			result: Tags{
-				1: Tag{ID: 1, Name: "test1", Color: "#fffff0"},
+				1: Tag{ID: 1, Name: "test1", Color: "#fffff0", Group: "test"},
 				2: Tag{ID: 2, Name: "test2", Color: "#ffff0f"},
-				3: Tag{ID: 3, Name: "test3", Color: "#fff0ff"},
+				3: Tag{ID: 3, Name: "test3", Color: "#fff0ff", Group: "123"},
 				4: Tag{ID: 4, Name: "test4", Color: "#ff0fff"},
 				5: Tag{ID: 5, Name: "test5", Color: "#f0ffff"},
 				6: Tag{ID: 6, Name: "test6", Color: "#0fffff"},
@@ -111,9 +111,9 @@ func TestAddAndDelete(t *testing.T) {
 				{Name: "test6", Color: "#111111"},
 			},
 			result: Tags{
-				1: Tag{ID: 1, Name: "test1", Color: "#fffff0"},
+				1: Tag{ID: 1, Name: "test1", Color: "#fffff0", Group: "test"},
 				2: Tag{ID: 2, Name: "test2", Color: "#ffff0f"},
-				3: Tag{ID: 3, Name: "test3", Color: "#fff0ff"},
+				3: Tag{ID: 3, Name: "test3", Color: "#fff0ff", Group: "123"},
 				4: Tag{ID: 4, Name: "test4", Color: "#ff0fff"},
 				5: Tag{ID: 5, Name: "test5", Color: "#f0ffff"},
 				6: Tag{ID: 6, Name: "test6", Color: "#0fffff"},
