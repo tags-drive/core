@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/minio/sio"
@@ -63,79 +64,6 @@ func (s Server) decryptMiddleware(dir http.Dir) http.Handler {
 	})
 }
 
-// debugMiddleware logs requests and sets debug headers
-func (s Server) debugMiddleware(h http.Handler) http.Handler {
-	const (
-		// Can be changed to debug
-		logDataRequests = false
-		logExtRequests  = false
-		logStaticFiles  = false
-		logFavicon      = false
-	)
-
-	// time len + space (1) + [DBG] (5) + space (1) + method len (?) + space (1)
-	const prefixOffset = len(clog.DefaultTimeLayout) + 1 + 5 + 1 + 1
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			setDebugHeaders(w, r)
-
-			h.ServeHTTP(w, r)
-		}()
-
-		// Don't log favicon.ico
-		if !logFavicon && strings.HasSuffix(r.URL.Path, "favicon.ico") {
-			return
-		}
-
-		// Don't log data requests
-		if !logDataRequests && strings.HasPrefix(r.URL.Path, "/data/") {
-			return
-		}
-
-		// Don't log extensions requests
-		if !logExtRequests && strings.HasPrefix(r.URL.Path, "/ext/") {
-			return
-		}
-
-		// Don't log static files
-		if !logStaticFiles && strings.HasPrefix(r.URL.Path, "/static/") {
-			return
-		}
-
-		builder := new(strings.Builder)
-		builder.WriteString(r.Method)
-		builder.WriteByte(' ')
-		builder.WriteString(r.URL.Path)
-		builder.WriteByte('\n')
-
-		r.ParseForm()
-		if len(r.Form) > 0 {
-
-			prefix := strings.Repeat(" ", prefixOffset+len(r.Method))
-
-			space := 0
-			for k := range r.Form {
-				if space < len(k) {
-					space = len(k)
-				}
-			}
-			space++
-
-			for k, v := range r.Form {
-				p := strings.Repeat(" ", space-len(k))
-				builder.WriteString(prefix)
-				builder.WriteString(k)
-				builder.WriteString(p)
-				fmt.Fprint(builder, v)
-				builder.WriteByte('\n')
-			}
-		}
-
-		s.logger.Debug(builder.String())
-	})
-}
-
 // cacheMiddleware sets "Cache-Control" header
 func cacheMiddleware(h http.Handler, maxAge int64) http.Handler {
 	maxAgeString := fmt.Sprintf("max-age=%d", maxAge)
@@ -144,5 +72,130 @@ func cacheMiddleware(h http.Handler, maxAge int64) http.Handler {
 		w.Header().Set("Cache-Control", maxAgeString)
 		w.Header().Add("Cache-Control", "private")
 		h.ServeHTTP(w, r)
+	})
+}
+
+// debugMiddleware logs requests and sets debug headers
+func (s Server) debugMiddleware(h http.Handler) http.Handler {
+	// Can be changed to debug
+	const (
+		// Log settings
+
+		logDataRequests        = false
+		logExtRequests         = false
+		logStaticFilesRequests = false
+		logFaviconRequests     = false
+
+		// Builder of log records settings
+
+		printForm = true
+		// Note: request will be logged after ServeHTTP finish (it can take some time)
+		printServingDuration = true
+	)
+
+	const (
+		// time len + space (1) + [DBG] (5) + space (1) + method len (?) + space (1)
+		indentionOffset = len(clog.DefaultTimeLayout) + 1 + 5 + 1 + 1
+
+		// indentionOriginString helps not to allocate new memory with strings.Repeat()
+		// It contains 50 spaces (must be enough forever)
+		indentionOriginalString = "                                                  "
+	)
+
+	shouldLog := func(urlPath string) bool {
+		// Check sorted by requests popularity
+
+		// Don't log data requests
+		if !logDataRequests && strings.HasPrefix(urlPath, "/data/") {
+			return false
+		}
+
+		// Don't log extensions requests
+		if !logExtRequests && strings.HasPrefix(urlPath, "/ext/") {
+			return false
+		}
+
+		// Don't log static files
+		if !logStaticFilesRequests && strings.HasPrefix(urlPath, "/static/") {
+			return false
+		}
+
+		// Don't log favicon.ico
+		if !logFaviconRequests && strings.HasSuffix(urlPath, "favicon.ico") {
+			return false
+		}
+
+		return true
+	}
+
+	// buildLogRecord builds a string to log. The string contains information about a request.
+	buildLogRecord := func(r *http.Request, duration time.Duration) string {
+		builder := new(strings.Builder)
+
+		// Add main info
+		builder.WriteString(r.Method)
+		builder.WriteByte(' ')
+		builder.WriteString(r.URL.Path)
+		builder.WriteByte('\n')
+
+		indention := indentionOriginalString[:indentionOffset+len(r.Method)]
+
+		// Add form
+		r.ParseForm()
+		if printForm && len(r.Form) > 0 {
+			space := 0
+			for k := range r.Form {
+				if space < len(k) {
+					space = len(k)
+				}
+			}
+			space++
+
+			builder.WriteString(indention)
+			builder.WriteString("Form: \n")
+
+			for k, v := range r.Form {
+				p := strings.Repeat(" ", space-len(k))
+
+				builder.WriteString(indention)
+				builder.WriteByte(' ')
+				builder.WriteByte('-')
+				builder.WriteByte(' ')
+				builder.WriteString(k)
+				builder.WriteString(p)
+				fmt.Fprint(builder, v)
+				builder.WriteByte('\n')
+			}
+		}
+
+		// Add duration
+		if printServingDuration {
+			builder.WriteString(indention)
+			builder.WriteString("Duration: ")
+			builder.WriteString(duration.String())
+			builder.WriteByte('\n')
+		}
+
+		return builder.String()
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		shouldLog := shouldLog(r.URL.Path)
+
+		if shouldLog && !printServingDuration {
+			// Print immediately without duration
+			s.logger.Debug(buildLogRecord(r, 0))
+		}
+
+		setDebugHeaders(w, r)
+
+		now := time.Now()
+
+		h.ServeHTTP(w, r)
+
+		if shouldLog && printServingDuration {
+			// Print with duration
+			s.logger.Debug(buildLogRecord(r, time.Since(now)))
+		}
 	})
 }
