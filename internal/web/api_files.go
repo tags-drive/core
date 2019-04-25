@@ -20,6 +20,8 @@ const (
 	// If maxSize == 50MB, program takes too much memory
 	// If maxSize == 2MB, there're too many I/O-operations
 	maxSize = 10 << 20 // 10MB
+
+	maxThreadsInPool = 3
 )
 
 // multiplyResponse is used as a response by POST /api/files and DELETE /api/files
@@ -302,7 +304,7 @@ func (s Server) upload(w http.ResponseWriter, r *http.Request) {
 		close(responsesReady)
 	}()
 
-	runPool(5, headersChan, func(data <-chan interface{}) {
+	runPool(maxThreadsInPool, headersChan, func(data <-chan interface{}) {
 		for d := range data {
 			header, ok := d.(*multipart.FileHeader)
 			if !ok {
@@ -370,7 +372,7 @@ func (s Server) recoverFile(w http.ResponseWriter, r *http.Request) {
 		close(idsChan)
 	}()
 
-	runPool(5, idsChan, func(data <-chan interface{}) {
+	runPool(maxThreadsInPool, idsChan, func(data <-chan interface{}) {
 		for d := range data {
 			id, ok := d.(int)
 			if !ok {
@@ -629,7 +631,7 @@ func (s Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 		respStatus = "deleted"
 	}
 
-	runPool(5, filesIDsChan, func(data <-chan interface{}) {
+	runPool(maxThreadsInPool, filesIDsChan, func(data <-chan interface{}) {
 		for d := range data {
 			id, ok := d.(int)
 			if !ok {

@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -281,6 +282,12 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 			panic(err)
 		}
 	}
+
+	// TODO: does it really help?
+	// resizing.Decode() allocates a lot of memory. GC doesn't keep up to free it
+	// when there are a lot of Upload() calls. Calling runtime.GC() can
+	// decrease max memory usage by 1.5 times with very small performance drop.
+	runtime.GC()
 
 	return nil
 }
