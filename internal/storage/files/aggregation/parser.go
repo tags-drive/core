@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ErrBadSyntax = errors.New("bad syntax")
+var ErrBadSyntax = errors.New("syntax of a logical expression is incorrect")
 
 // LogicalExpr is a parsed logical expression
 type LogicalExpr string
