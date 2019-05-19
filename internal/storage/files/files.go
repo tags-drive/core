@@ -35,7 +35,7 @@ var (
 )
 
 // storage is an internal storage for files metadata
-type storage interface {
+type internalStorage interface {
 	init() error
 
 	// getFile returns a file with passed filename
@@ -88,13 +88,13 @@ type storage interface {
 type FileStorage struct {
 	config Config
 
-	storage storage
+	storage internalStorage
 	logger  *clog.Logger
 }
 
 // NewFileStorage creates new FileStorage
 func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
-	var st storage
+	var st internalStorage
 
 	switch cnf.StorageType {
 	case "json":

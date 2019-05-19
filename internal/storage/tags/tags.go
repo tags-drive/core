@@ -6,7 +6,7 @@ import (
 )
 
 // storage is an internal storage for tags metadata
-type storage interface {
+type internalStorage interface {
 	init() error
 
 	// getAll returns all tags
@@ -34,13 +34,13 @@ type storage interface {
 type TagStorage struct {
 	config Config
 
-	storage storage
+	storage internalStorage
 	logger  *clog.Logger
 }
 
 // NewTagStorage creates new FileStorage
 func NewTagStorage(cnf Config, lg *clog.Logger) (*TagStorage, error) {
-	var st storage
+	var st internalStorage
 
 	switch cnf.StorageType {
 	case "json":
