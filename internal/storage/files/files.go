@@ -31,6 +31,7 @@ var (
 	ErrAlreadyExist      = errors.New("file already exists")
 	ErrFileDeletedAgain  = errors.New("file can't be deleted again")
 	ErrOffsetOutOfBounds = errors.New("offset is out of bounds")
+	ErrEmptyNewName      = errors.New("new name can't be empty")
 )
 
 // storage is an internal storage for files metadata
@@ -325,7 +326,7 @@ func (fs FileStorage) Rename(id int, newName string) (File, error) {
 		return File{}, errors.Wrap(err, "can't rename file in a storage")
 	}
 
-	// We don't rename a file on disk, because id is constant
+	// We don't rename a file on a disk, because it is saved by id
 	return file, nil
 }
 

@@ -297,6 +297,10 @@ func (jfs *jsonFileStorage) addFile(filename string, fileType extensions.Ext, ta
 
 // renameFile renames a file
 func (jfs *jsonFileStorage) renameFile(id int, newName string) (File, error) {
+	if newName == "" {
+		return File{}, ErrEmptyNewName
+	}
+
 	if !jfs.checkFile(id) {
 		return File{}, ErrFileIsNotExist
 	}
