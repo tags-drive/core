@@ -43,8 +43,9 @@ type config struct {
 
 	StorageType string `envconfig:"STORAGE_TYPE" default:"json"`
 
-	DataFolder          string `default:"./data"`
-	ResizedImagesFolder string `default:"./data/resized"`
+	DataFolder          string        `default:"./data"`
+	ResizedImagesFolder string        `default:"./data/resized"`
+	TimeBeforeDeleting  time.Duration `envconfig:"TIME_BEFORE_DELETING" default:"168h"` // default is 168h = 7 days
 
 	FilesJSONFile  string `default:"./configs/files.json"`  // for files
 	TagsJSONFile   string `default:"./configs/tags.json"`   // for tags
@@ -136,6 +137,7 @@ func (app *App) initServices() error {
 		FilesJSONFile:       app.config.FilesJSONFile,
 		Encrypt:             app.config.Encrypt,
 		PassPhrase:          app.config.PassPhrase,
+		TimeBeforeDeleting:  app.config.TimeBeforeDeleting,
 	}
 	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, app.logger)
 	if err != nil {

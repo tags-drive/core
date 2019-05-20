@@ -21,10 +21,6 @@ import (
 	"github.com/tags-drive/core/internal/storage/files/resizing"
 )
 
-const (
-	timeBeforeDeleting = time.Hour * 24 * 7 // 7 days. File is deleted from storage and from disk after this time since user deleted the file
-)
-
 // Errors
 var (
 	ErrFileIsNotExist    = errors.New("the file doesn't exist")

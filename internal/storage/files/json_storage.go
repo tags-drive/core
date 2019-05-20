@@ -361,7 +361,7 @@ func (jfs *jsonFileStorage) deleteFile(id int) error {
 		return ErrFileIsNotExist
 	}
 
-	deleteTime := time.Now().Add(timeBeforeDeleting)
+	deleteTime := time.Now().Add(jfs.config.TimeBeforeDeleting)
 
 	jfs.mutex.Lock()
 	defer jfs.mutex.Unlock()
