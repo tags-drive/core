@@ -26,17 +26,18 @@ This repository contains the backend part of **Tags Drive**
 
 ### Environment variables
 
-| Variable       | Default | Description                                                        |
-| -------------- | ------- | ------------------------------------------------------------------ |
-| PORT           | 80      | Port for http server                                               |
-| TLS            | true    | Enable HTTPS                                                       |
-| LOGIN          | user    | Set your login                                                     |
-| PSWRD          | qwerty  | Set your password                                                  |
-| ENCRYPT        | false   | Encrypt uploaded files                                             |
-| DBG            | false   |                                                                    |
-| SKIP_LOGIN     | false   | Skip the log-in procedure                                          |
-| PASS_PHRASE    | ""      | A phrase for file encryption. Cannot be empty if `ENCRYPT == true` |
-| MAX_TOKEN_LIFE | 1440h   | The max lifetime of a token (default lifetime is 60 days)          |
+| Variable             | Default | Description                                                          |
+| -------------------- | ------- | -------------------------------------------------------------------- |
+| PORT                 | 80      | Port for http server                                                 |
+| TLS                  | true    | Enable HTTPS                                                         |
+| LOGIN                | user    | Set your login                                                       |
+| PSWRD                | qwerty  | Set your password                                                    |
+| SKIP_LOGIN           | false   | Skip the log-in procedure                                            |
+| MAX_TOKEN_LIFE       | 1440h   | The max lifetime of a token (default lifetime is 60 days)            |
+| ENCRYPT              | false   | Encrypt uploaded files                                               |
+| PASS_PHRASE          | ""      | A phrase for file encryption. Cannot be empty if `ENCRYPT == true`   |
+| TIME_BEFORE_DELETING | 168h    | Time before deleting a file from the Trash (default delay is 7 days) |
+| DBG                  | false   |                                                                      |
 
 ## Development
 
