@@ -38,8 +38,9 @@ type config struct {
 
 	// Storage
 
-	Encrypt    bool     `envconfig:"ENCRYPT" default:"false"`
-	PassPhrase [32]byte `ignored:"true"` // sha256 sum of "PASS_PHRASE" env variable
+	Encrypt          bool     `envconfig:"ENCRYPT" default:"false"`
+	PassPhraseString string   `envconfig:"PASS_PHRASE"`
+	PassPhrase       [32]byte `ignored:"true"` // sha256 sum of PassPhraseString field
 
 	StorageType string `envconfig:"STORAGE_TYPE" default:"json"`
 
@@ -77,25 +78,27 @@ func PrepareNewApp() (*App, error) {
 		return nil, errors.Wrap(err, "can't parse Config")
 	}
 
-	cnf.Version = version
-	// Encrypt password
-	cnf.Password = encryptPassword(cnf.Password)
-	// Get PassPhrase
-	phrase := os.Getenv("PASS_PHRASE")
-	cnf.PassPhrase = sha256.Sum256([]byte(phrase))
-
 	// Checks
 	if len(cnf.Port) > 0 && cnf.Port[0] != ':' {
 		cnf.Port = ":" + cnf.Port
 	}
 
-	if cnf.Encrypt && phrase == "" {
+	if cnf.Encrypt && cnf.PassPhraseString == "" {
 		return nil, errors.New("wrong env config: PASS_PHRASE can't be empty with ENCRYPT=true")
 	}
 
 	if cnf.SkipLogin && !cnf.Debug {
 		return nil, errors.New("wrong env config: SkipLogin can't be true in Production mode")
 	}
+
+	// Finish a config creation
+
+	cnf.Version = version
+	// Encrypt password
+	cnf.Password = encryptPassword(cnf.Password)
+	// Get PassPhrase
+	cnf.PassPhrase = sha256.Sum256([]byte(cnf.PassPhraseString))
+	cnf.PassPhraseString = ""
 
 	app := &App{config: cnf}
 
