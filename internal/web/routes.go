@@ -34,6 +34,7 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		{"/api/files", "GET", s.returnFiles, true},
 		{"/api/files/recent", "GET", s.returnRecentFiles, true},
 		{"/api/files/download", "GET", s.downloadFiles, true},
+		// upload new files
 		{"/api/files", "POST", s.upload, true},
 		// change file info
 		{"/api/file/{id:\\d+}/name", "PUT", s.changeFilename, true},

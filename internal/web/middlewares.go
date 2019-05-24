@@ -29,7 +29,7 @@ func (s Server) authMiddleware(h http.Handler) http.Handler {
 
 		if !validToken {
 			// Redirect won't help
-			if r.Method != "GET" {
+			if strings.HasPrefix(r.URL.String(), "/api/") {
 				s.processError(w, "need auth", http.StatusForbidden)
 				return
 			}
