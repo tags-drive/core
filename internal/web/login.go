@@ -40,7 +40,14 @@ func (s Server) authentication(w http.ResponseWriter, r *http.Request) {
 
 	token := s.authService.GenerateToken()
 	s.authService.AddToken(token)
-	http.SetCookie(w, &http.Cookie{Name: s.config.AuthCookieName, Value: token, HttpOnly: true, Expires: time.Now().Add(s.config.MaxTokenLife)})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     s.config.AuthCookieName,
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Expires:  time.Now().Add(s.config.MaxTokenLife),
+	})
 }
 
 // POST /api/logout – deletes auth cookie
@@ -59,6 +66,11 @@ func (s Server) logout(w http.ResponseWriter, r *http.Request) {
 
 	token := c.Value
 	s.authService.DeleteToken(token)
+
 	// Delete cookie
-	http.SetCookie(w, &http.Cookie{Name: s.config.AuthCookieName, Expires: time.Unix(0, 0)})
+	http.SetCookie(w, &http.Cookie{
+		Name:    s.config.AuthCookieName,
+		Path:    "/",
+		Expires: time.Unix(0, 0),
+	})
 }
