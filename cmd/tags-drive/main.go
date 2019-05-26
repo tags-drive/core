@@ -19,7 +19,7 @@ import (
 	"github.com/tags-drive/core/internal/web"
 )
 
-const version = "v0.7.1"
+const version = "v0.8.0"
 
 type config struct {
 	Version string `ignored:"true"`
