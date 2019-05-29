@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 )
 
 const (
@@ -12,9 +13,18 @@ const (
 	mobilePage = "./web/mobile.html"
 )
 
+var isMobileDevice = regexp.MustCompile("Mobile|Android|iP(?:hone|od|ad)")
+
 // GET /
 //
 func (s Server) index(w http.ResponseWriter, r *http.Request) {
+	// Serve mobile devides (redirect to /mobile)
+	userAgent := r.Header.Get("User-Agent")
+	if isMobileDevice.MatchString(userAgent) {
+		http.Redirect(w, r, "/mobile", http.StatusSeeOther)
+		return
+	}
+
 	f, err := os.Open(indexPath)
 	if err != nil {
 		s.processError(w, err.Error(), http.StatusInternalServerError)
