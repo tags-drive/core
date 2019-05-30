@@ -23,6 +23,7 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		{"/version", "GET", s.backendVersion, false},
 
 		// Auth
+		{"/api/user", "GET", s.checkUser, false},
 		{"/api/login", "POST", s.authentication, false},
 		{"/api/logout", "POST", s.logout, true},
 		// deprecated

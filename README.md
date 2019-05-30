@@ -146,6 +146,13 @@ Use this command to generate self-signed TLS certificate:
 
 ### Auth
 
+- `GET /api/user` – check if a user is authorized
+
+  **Responses:**
+
+  - if a user is authorized: `{ "authorized" : true }`
+  - else: `401 Unauthorized`
+
 - `POST /api/login` – sets cookie with auth token
 
   **Params:**

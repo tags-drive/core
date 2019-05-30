@@ -5,6 +5,28 @@ import (
 	"time"
 )
 
+// GET /api/user - lets check is user authorized
+//
+//
+func (s Server) checkUser(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(s.config.AuthCookieName)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	token := cookie.Value
+	if !s.authService.CheckToken(token) {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	const response = `{"authorized":true}`
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(response))
+}
+
 // POST /api/login
 //
 // Params:
