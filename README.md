@@ -142,6 +142,7 @@ Use this command to generate self-signed TLS certificate:
 - `GET /mobile` – mobile version
 - `GET /login` – login page
 - `GET /version` – returns version of the backend part
+- `GET /data/{id}` – returns a file
 
 ### Auth
 
