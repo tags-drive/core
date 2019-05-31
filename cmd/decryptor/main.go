@@ -22,7 +22,7 @@ const (
 type config struct {
 	PassPhrase string `long:"phrase" required:"true"`
 	//
-	FilesJSONFile string `long:"config-file" default:"./configs/files.json"`
+	FilesJSONFile string `long:"config-file" default:"./var/files.json"`
 	//
 	OutputFolder string `short:"o" long:"output-folder" default:"./decrypted-files"`
 	// We don't need DataFolder field because there are valid paths to encrypted files in FilesJSONFile

@@ -10,8 +10,7 @@ This repository contains the backend part of **Tags Drive**
   - [Environment variables](#environment-variables)
 - [Development](#development)
 - [File structure](#file-structure)
-  - [Config folder](#config-folder)
-  - [Data folder](#data-folder)
+  - [Var folder](#var-folder)
   - [SSL folder](#ssl-folder)
 - [API](#api)
   - [General endpoints](#general-endpoints)
@@ -48,11 +47,12 @@ There are two Python scripts that you can use to run a local version of the back
 
 ## File structure
 
-### Config folder
+### Var folder
 
 - `tokens.json` - contains valid tokens
 
   <details>
+
     <summary>Example</summary>
 
     ```json
@@ -67,13 +67,13 @@ There are two Python scripts that you can use to run a local version of the back
       }
     ]
     ```
-  </details>
 
-#### JSON storage
+  </details>
 
 - `files.json` - contains a json map of all files
 
   <details>
+
     <summary>Example</summary>
 
     ```json
@@ -104,6 +104,7 @@ There are two Python scripts that you can use to run a local version of the back
 - `tags.json` - contains a json map of all tags
 
   <details>
+
     <summary>Example</summary>
 
     ```json
@@ -120,11 +121,14 @@ There are two Python scripts that you can use to run a local version of the back
         }
       }
     ```
+
   </details>
 
-### Data folder
+#### Data folder
 
 The `data` folder is used as a file storage.
+
+The `data/resized` folder is used to store resized image previews.
 
 ### SSL folder
 

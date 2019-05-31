@@ -44,13 +44,13 @@ type config struct {
 
 	StorageType string `envconfig:"STORAGE_TYPE" default:"json"`
 
-	DataFolder          string        `default:"./data"`
-	ResizedImagesFolder string        `default:"./data/resized"`
+	DataFolder          string        `default:"./var/data"`
+	ResizedImagesFolder string        `default:"./var/data/resized"`
 	TimeBeforeDeleting  time.Duration `envconfig:"TIME_BEFORE_DELETING" default:"168h"` // default is 168h = 7 days
 
-	FilesJSONFile  string `default:"./configs/files.json"`  // for files
-	TagsJSONFile   string `default:"./configs/tags.json"`   // for tags
-	TokensJSONFile string `default:"./configs/tokens.json"` // for tokens
+	FilesJSONFile  string `default:"./var/files.json"`  // for files
+	TagsJSONFile   string `default:"./var/tags.json"`   // for tags
+	TokensJSONFile string `default:"./var/tokens.json"` // for tokens
 }
 
 type App struct {

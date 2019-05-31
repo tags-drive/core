@@ -1,5 +1,4 @@
 .git/
 .vscode/
-configs/
-data/
-web/
+var/**
+web/**
