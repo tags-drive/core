@@ -48,9 +48,10 @@ type config struct {
 	ResizedImagesFolder string        `default:"./var/data/resized"`
 	TimeBeforeDeleting  time.Duration `envconfig:"TIME_BEFORE_DELETING" default:"168h"` // default is 168h = 7 days
 
-	FilesJSONFile  string `default:"./var/files.json"`  // for files
-	TagsJSONFile   string `default:"./var/tags.json"`   // for tags
-	TokensJSONFile string `default:"./var/tokens.json"` // for tokens
+	FilesJSONFile      string `default:"./var/files.json"`        // for files
+	TagsJSONFile       string `default:"./var/tags.json"`         // for tags
+	AuthTokensJSONFile string `default:"./var/tokens.json"`       // for auth tokens
+	ShareTokenJSONFile string `default:"./var/share_tokens.json"` // for share tokens
 }
 
 type App struct {
@@ -171,7 +172,7 @@ func (app *App) initServices() error {
 		SkipLogin:      app.config.SkipLogin,
 		AuthCookieName: app.config.AuthCookieName,
 		MaxTokenLife:   app.config.MaxTokenLife,
-		TokensJSONFile: app.config.TokensJSONFile,
+		TokensJSONFile: app.config.AuthTokensJSONFile,
 		Encrypt:        app.config.Encrypt,
 		PassPhrase:     app.config.PassPhrase,
 		Version:        app.config.Version,
