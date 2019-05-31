@@ -10,6 +10,8 @@ import (
 	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
+
+	"github.com/tags-drive/core/internal/utils"
 )
 
 const maxTokenSize = 30
@@ -126,7 +128,7 @@ func (a Auth) createNewFile() error {
 
 // GenerateToken generates a new token
 func (a Auth) GenerateToken() string {
-	return generate(maxTokenSize)
+	return utils.GenerateRandomString(maxTokenSize)
 }
 
 // AddToken adds new generated token
