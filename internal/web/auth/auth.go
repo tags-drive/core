@@ -42,8 +42,7 @@ func NewAuthService(cnf Config, lg *clog.Logger) (*Auth, error) {
 		shutdowned: make(chan struct{}),
 	}
 
-	f, err := os.Open(service.config.TokensJSONFile)
-	if err != nil {
+	if f, err := os.Open(service.config.TokensJSONFile); err != nil {
 		if !os.IsNotExist(err) {
 			return nil, errors.Wrapf(err, "can't open file %s", cnf.TokensJSONFile)
 		}
@@ -54,19 +53,7 @@ func NewAuthService(cnf Config, lg *clog.Logger) (*Auth, error) {
 			return nil, err
 		}
 	} else {
-		var err error
-
-		if !cnf.Encrypt {
-			err = json.NewDecoder(f).Decode(&service.tokens)
-		} else {
-			// Have to decrypt at first
-			buff := bytes.NewBuffer([]byte{})
-			_, err = sio.Decrypt(buff, f, sio.Config{Key: cnf.PassPhrase[:]})
-			if err == nil {
-				err = json.NewDecoder(buff).Decode(&service.tokens)
-			}
-		}
-
+		err = utils.Decode(f, &service.tokens, cnf.Encrypt, cnf.PassPhrase)
 		if err != nil {
 			return nil, errors.Wrap(err, "can't decode allToken.tokens")
 		}

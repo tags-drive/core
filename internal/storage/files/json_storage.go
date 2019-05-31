@@ -1,8 +1,6 @@
 package files
 
 import (
-	"bytes"
-	"io"
 	"os"
 	"regexp"
 	"strconv"
@@ -12,12 +10,11 @@ import (
 	"time"
 
 	clog "github.com/ShoshinNikita/log/v2"
-	jsoniter "github.com/json-iterator/go"
-	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/files/extensions"
+	"github.com/tags-drive/core/internal/utils"
 )
 
 // saveInterval is used in saveOnDisk. It defines interval between calls of jfs.write()
@@ -34,7 +31,6 @@ type jsonFileStorage struct {
 	mutex *sync.RWMutex
 
 	logger *clog.Logger
-	json   jsoniter.API
 
 	shutdownChan chan struct{}
 	// number of changes since last write() call
@@ -51,7 +47,6 @@ func newJsonFileStorage(cnf Config, lg *clog.Logger) *jsonFileStorage {
 		files:        make(map[int]File),
 		mutex:        new(sync.RWMutex),
 		logger:       lg,
-		json:         jsoniter.ConfigCompatibleWithStandardLibrary,
 		shutdownChan: make(chan struct{}),
 		changes:      changes,
 	}
@@ -77,7 +72,7 @@ func (jfs *jsonFileStorage) init() error {
 	}
 	defer f.Close()
 
-	err = jfs.decode(f)
+	err = utils.Decode(f, &jfs.files, jfs.config.Encrypt, jfs.config.PassPhrase)
 	if err != nil {
 		return errors.Wrap(err, "can't decode file")
 	}
@@ -144,50 +139,10 @@ func (jfs jsonFileStorage) write() {
 	}
 	defer f.Close()
 
-	if !jfs.config.Encrypt {
-		// Encode directly into the file
-		enc := jfs.json.NewEncoder(f)
-		if jfs.config.Debug {
-			enc.SetIndent("", "  ")
-		}
-		err := enc.Encode(jfs.files)
-		if err != nil {
-			jfs.logger.Warnf("can't write '%s': %s\n", jfs.config.FilesJSONFile, err)
-		}
-
-		return
-	}
-
-	// Encode into buffer
-	buff := bytes.NewBuffer([]byte{})
-	enc := jfs.json.NewEncoder(buff)
-	if jfs.config.Debug {
-		enc.SetIndent("", "  ")
-	}
-	enc.Encode(jfs.files)
-
-	// Write into the file (jfs.config.Encrypt is true, if we are here)
-	_, err = sio.Encrypt(f, buff, sio.Config{Key: jfs.config.PassPhrase[:]})
-
+	err = utils.Encode(f, jfs.files, jfs.config.Encrypt, jfs.config.PassPhrase)
 	if err != nil {
 		jfs.logger.Warnf("can't write '%s': %s\n", jfs.config.FilesJSONFile, err)
 	}
-}
-
-// decode decodes js.info
-func (jfs *jsonFileStorage) decode(r io.Reader) error {
-	if !jfs.config.Encrypt {
-		return jfs.json.NewDecoder(r).Decode(&jfs.files)
-	}
-
-	// Have to decrypt at first
-	buff := bytes.NewBuffer([]byte{})
-	_, err := sio.Decrypt(buff, r, sio.Config{Key: jfs.config.PassPhrase[:]})
-	if err != nil {
-		return err
-	}
-
-	return jfs.json.NewDecoder(buff).Decode(&jfs.files)
 }
 
 // checkFile return true if file with passed filename exists

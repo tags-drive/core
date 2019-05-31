@@ -1,15 +1,13 @@
 package tags
 
 import (
-	"bytes"
-	"io"
 	"os"
 	"sync"
 
 	clog "github.com/ShoshinNikita/log/v2"
-	jsoniter "github.com/json-iterator/go"
-	"github.com/minio/sio"
 	"github.com/pkg/errors"
+
+	"github.com/tags-drive/core/internal/utils"
 )
 
 type jsonTagStorage struct {
@@ -19,7 +17,6 @@ type jsonTagStorage struct {
 	mutex *sync.RWMutex
 
 	logger *clog.Logger
-	json   jsoniter.API
 }
 
 func newJsonTagStorage(cnf Config, lg *clog.Logger) *jsonTagStorage {
@@ -28,7 +25,6 @@ func newJsonTagStorage(cnf Config, lg *clog.Logger) *jsonTagStorage {
 		tags:   make(Tags),
 		mutex:  new(sync.RWMutex),
 		logger: lg,
-		json:   jsoniter.ConfigCompatibleWithStandardLibrary,
 	}
 }
 
@@ -44,7 +40,7 @@ func (jts *jsonTagStorage) init() error {
 	}
 	defer f.Close()
 
-	return jts.decode(f)
+	return utils.Decode(f, &jts.tags, jts.config.Encrypt, jts.config.PassPhrase)
 }
 
 func (jts *jsonTagStorage) createNewFile() error {
@@ -74,49 +70,10 @@ func (jts jsonTagStorage) write() {
 	}
 	defer f.Close()
 
-	if !jts.config.Encrypt {
-		// Encode directly into the file
-		enc := jts.json.NewEncoder(f)
-		if jts.config.Debug {
-			enc.SetIndent("", "  ")
-		}
-		err := enc.Encode(jts.tags)
-		if err != nil {
-			jts.logger.Warnf("can't write '%s': %s", jts.config.TagsJSONFile, err)
-		}
-
-		return
-	}
-
-	// Encode into buffer
-	buff := bytes.NewBuffer([]byte{})
-	enc := jts.json.NewEncoder(buff)
-	if jts.config.Debug {
-		enc.SetIndent("", "  ")
-	}
-	enc.Encode(jts.tags)
-
-	// Write into the file (jts.config.Encrypt is true, if we are here)
-	_, err = sio.Encrypt(f, buff, sio.Config{Key: jts.config.PassPhrase[:]})
-
+	err = utils.Encode(f, jts.tags, jts.config.Encrypt, jts.config.PassPhrase)
 	if err != nil {
-		jts.logger.Warnf("can't write '%s': %s\n", jts.config.TagsJSONFile, err)
+		jts.logger.Warnf("can't write '%s': %s", jts.config.TagsJSONFile, err)
 	}
-}
-
-func (jts *jsonTagStorage) decode(r io.Reader) error {
-	if !jts.config.Encrypt {
-		return jts.json.NewDecoder(r).Decode(&jts.tags)
-	}
-
-	// Have to decrypt at first
-	buff := bytes.NewBuffer([]byte{})
-	_, err := sio.Decrypt(buff, r, sio.Config{Key: jts.config.PassPhrase[:]})
-	if err != nil {
-		return err
-	}
-
-	return jts.json.NewDecoder(buff).Decode(&jts.tags)
 }
 
 func (jts jsonTagStorage) getAll() Tags {

@@ -1,12 +1,10 @@
 package auth
 
 import (
-	"bytes"
-	"encoding/json"
 	"os"
 	"time"
 
-	"github.com/minio/sio"
+	"github.com/tags-drive/core/internal/utils"
 )
 
 func (a Auth) write() {
@@ -20,31 +18,7 @@ func (a Auth) write() {
 	}
 	defer f.Close()
 
-	if !a.config.Encrypt {
-		// Encode directly into the file
-		enc := json.NewEncoder(f)
-		if a.config.Debug {
-			enc.SetIndent("", "  ")
-		}
-		err := enc.Encode(a.tokens)
-		if err != nil {
-			a.logger.Warnf("can't write '%s': %s\n", a.config.TokensJSONFile, err)
-		}
-
-		return
-	}
-
-	// Encode into buffer
-	buff := bytes.NewBuffer([]byte{})
-	enc := json.NewEncoder(buff)
-	if a.config.Debug {
-		enc.SetIndent("", "  ")
-	}
-	enc.Encode(a.tokens)
-
-	// Write into the file (a.config.Encrypt is true, if we are here)
-	_, err = sio.Encrypt(f, buff, sio.Config{Key: a.config.PassPhrase[:]})
-
+	err = utils.Encode(f, a.tokens, a.config.Encrypt, a.config.PassPhrase)
 	if err != nil {
 		a.logger.Warnf("can't write '%s': %s\n", a.config.TokensJSONFile, err)
 	}
@@ -97,7 +71,7 @@ func (a Auth) check(token string) bool {
 func (a *Auth) expire() {
 	a.mutex.Lock()
 
-	var freshTokens []tokenStruct
+	freshTokens := []tokenStruct{}
 	now := time.Now()
 	for _, tok := range a.tokens {
 		if now.Before(tok.Expires) {
