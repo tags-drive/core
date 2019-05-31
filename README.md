@@ -49,7 +49,7 @@ There are two Python scripts that you can use to run a local version of the back
 
 ### Var folder
 
-- `tokens.json` - contains valid tokens
+- `auth_tokens.json` - contains valid tokens
 
   <details>
 
