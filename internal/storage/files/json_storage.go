@@ -58,17 +58,6 @@ func newJsonFileStorage(cnf Config, lg *clog.Logger) *jsonFileStorage {
 }
 
 func (jfs *jsonFileStorage) init() error {
-	// Create folders
-	err := os.MkdirAll(jfs.config.DataFolder, 0666)
-	if err != nil {
-		return errors.Wrapf(err, "can't create a folder %s", jfs.config.DataFolder)
-	}
-
-	err = os.MkdirAll(jfs.config.ResizedImagesFolder, 0666)
-	if err != nil {
-		return errors.Wrapf(err, "can't create a folder %s", jfs.config.ResizedImagesFolder)
-	}
-
 	f, err := os.OpenFile(jfs.config.FilesJSONFile, os.O_RDWR, 0666)
 	if err != nil {
 		// Have to create a new file
@@ -86,7 +75,6 @@ func (jfs *jsonFileStorage) init() error {
 
 		return errors.Wrapf(err, "can't open file %s", jfs.config.FilesJSONFile)
 	}
-
 	defer f.Close()
 
 	err = jfs.decode(f)
@@ -102,6 +90,7 @@ func (jfs *jsonFileStorage) init() error {
 	}
 
 	go jfs.saveOnDisk()
+
 	return nil
 }
 

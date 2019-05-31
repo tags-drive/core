@@ -90,6 +90,17 @@ type FileStorage struct {
 
 // NewFileStorage creates new FileStorage
 func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
+	// Create folders
+	err := os.MkdirAll(cnf.DataFolder, 0666)
+	if err != nil {
+		return nil, errors.Wrapf(err, "can't create a folder %s", cnf.DataFolder)
+	}
+
+	err = os.MkdirAll(cnf.ResizedImagesFolder, 0666)
+	if err != nil {
+		return nil, errors.Wrapf(err, "can't create a folder %s", cnf.ResizedImagesFolder)
+	}
+
 	var st internalStorage
 
 	switch cnf.StorageType {
@@ -105,7 +116,7 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 		logger:  lg,
 	}
 
-	err := fs.storage.init()
+	err = fs.storage.init()
 	if err != nil {
 		return nil, errors.Wrapf(err, "can't init files storage")
 	}
