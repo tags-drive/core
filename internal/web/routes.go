@@ -54,10 +54,10 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		newRoute("/logout", "POST", s.logout),
 
 		// Files
-		newRoute("/api/file/{id:\\d+}", "GET", s.returnSingleFile),
-		newRoute("/api/files", "GET", s.returnFiles),
-		newRoute("/api/files/recent", "GET", s.returnRecentFiles),
-		newRoute("/api/files/download", "GET", s.downloadFiles),
+		newRoute("/api/file/{id:\\d+}", "GET", s.returnSingleFile).enableShare(),
+		newRoute("/api/files", "GET", s.returnFiles).enableShare(),
+		newRoute("/api/files/recent", "GET", s.returnRecentFiles).enableShare(),
+		newRoute("/api/files/download", "GET", s.downloadFiles).enableShare(),
 		// upload new files
 		newRoute("/api/files", "POST", s.upload),
 		// change file info
@@ -72,7 +72,7 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		newRoute("/api/files/recover", "POST", s.recoverFile),
 
 		// Tags
-		newRoute("/api/tags", "GET", s.returnTags),
+		newRoute("/api/tags", "GET", s.returnTags).enableShare(),
 		newRoute("/api/tags", "POST", s.addTag),
 		newRoute("/api/tag/{id:\\d+}", "PUT", s.changeTag),
 		newRoute("/api/tags", "DELETE", s.deleteTag),
