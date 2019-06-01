@@ -13,6 +13,7 @@ import (
 
 	filesPck "github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
+	"github.com/tags-drive/core/internal/storage/share"
 )
 
 const (
@@ -50,6 +51,7 @@ func getParam(defaultVal, passedVal string, validOptions ...string) (s string) {
 //
 // Params:
 //   - id: id of a file
+//   - shareToken (optional): share token
 //
 // Response: json object
 //
@@ -57,6 +59,19 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		s.processError(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	shareMode := false
+
+	// We can skip token checking because it was already checked in authMiddleware
+	shareToken := r.FormValue("shareToken")
+	if shareToken != "" {
+		shareMode = true
+	}
+
+	if shareMode && !s.shareStorage.CheckFile(shareToken, id) {
+		s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
 		return
 	}
 
@@ -90,6 +105,7 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 //   - order: asc | desc
 //   - offset: lower bound [offset:]
 //   - count: number of returned files ([offset:offset+count]). If count == 0, all files will be returned. Default is 0
+//   - shareToken (optional): share token
 //
 // Response: json array
 //
@@ -179,6 +195,21 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	shareToken := r.FormValue("shareToken")
+	if shareToken != "" {
+		// Have to filter files
+		files, err = s.shareStorage.FilterFiles(shareToken, files)
+		if err != nil {
+			if err == share.ErrInvalidToken {
+				// Just in case
+				s.processError(w, err.Error(), http.StatusBadRequest)
+			} else {
+				s.processError(w, err.Error(), http.StatusInternalServerError)
+			}
+			return
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if s.config.Debug {
@@ -219,6 +250,7 @@ func (s Server) returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 //
 // Params:
 //   - ids: list of ids of files for downloading separated by comma `ids=1,2,54,9`
+//   - shareToken (optional): share token
 //
 // Response: zip archive
 //
@@ -234,6 +266,18 @@ func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}()
+
+	shareToken := r.FormValue("shareToken")
+	if shareToken != "" {
+		// Have to filter ids
+		goodIDs := make([]int, 0, len(ids))
+		for _, id := range ids {
+			if s.shareStorage.CheckFile(shareToken, id) {
+				goodIDs = append(goodIDs, id)
+			}
+		}
+		ids = goodIDs
+	}
 
 	body, err := s.fileStorage.Archive(ids)
 	if err != nil {
