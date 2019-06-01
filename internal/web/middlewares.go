@@ -51,7 +51,7 @@ func (s Server) authMiddleware(h http.Handler, shareable bool) http.Handler {
 
 		if strings.HasPrefix(r.URL.String(), "/api/") || strings.HasPrefix(r.URL.String(), "/data/") {
 			// Redirect won't help
-			s.processError(w, "need auth", http.StatusForbidden)
+			s.processError(w, "need auth", http.StatusUnauthorized)
 			return
 		}
 
