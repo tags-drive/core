@@ -56,7 +56,7 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		// Files
 		newRoute("/api/file/{id:\\d+}", "GET", s.returnSingleFile).enableShare(),
 		newRoute("/api/files", "GET", s.returnFiles).enableShare(),
-		newRoute("/api/files/recent", "GET", s.returnRecentFiles).enableShare(),
+		newRoute("/api/files/recent", "GET", s.returnRecentFiles),
 		newRoute("/api/files/download", "GET", s.downloadFiles).enableShare(),
 		// upload new files
 		newRoute("/api/files", "POST", s.upload),

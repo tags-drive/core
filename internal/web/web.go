@@ -152,5 +152,10 @@ func (s Server) Shutdown() error {
 		s.logger.Warnf("can't shutdown authService gracefully: %s\n", err)
 	}
 
+	// Shutdown share storage
+	if err := s.shareStorage.Shutdown(); err != nil {
+		s.logger.Warnf("can't shutdown shareStorage gracefully: %s\n", err)
+	}
+
 	return serverErr
 }
