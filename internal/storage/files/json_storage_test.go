@@ -215,6 +215,46 @@ func TestGetFile(t *testing.T) {
 	}
 }
 
+func TestGetFilesWithIDs(t *testing.T) {
+	assert := assert.New(t)
+
+	storage := newStorage()
+	defer func() {
+		storage.shutdown()
+		os.Remove(storage.config.FilesJSONFile)
+	}()
+
+	addDefaultFiles(storage)
+
+	tests := []struct {
+		ids []int
+		res []int // files ids
+	}{
+		{
+			ids: []int{1, 2, 3},
+			res: []int{1, 2, 3},
+		},
+		{
+			ids: []int{1, 2, 10, 20, 33},
+			res: []int{1, 2},
+		},
+		{
+			ids: []int{10, 20, 30},
+			res: []int{},
+		},
+	}
+
+	for i, tt := range tests {
+		files := storage.getFilesWithIDs(tt.ids...)
+		res := []int{}
+		for _, f := range files {
+			res = append(res, f.ID)
+		}
+
+		assert.Equal(tt.res, res, "iteration #%d", i+1)
+	}
+}
+
 func TestGetFiles(t *testing.T) {
 	assert := assert.New(t)
 
