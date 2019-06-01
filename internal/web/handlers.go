@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -107,6 +109,36 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 //
 func (s Server) backendVersion(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(s.config.Version))
+}
+
+// GET /data/{id}
+//
+// Params:
+//   - shareToken (optional): share token
+//
+func (s Server) serveData() http.Handler {
+	fileHandler := http.StripPrefix("/data/", s.decryptMiddleware(http.Dir(s.config.DataFolder+"/")))
+	handler := cacheMiddleware(fileHandler, 60*60*24*14) // cache for 14 days
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fileID := strings.TrimPrefix(r.URL.Path, "/data/")
+		id, err := strconv.Atoi(fileID)
+		if err != nil {
+			s.processError(w, "invalid file id", http.StatusBadRequest)
+			return
+		}
+
+		token := r.FormValue("shareToken")
+		if token != "" {
+			// Have to check if a token grants access to the file
+			if !s.shareStorage.CheckFile(token, id) {
+				s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
+				return
+			}
+		}
+
+		handler.ServeHTTP(w, r)
+	})
 }
 
 // extensionHandler servers extensions
