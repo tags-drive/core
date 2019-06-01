@@ -76,6 +76,12 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		newRoute("/api/tags", "POST", s.addTag),
 		newRoute("/api/tag/{id:\\d+}", "PUT", s.changeTag),
 		newRoute("/api/tags", "DELETE", s.deleteTag),
+
+		// Share
+		newRoute("/api/share/tokens", "GET", s.getAllShareTokens),
+		newRoute("/api/share/token/{token}", "GET", s.getFilesSharedByToken),
+		newRoute("/api/share/token", "POST", s.createShareToken),
+		newRoute("/api/share/token/{token}", "DELETE", s.deleteShareToken),
 	}
 
 	for _, r := range routes {
