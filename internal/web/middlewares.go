@@ -10,35 +10,51 @@ import (
 	"github.com/minio/sio"
 )
 
-func (s Server) authMiddleware(h http.Handler) http.Handler {
+func (s Server) authMiddleware(h http.Handler, shareable bool) http.Handler {
+	checkAuth := func(r *http.Request) bool {
+		c, err := r.Cookie(s.config.AuthCookieName)
+		if err != nil {
+			return false
+		}
+
+		token := c.Value
+		return s.authService.CheckToken(token)
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if s.config.SkipLogin {
 			h.ServeHTTP(w, r)
 			return
 		}
 
-		validToken := func() bool {
-			c, err := r.Cookie(s.config.AuthCookieName)
-			if err != nil {
-				return false
-			}
-
-			token := c.Value
-			return s.authService.CheckToken(token)
-		}()
-
-		if !validToken {
-			// Redirect won't help
-			if strings.HasPrefix(r.URL.String(), "/api/") {
-				s.processError(w, "need auth", http.StatusForbidden)
-				return
-			}
-
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+		if checkAuth(r) {
+			// full access
+			h.ServeHTTP(w, r)
 			return
 		}
 
-		h.ServeHTTP(w, r)
+		if shareable {
+			shareToken := r.FormValue("shareToken")
+			if shareToken != "" {
+				if s.shareStorage.CheckToken(shareToken) {
+					// share access
+					h.ServeHTTP(w, r)
+					return
+				}
+
+				s.processError(w, "invalid share token", http.StatusBadRequest)
+				return
+			}
+		}
+
+		if strings.HasPrefix(r.URL.String(), "/api/") || strings.HasPrefix(r.URL.String(), "/data/"){
+			// Redirect won't help
+			s.processError(w, "need auth", http.StatusForbidden)
+			return
+		}
+
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
 	})
 }
 

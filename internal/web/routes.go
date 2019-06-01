@@ -81,7 +81,7 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {
-			handler = s.authMiddleware(r.handler)
+			handler = s.authMiddleware(r.handler, r.shareable)
 		}
 		router.Path(r.path).Methods(r.methods).Handler(handler)
 	}
@@ -105,7 +105,7 @@ func (s *Server) addDebugRoutes(router *mux.Router) {
 	for _, r := range routes {
 		var handler http.Handler = r.handler
 		if r.needAuth {
-			handler = s.authMiddleware(r.handler)
+			handler = s.authMiddleware(r.handler, r.shareable)
 		}
 		router.Path(r.path).Methods(r.methods).Handler(handler)
 	}

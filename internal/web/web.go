@@ -92,7 +92,12 @@ func (s *Server) Start() error {
 	router.PathPrefix("/static/").Handler(staticHandler)
 
 	// For uploaded files
-	uploadedFilesHandler := http.StripPrefix("/data/", s.authMiddleware(s.decryptMiddleware(http.Dir(s.config.DataFolder+"/"))))
+	uploadedFilesHandler := http.StripPrefix(
+		"/data/",
+		s.authMiddleware(
+			s.decryptMiddleware(http.Dir(s.config.DataFolder+"/")),
+			true),
+	)
 	router.PathPrefix("/data/").Handler(cacheMiddleware(uploadedFilesHandler, 60*60*24*14)) // cache for 14 days
 
 	// For exitensions
