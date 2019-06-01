@@ -50,7 +50,7 @@ type config struct {
 
 	FilesJSONFile      string `default:"./var/files.json"`        // for files
 	TagsJSONFile       string `default:"./var/tags.json"`         // for tags
-	AuthTokensJSONFile string `default:"./var/auth_tokens.json"`       // for auth tokens
+	AuthTokensJSONFile string `default:"./var/auth_tokens.json"`  // for auth tokens
 	ShareTokenJSONFile string `default:"./var/share_tokens.json"` // for share tokens
 }
 

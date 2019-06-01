@@ -15,7 +15,7 @@ import (
 
 const maxTokenSize = 20
 
-// fileIDs is a slice of sorted file ids
+// fileIDs is a slice of sorted files ids
 type filesIDs []int
 
 func newFileIDs(ids []int) filesIDs {
