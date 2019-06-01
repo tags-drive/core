@@ -37,6 +37,8 @@ type internalStorage interface {
 	// getFile returns a file with passed filename
 	getFile(id int) (File, error)
 
+	checkFile(id int) bool
+
 	// getFiles returns files
 	//     expr - parsed logical expression
 	//     search - string, which filename has to contain (lower case)
@@ -158,6 +160,10 @@ func (fs FileStorage) Get(expr string, s FilesSortMode, search string, isRegexp 
 
 func (fs FileStorage) GetFile(id int) (File, error) {
 	return fs.storage.getFile(id)
+}
+
+func (fs FileStorage) CheckFile(id int) bool {
+	return fs.storage.checkFile(id)
 }
 
 func (fs FileStorage) GetFiles(ids ...int) []File {
