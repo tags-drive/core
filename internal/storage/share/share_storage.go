@@ -2,6 +2,11 @@ package share
 
 import (
 	clog "github.com/ShoshinNikita/log/v2"
+	"github.com/pkg/errors"
+)
+
+var (
+	ErrInvalidToken = errors.New("invalid share token")
 )
 
 func NewShareStorage(cnf Config, lg *clog.Logger) (ShareStorageInterface, error) {

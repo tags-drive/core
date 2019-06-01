@@ -112,6 +112,17 @@ func (jss *jsonShareStorage) CreateToken(ids []int) (token string) {
 	return token
 }
 
+func (jss *jsonShareStorage) GetFilesIDs(token string) ([]int, error) {
+	jss.mu.RLock()
+	defer jss.mu.RUnlock()
+
+	if _, ok := jss.tokens[token]; !ok {
+		return nil, ErrInvalidToken
+	}
+
+	return jss.tokens[token], nil
+}
+
 func (jss *jsonShareStorage) CheckToken(token string) bool {
 	jss.mu.RLock()
 	defer jss.mu.RUnlock()
@@ -146,11 +157,16 @@ func (jss *jsonShareStorage) DeleteFile(id int) {
 }
 
 func (jss *jsonShareStorage) FilterFiles(token string, files []filesPck.File) ([]filesPck.File, error) {
-	if !jss.CheckToken(token) {
-		return nil, errors.New("invalid token")
+	jss.mu.RLock()
+
+	if _, ok := jss.tokens[token]; !ok {
+		jss.mu.RUnlock()
+		return nil, ErrInvalidToken
 	}
 
 	ids := jss.tokens[token]
+
+	jss.mu.RUnlock()
 
 	res := make([]filesPck.File, 0, len(files))
 	for _, f := range files {

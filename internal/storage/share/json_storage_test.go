@@ -167,6 +167,68 @@ func TestCheckFile(t *testing.T) {
 	}
 }
 
+func TestGetFilesIDs(t *testing.T) {
+	assert := assert.New(t)
+
+	tests := []struct {
+		startTokens map[string]filesIDs
+
+		token string
+
+		isError bool
+		res     []int
+	}{
+		{
+			startTokens: map[string]filesIDs{
+				"1": []int{1, 2, 3, 4},
+				"2": []int{2, 3, 4, 5},
+				"3": []int{2, 6},
+				"4": []int{1, 10, 23, 24, 15},
+			},
+			token:   "1",
+			isError: false,
+			res:     []int{1, 2, 3, 4},
+		},
+		{
+			startTokens: map[string]filesIDs{
+				"1": []int{1, 2, 3, 4},
+				"2": []int{2, 3, 4, 5},
+				"3": []int{2, 6},
+				"4": []int{1, 10, 23, 24, 15},
+			},
+			token:   "4",
+			isError: false,
+			res:     []int{1, 10, 23, 24, 15},
+		},
+		{
+			startTokens: map[string]filesIDs{
+				"1": []int{1, 2, 3, 4},
+				"2": []int{2, 3, 4, 5},
+				"3": []int{2, 6},
+				"4": []int{1, 10, 23, 24, 15},
+			},
+			token:   "25",
+			isError: true,
+			res:     nil,
+		},
+	}
+
+	for i, tt := range tests {
+		st := newStorage()
+		st.tokens = tt.startTokens
+
+		res, err := st.GetFilesIDs(tt.token)
+
+		assert.Equal(err != nil, tt.isError, "iteration #%d", i+1)
+
+		if !tt.isError {
+			assert.Equal(tt.res, res, "iteration #%d", i+1)
+		}
+
+		assert.NoError(st.Shutdown())
+	}
+}
+
 func TestDeleteFile(t *testing.T) {
 	assert := assert.New(t)
 

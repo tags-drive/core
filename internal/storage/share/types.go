@@ -14,7 +14,10 @@ type Config struct {
 
 type ShareStorageInterface interface {
 	// CreateToken creates new token with access to passed files
-	CreateToken(fileIDs []int) (token string)
+	CreateToken(filesIDs []int) (token string)
+
+	// GetFilesIDs returns files shared by a passed token
+	GetFilesIDs(token string) (filesIDs []int, err error)
 
 	// CheckToken checks if a token exists
 	CheckToken(token string) bool
