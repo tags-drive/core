@@ -47,14 +47,16 @@ type jsonShareStorage struct {
 	tokens map[string]filesIDs
 	mu     sync.RWMutex
 
-	logger *clog.Logger
+	fileStorage FileStorage
+	logger      *clog.Logger
 }
 
-func newJsonShareStorage(cnf Config, lg *clog.Logger) *jsonShareStorage {
+func newJsonShareStorage(cnf Config, fileStorage FileStorage, lg *clog.Logger) *jsonShareStorage {
 	return &jsonShareStorage{
-		config: cnf,
-		tokens: make(map[string]filesIDs),
-		logger: lg,
+		config:      cnf,
+		tokens:      make(map[string]filesIDs),
+		fileStorage: fileStorage,
+		logger:      lg,
 	}
 }
 
@@ -178,9 +180,31 @@ func (jss *jsonShareStorage) FilterFiles(token string, files []filesPck.File) ([
 	return res, nil
 }
 
-// TODO
 func (jss *jsonShareStorage) FilterTags(token string, tags tagsPck.Tags) (tagsPck.Tags, error) {
-	return tags, nil
+	ids, err := jss.GetFilesIDs(token)
+	if err != nil {
+		return tags, err
+	}
+
+	// We don't need to use mutex
+
+	result := make(tagsPck.Tags)
+
+	files := jss.fileStorage.GetFiles(ids...)
+
+	for id := range tags {
+	searchLoop:
+		for i := range files {
+			for j := range files[i].Tags {
+				if files[i].Tags[j] == id {
+					result[id] = tags[id]
+					break searchLoop
+				}
+			}
+		}
+	}
+
+	return result, nil
 }
 
 func (jss *jsonShareStorage) Shutdown() error {

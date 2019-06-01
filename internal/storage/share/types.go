@@ -12,6 +12,10 @@ type Config struct {
 	PassPhrase [32]byte
 }
 
+type FileStorage interface {
+	GetFiles(ids ...int) []files.File
+}
+
 type ShareStorageInterface interface {
 	// CreateToken creates new token with access to passed files
 	CreateToken(filesIDs []int) (token string)
@@ -31,7 +35,6 @@ type ShareStorageInterface interface {
 	// FilterFiles filters files according to token share permissions
 	FilterFiles(token string, files []files.File) ([]files.File, error)
 
-	// TODO
 	// FilterTags filters tags according to token share permissions
 	FilterTags(token string, tags tags.Tags) (tags.Tags, error)
 

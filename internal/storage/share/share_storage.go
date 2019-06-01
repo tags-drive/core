@@ -9,8 +9,8 @@ var (
 	ErrInvalidToken = errors.New("invalid share token")
 )
 
-func NewShareStorage(cnf Config, lg *clog.Logger) (ShareStorageInterface, error) {
-	storage := newJsonShareStorage(cnf, lg)
+func NewShareStorage(cnf Config, fs FileStorage, lg *clog.Logger) (ShareStorageInterface, error) {
+	storage := newJsonShareStorage(cnf, fs, lg)
 
 	err := storage.init()
 	if err != nil {

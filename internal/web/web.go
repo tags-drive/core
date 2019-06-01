@@ -57,7 +57,7 @@ func NewWebServer(cnf Config, fs files.FileStorageInterface, ts tags.TagStorageI
 		Encrypt:            cnf.Encrypt,
 		PassPhrase:         cnf.PassPhrase,
 	}
-	s.shareStorage, err = share.NewShareStorage(shareConfig, lg)
+	s.shareStorage, err = share.NewShareStorage(shareConfig, fs, lg)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't init new Share Storage")
 	}

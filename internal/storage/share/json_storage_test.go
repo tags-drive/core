@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/tags-drive/core/internal/storage/files"
+	"github.com/tags-drive/core/internal/storage/tags"
 )
 
 const testJsonFile = "test.json"
@@ -413,11 +414,196 @@ func TestFilterFiles(t *testing.T) {
 	}
 }
 
+func TestFilterTags(t *testing.T) {
+	assert := assert.New(t)
+
+	files := []files.File{
+		{ID: 1, Tags: []int{1, 2, 3}},
+		{ID: 2, Tags: []int{1, 2, 5}},
+		{ID: 3, Tags: []int{}},
+		{ID: 4, Tags: []int{3, 4, 8, 9}},
+		{ID: 5, Tags: []int{5, 6, 10}},
+		{ID: 6, Tags: []int{9}},
+		{ID: 7, Tags: []int{4}},
+		{ID: 8, Tags: []int{5, 4, 1}},
+		{ID: 9, Tags: []int{9}},
+	}
+
+	tests := []struct {
+		tokens map[string]filesIDs
+		// Input
+		token string
+		tags  tags.Tags
+		// Output
+		isError bool
+		res     tags.Tags
+	}{
+		{
+			tokens: map[string]filesIDs{
+				"1": []int{1, 2, 3},
+			},
+			//
+			token: "1",
+			tags: tags.Tags{
+				1: {ID: 1, Name: "1"},
+				2: {ID: 2, Name: "2"},
+				3: {ID: 3, Name: "3"},
+				4: {ID: 4, Name: "4"},
+				5: {ID: 5, Name: "5"},
+			},
+			//
+			isError: false,
+			res: tags.Tags{
+				1: {ID: 1, Name: "1"},
+				2: {ID: 2, Name: "2"},
+				3: {ID: 3, Name: "3"},
+				5: {ID: 5, Name: "5"},
+			},
+		},
+		{
+			tokens: map[string]filesIDs{
+				"1": []int{3},
+			},
+			//
+			token: "1",
+			tags: tags.Tags{
+				1: {ID: 1, Name: "1"},
+				2: {ID: 2, Name: "2"},
+				3: {ID: 3, Name: "3"},
+				4: {ID: 4, Name: "4"},
+				5: {ID: 5, Name: "5"},
+			},
+			//
+			isError: false,
+			res: tags.Tags{},
+		},
+		{
+			tokens: map[string]filesIDs{
+				"1": []int{1, 2, 3, 8, 9, 10, 11, 12},
+			},
+			//
+			token: "1",
+			tags: tags.Tags{
+				1:  {ID: 1, Name: "1"},
+				2:  {ID: 2, Name: "2"},
+				3:  {ID: 3, Name: "3"},
+				4:  {ID: 4, Name: "4"},
+				5:  {ID: 5, Name: "5"},
+				6:  {ID: 6, Name: "6"},
+				7:  {ID: 7, Name: "7"},
+				10: {ID: 10, Name: "10"},
+			},
+			//
+			isError: false,
+			res: tags.Tags{
+				1: {ID: 1, Name: "1"},
+				2: {ID: 2, Name: "2"},
+				3: {ID: 3, Name: "3"},
+				4: {ID: 4, Name: "4"},
+				5: {ID: 5, Name: "5"},
+			},
+		},
+		{
+			tokens: map[string]filesIDs{
+				"1": []int{4},
+			},
+			//
+			token: "1",
+			tags: tags.Tags{
+				1: {ID: 1, Name: "1"},
+				2: {ID: 2, Name: "2"},
+				3: {ID: 3, Name: "3"},
+				4: {ID: 4, Name: "4"},
+				5: {ID: 5, Name: "5"},
+			},
+			//
+			isError: false,
+			res: tags.Tags{
+				3: {ID: 3, Name: "3"},
+				4: {ID: 4, Name: "4"},
+			},
+		},
+		{
+			tokens: map[string]filesIDs{
+				"1": []int{9},
+			},
+			//
+			token: "1",
+			tags: tags.Tags{
+				1: {ID: 1, Name: "1"},
+				2: {ID: 2, Name: "2"},
+				3: {ID: 3, Name: "3"},
+				4: {ID: 4, Name: "4"},
+				5: {ID: 5, Name: "5"},
+			},
+			//
+			isError: false,
+			res:     tags.Tags{},
+		},
+		{
+			tokens: map[string]filesIDs{
+				"1": []int{9},
+			},
+			//
+			token: "5",
+			tags: tags.Tags{
+				1: {ID: 1, Name: "1"},
+				2: {ID: 2, Name: "2"},
+				3: {ID: 3, Name: "3"},
+				4: {ID: 4, Name: "4"},
+				5: {ID: 5, Name: "5"},
+			},
+			//
+			isError: true,
+			res:     tags.Tags{},
+		},
+	}
+
+	for i, tt := range tests {
+		// Init
+		st := newStorage()
+		st.tokens = tt.tokens
+		// Set files
+		fs := st.fileStorage.(*FileStorageMock)
+		fs.files = files
+
+		res, err := st.FilterTags(tt.token, tt.tags)
+
+		assert.Equal(err != nil, tt.isError, "iteration #%d", i+1)
+
+		if !tt.isError {
+			assert.Equal(tt.res, res, "iteration #%d", i+1)
+		}
+
+		assert.NoError(st.Shutdown())
+	}
+}
+
+type FileStorageMock struct {
+	files []files.File
+}
+
+func (fs FileStorageMock) GetFiles(ids ...int) []files.File {
+	files := []files.File{}
+
+	for _, f := range fs.files {
+		for _, id := range ids {
+			if f.ID == id {
+				files = append(files, f)
+			}
+		}
+	}
+
+	return files
+}
+
 func newStorage() *jsonShareStorage {
+	fs := &FileStorageMock{}
+
 	st := newJsonShareStorage(Config{
 		ShareTokenJSONFile: testJsonFile,
 		Encrypt:            false,
-	}, clog.NewProdLogger())
+	}, fs, clog.NewProdLogger())
 
 	err := st.init()
 	if err != nil {
