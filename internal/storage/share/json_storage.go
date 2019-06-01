@@ -101,6 +101,19 @@ func (jss *jsonShareStorage) write() {
 	}
 }
 
+func (jss *jsonShareStorage) GetAllTokens() map[string][]int {
+	jss.mu.RLock()
+	defer jss.mu.RUnlock()
+
+	// Clone map
+	res := make(map[string][]int)
+	for token, ids := range jss.tokens {
+		res[token] = append(ids[:0:0], ids...)
+	}
+
+	return res
+}
+
 func (jss *jsonShareStorage) CreateToken(ids []int) (token string) {
 	jss.mu.Lock()
 	defer func() {
@@ -112,6 +125,16 @@ func (jss *jsonShareStorage) CreateToken(ids []int) (token string) {
 	jss.tokens[token] = newFileIDs(ids)
 
 	return token
+}
+
+func (jss *jsonShareStorage) DeleteToken(token string) {
+	jss.mu.Lock()
+	defer func() {
+		jss.mu.Unlock()
+		jss.write()
+	}()
+
+	delete(jss.tokens, token)
 }
 
 func (jss *jsonShareStorage) GetFilesIDs(token string) ([]int, error) {

@@ -434,7 +434,7 @@ func TestFilterTags(t *testing.T) {
 		// Input
 		token string
 		tags  tags.Tags
-		// Output
+		// Result
 		isError bool
 		res     tags.Tags
 	}{
@@ -475,7 +475,7 @@ func TestFilterTags(t *testing.T) {
 			},
 			//
 			isError: false,
-			res: tags.Tags{},
+			res:     tags.Tags{},
 		},
 		{
 			tokens: map[string]filesIDs{
@@ -574,6 +574,94 @@ func TestFilterTags(t *testing.T) {
 		if !tt.isError {
 			assert.Equal(tt.res, res, "iteration #%d", i+1)
 		}
+
+		assert.NoError(st.Shutdown())
+	}
+}
+
+func TestDeleteToken(t *testing.T) {
+	assert := assert.New(t)
+
+	tests := []struct {
+		tokens map[string]filesIDs
+		// Input
+		token string
+		// Result
+		res map[string]filesIDs
+	}{
+		{
+			tokens: map[string]filesIDs{
+				"1": []int{1, 2, 3},
+			},
+			//
+			token: "1",
+			res:   map[string]filesIDs{},
+		},
+		{
+			tokens: map[string]filesIDs{
+				"1": []int{1, 2, 3},
+				"5": []int{1, 2, 3},
+			},
+			//
+			token: "10",
+			res: map[string]filesIDs{
+				"1": []int{1, 2, 3},
+				"5": []int{1, 2, 3},
+			},
+		},
+	}
+
+	for i, tt := range tests {
+		// Init
+		st := newStorage()
+		st.tokens = tt.tokens
+
+		st.DeleteToken(tt.token)
+
+		assert.Equal(tt.res, st.tokens, "iteration #%d", i+1)
+
+		assert.NoError(st.Shutdown())
+	}
+}
+
+func TestAllTokens(t *testing.T) {
+	assert := assert.New(t)
+
+	tests := []struct {
+		tokens map[string]filesIDs
+		// Result
+		res map[string][]int
+	}{
+		{
+			tokens: map[string]filesIDs{
+				"1": []int{1, 2, 3},
+			},
+			//
+			res: map[string][]int{
+				"1": []int{1, 2, 3},
+			},
+		},
+		{
+			tokens: map[string]filesIDs{
+				"1": []int{1, 2, 3},
+				"5": []int{1, 2, 3},
+			},
+			//
+			res: map[string][]int{
+				"1": []int{1, 2, 3},
+				"5": []int{1, 2, 3},
+			},
+		},
+	}
+
+	for i, tt := range tests {
+		// Init
+		st := newStorage()
+		st.tokens = tt.tokens
+
+		res := st.GetAllTokens()
+
+		assert.Equal(tt.res, res, "iteration #%d", i+1)
 
 		assert.NoError(st.Shutdown())
 	}
