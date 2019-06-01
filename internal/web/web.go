@@ -9,8 +9,10 @@ import (
 	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/storage/files"
+	"github.com/tags-drive/core/internal/storage/share"
 	"github.com/tags-drive/core/internal/storage/tags"
 	"github.com/tags-drive/core/internal/web/auth"
 	"github.com/tags-drive/core/internal/web/limiter"
@@ -24,9 +26,12 @@ const (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type Server struct {
-	config          Config
-	fileStorage     files.FileStorageInterface
-	tagStorage      tags.TagStorageInterface
+	config Config
+
+	fileStorage  files.FileStorageInterface
+	tagStorage   tags.TagStorageInterface
+	shareStorage share.ShareStorageInterface
+
 	authService     auth.AuthServiceInterface
 	authRateLimiter limiter.RateLimiterInterface
 
@@ -46,18 +51,31 @@ func NewWebServer(cnf Config, fs files.FileStorageInterface, ts tags.TagStorageI
 
 	var err error
 
+	// Share service
+	shareConfig := share.Config{
+		ShareTokenJSONFile: cnf.ShareTokensJSONFile,
+		Encrypt:            cnf.Encrypt,
+		PassPhrase:         cnf.PassPhrase,
+	}
+	s.shareStorage, err = share.NewShareStorage(shareConfig, lg)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't init new Share Storage")
+	}
+
+	// Auth service
 	authConfig := auth.Config{
 		Debug:          cnf.Debug,
-		TokensJSONFile: cnf.TokensJSONFile,
+		TokensJSONFile: cnf.AuthTokensJSONFile,
 		Encrypt:        cnf.Encrypt,
 		PassPhrase:     cnf.PassPhrase,
 		MaxTokenLife:   cnf.MaxTokenLife,
 	}
 	s.authService, err = auth.NewAuthService(authConfig, lg)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "can't init new Auth Service")
 	}
 
+	// Rate limiter
 	s.authRateLimiter = limiter.NewRateLimiter(authMaxRequests, authLimiterTimeout)
 
 	return s, nil

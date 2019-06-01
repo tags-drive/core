@@ -163,19 +163,20 @@ func (app *App) initServices() error {
 
 	// Web server
 	serverConfig := web.Config{
-		Debug:          app.config.Debug,
-		DataFolder:     app.config.DataFolder,
-		Port:           app.config.Port,
-		IsTLS:          app.config.IsTLS,
-		Login:          app.config.Login,
-		Password:       app.config.Password,
-		SkipLogin:      app.config.SkipLogin,
-		AuthCookieName: app.config.AuthCookieName,
-		MaxTokenLife:   app.config.MaxTokenLife,
-		TokensJSONFile: app.config.AuthTokensJSONFile,
-		Encrypt:        app.config.Encrypt,
-		PassPhrase:     app.config.PassPhrase,
-		Version:        app.config.Version,
+		Debug:               app.config.Debug,
+		DataFolder:          app.config.DataFolder,
+		Port:                app.config.Port,
+		IsTLS:               app.config.IsTLS,
+		Login:               app.config.Login,
+		Password:            app.config.Password,
+		SkipLogin:           app.config.SkipLogin,
+		AuthCookieName:      app.config.AuthCookieName,
+		MaxTokenLife:        app.config.MaxTokenLife,
+		AuthTokensJSONFile:  app.config.AuthTokensJSONFile,
+		ShareTokensJSONFile: app.config.ShareTokenJSONFile,
+		Encrypt:             app.config.Encrypt,
+		PassPhrase:          app.config.PassPhrase,
+		Version:             app.config.Version,
 	}
 	app.server, err = web.NewWebServer(serverConfig, app.fileStorage, app.tagStorage, app.logger)
 	if err != nil {

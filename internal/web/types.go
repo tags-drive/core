@@ -15,7 +15,9 @@ type Config struct {
 	SkipLogin      bool
 	AuthCookieName string
 	MaxTokenLife   time.Duration
-	TokensJSONFile string
+
+	AuthTokensJSONFile  string
+	ShareTokensJSONFile string
 
 	Encrypt    bool
 	PassPhrase [32]byte
