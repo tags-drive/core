@@ -54,6 +54,30 @@ func (s Server) mobile(w http.ResponseWriter, r *http.Request) {
 	f.Close()
 }
 
+// GET /share
+//
+// Params:
+//   - shareToken: share token
+//
+// Response: index or mobile page
+//
+func (s Server) share(w http.ResponseWriter, r *http.Request) {
+	shareToken := r.FormValue("shareToken")
+	if !s.shareStorage.CheckToken(shareToken) {
+		s.processError(w, "invalid share token", http.StatusBadRequest)
+		return
+	}
+
+	// Serve mobile devices (redirect to /mobile)
+	userAgent := r.Header.Get("User-Agent")
+	if isMobileDevice.MatchString(userAgent) {
+		s.mobile(w, r)
+		return
+	}
+
+	s.index(w, r)
+}
+
 // GET /login
 //
 func (s Server) login(w http.ResponseWriter, r *http.Request) {

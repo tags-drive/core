@@ -41,6 +41,7 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		// Pages
 		newRoute("/", "GET", s.index),
 		newRoute("/mobile", "GET", s.mobile),
+		newRoute("/share", "GET", s.share).enableShare(),
 		newRoute("/login", "GET", s.login).disableAuth(),
 		newRoute("/version", "GET", s.backendVersion).disableAuth(),
 
