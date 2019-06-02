@@ -20,11 +20,16 @@ import (
 func (s Server) returnTags(w http.ResponseWriter, r *http.Request) {
 	allTags := s.tagStorage.GetAll()
 
-	shareToken := r.FormValue("shareToken")
-	if shareToken != "" {
+	state, ok := getRequestState(r.Context())
+	if !ok {
+		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
+	}
+
+	if state.shareAccess {
 		// Have to filter tags
 		var err error
-		allTags, err = s.shareStorage.FilterTags(shareToken, allTags)
+		allTags, err = s.shareStorage.FilterTags(state.shareToken, allTags)
 		if err != nil {
 			if err == share.ErrInvalidToken {
 				// Just in case

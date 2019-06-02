@@ -62,17 +62,17 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shareMode := false
-
-	// We can skip token checking because it was already checked in authMiddleware
-	shareToken := r.FormValue("shareToken")
-	if shareToken != "" {
-		shareMode = true
+	state, ok := getRequestState(r.Context())
+	if !ok {
+		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
 	}
 
-	if shareMode && !s.shareStorage.CheckFile(shareToken, id) {
-		s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
-		return
+	if state.shareAccess {
+		if !s.shareStorage.CheckFile(state.shareToken, id) {
+			s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
+			return
+		}
 	}
 
 	file, err := s.fileStorage.GetFile(id)
@@ -195,10 +195,15 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shareToken := r.FormValue("shareToken")
-	if shareToken != "" {
+	state, ok := getRequestState(r.Context())
+	if !ok {
+		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
+	}
+
+	if state.shareAccess {
 		// Have to filter files
-		files, err = s.shareStorage.FilterFiles(shareToken, files)
+		files, err = s.shareStorage.FilterFiles(state.shareToken, files)
 		if err != nil {
 			if err == share.ErrInvalidToken {
 				// Just in case
@@ -267,12 +272,17 @@ func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}()
 
-	shareToken := r.FormValue("shareToken")
-	if shareToken != "" {
+	state, ok := getRequestState(r.Context())
+	if !ok {
+		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
+	}
+
+	if state.shareAccess {
 		// Have to filter ids
 		goodIDs := make([]int, 0, len(ids))
 		for _, id := range ids {
-			if s.shareStorage.CheckFile(shareToken, id) {
+			if s.shareStorage.CheckFile(state.shareToken, id) {
 				goodIDs = append(goodIDs, id)
 			}
 		}

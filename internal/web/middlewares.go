@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -29,34 +30,42 @@ func (s Server) authMiddleware(h http.Handler, shareable bool) http.Handler {
 			return
 		}
 
+		state := &requestState{}
+
 		if checkAuth(r) {
-			// full access
-			h.ServeHTTP(w, r)
-			return
+			state.authorized = true
 		}
 
 		if shareable {
 			shareToken := r.FormValue("shareToken")
 			if shareToken != "" {
-				if s.shareStorage.CheckToken(shareToken) {
-					// share access
-					h.ServeHTTP(w, r)
+				state.shareToken = shareToken
+
+				if !s.shareStorage.CheckToken(shareToken) {
+					s.processError(w, "invalid share token", http.StatusBadRequest)
 					return
 				}
 
-				s.processError(w, "invalid share token", http.StatusBadRequest)
-				return
+				// Limit access even when user is authorized
+				state.shareAccess = true
 			}
 		}
 
-		if strings.HasPrefix(r.URL.String(), "/api/") || strings.HasPrefix(r.URL.String(), "/data/") {
-			// Redirect won't help
-			s.processError(w, "need auth", http.StatusUnauthorized)
+		if !state.authorized && !state.shareAccess {
+			if strings.HasPrefix(r.URL.String(), "/api/") || strings.HasPrefix(r.URL.String(), "/data/") {
+				// Redirect won't help
+				s.processError(w, "need auth", http.StatusUnauthorized)
+				return
+			}
+
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
+		ctx := storeRequestState(context.Background(), state)
+		r = r.WithContext(ctx)
+
+		h.ServeHTTP(w, r)
 	})
 }
 
