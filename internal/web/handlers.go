@@ -128,10 +128,15 @@ func (s Server) serveData() http.Handler {
 			return
 		}
 
-		token := r.FormValue("shareToken")
-		if token != "" {
+		state, ok := getRequestState(r.Context())
+		if !ok {
+			s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
+			return
+		}
+
+		if state.shareAccess {
 			// Have to check if a token grants access to the file
-			if !s.shareStorage.CheckFile(token, id) {
+			if !s.shareStorage.CheckFile(state.shareToken, id) {
 				s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
 				return
 			}

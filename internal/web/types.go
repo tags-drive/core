@@ -38,10 +38,13 @@ type ServerInterface interface {
 
 // requestState stores state of current request. It is passed by request's context
 type requestState struct {
+	// authorized it always true. It can be false only when shareAccess is true.
+	// So, handlers must process shareAccess first
 	authorized bool
 
 	shareAccess bool
-	shareToken  string // shareToken can't be empty when shareAccess is true
+	// shareToken can't be empty when shareAccess is true
+	shareToken string
 }
 
 // requestStateKey is a key for an instance of requestState within context
