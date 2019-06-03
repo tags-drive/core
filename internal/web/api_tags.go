@@ -18,13 +18,13 @@ import (
 // Response: json map
 //
 func (s Server) returnTags(w http.ResponseWriter, r *http.Request) {
-	allTags := s.tagStorage.GetAll()
-
 	state, ok := getRequestState(r.Context())
 	if !ok {
 		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
 		return
 	}
+
+	allTags := s.tagStorage.GetAll()
 
 	if state.shareAccess {
 		// Have to filter tags

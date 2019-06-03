@@ -56,15 +56,15 @@ func getParam(defaultVal, passedVal string, validOptions ...string) (s string) {
 // Response: json object
 //
 func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		s.processError(w, "invalid id", http.StatusBadRequest)
-		return
-	}
-
 	state, ok := getRequestState(r.Context())
 	if !ok {
 		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
+	}
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		s.processError(w, "invalid id", http.StatusBadRequest)
 		return
 	}
 
@@ -110,6 +110,12 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 // Response: json array
 //
 func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
+	state, ok := getRequestState(r.Context())
+	if !ok {
+		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
+	}
+
 	var (
 		expr     = r.FormValue("expr")
 		search   = r.FormValue("search")
@@ -195,12 +201,6 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	state, ok := getRequestState(r.Context())
-	if !ok {
-		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
-		return
-	}
-
 	if state.shareAccess {
 		// Have to filter files
 		files, err = s.shareStorage.FilterFiles(state.shareToken, files)
@@ -260,7 +260,12 @@ func (s Server) returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 // Response: zip archive
 //
 func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	state, ok := getRequestState(r.Context())
+	if !ok {
+		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
+	}
+
 	ids := func() (res []int) {
 		strIDs := r.FormValue("ids")
 		for _, strID := range strings.Split(strIDs, ",") {
@@ -271,12 +276,6 @@ func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}()
-
-	state, ok := getRequestState(r.Context())
-	if !ok {
-		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
-		return
-	}
 
 	if state.shareAccess {
 		// Have to filter ids
