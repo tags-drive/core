@@ -63,7 +63,6 @@ def runDockerContainer():
                f"--name {args.container_name} " +
                f"-p {args.container_port}:80 " +
                f"-v {args.mount_folder}/var:/app/var " +
-               f"-v {args.mount_folder}/var/data:/app/data " +
                f"{args.image_name}:{args.image_tag}")
 
 
