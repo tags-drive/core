@@ -25,14 +25,9 @@ func (s Server) authMiddleware(h http.Handler, shareable bool) http.Handler {
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if s.config.SkipLogin {
-			h.ServeHTTP(w, r)
-			return
-		}
-
 		state := &requestState{}
 
-		if checkAuth(r) {
+		if checkAuth(r) || s.config.SkipLogin {
 			state.authorized = true
 		}
 
