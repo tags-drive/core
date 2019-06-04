@@ -6,7 +6,6 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
 const (
@@ -111,7 +110,7 @@ func (s Server) backendVersion(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(s.config.Version))
 }
 
-// GET /data/{id}
+// GET /data/.../{id}
 //
 // Params:
 //   - shareToken (optional): share token
@@ -120,10 +119,31 @@ func (s Server) serveData() http.Handler {
 	fileHandler := http.StripPrefix("/data/", s.decryptMiddleware(http.Dir(s.config.DataFolder+"/")))
 	handler := cacheMiddleware(fileHandler, 60*60*24*14) // cache for 14 days
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fileID := strings.TrimPrefix(r.URL.Path, "/data/")
-		id, err := strconv.Atoi(fileID)
+	getFileID := func(url string) (id int, ok bool) {
+		var strID string
+		for i := len(url) - 1; i >= 0; i-- {
+			// Use all chars after last /
+			if url[i] == '/' {
+				strID = url[i+1:]
+				break
+			}
+		}
+
+		if strID == "" {
+			return 0, false
+		}
+
+		id, err := strconv.Atoi(strID)
 		if err != nil {
+			return 0, false
+		}
+
+		return id, true
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, ok := getFileID(r.URL.EscapedPath())
+		if !ok {
 			s.processError(w, "invalid file id", http.StatusBadRequest)
 			return
 		}
