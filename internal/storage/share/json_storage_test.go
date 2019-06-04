@@ -37,6 +37,11 @@ func TestHasID(t *testing.T) {
 			res:  false,
 		},
 		{
+			arr:  []int{4, 3, 2, 1},
+			find: 3,
+			res:  true,
+		},
+		{
 			arr:  []int{1, 2, 3, 4},
 			find: 1,
 			res:  true,

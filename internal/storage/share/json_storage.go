@@ -23,7 +23,7 @@ func newFileIDs(ids []int) filesIDs {
 
 	sort.Ints(newIDs)
 
-	return filesIDs(ids)
+	return filesIDs(newIDs)
 }
 
 func (ids filesIDs) hasID(id int) bool {
