@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -57,7 +56,7 @@ func (s Server) authMiddleware(h http.Handler, shareable bool) http.Handler {
 			return
 		}
 
-		ctx := storeRequestState(context.Background(), state)
+		ctx := storeRequestState(r.Context(), state)
 		r = r.WithContext(ctx)
 
 		h.ServeHTTP(w, r)
