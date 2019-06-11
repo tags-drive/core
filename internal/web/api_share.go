@@ -31,7 +31,8 @@ func (s Server) getAllShareTokens(w http.ResponseWriter, r *http.Request) {
 
 // GET /api/share/token/{token}
 //
-// Params: -
+// Params:
+//   - token: share token
 //
 // Response: json array with ids of shared files
 //
@@ -65,7 +66,7 @@ func (s Server) getFilesSharedByToken(w http.ResponseWriter, r *http.Request) {
 // POST /api/share/token
 //
 // Params:
-//   - ids - list of files ids to shares separated by commas (example: "1,2,3")
+//   - ids: list of ids of files to share separated by commas (example: "1,2,3")
 //
 // Response: { "token": "created token" }
 //
@@ -101,7 +102,8 @@ func (s Server) createShareToken(w http.ResponseWriter, r *http.Request) {
 
 // DELETE /api/share/token/{token}
 //
-// Params: -
+// Params:
+//   - token: share token
 //
 // Response: -
 //

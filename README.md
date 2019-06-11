@@ -15,11 +15,12 @@ This repository contains the backend part of **Tags Drive**
 - [API](#api)
   - [General endpoints](#general-endpoints)
   - [Auth](#auth)
-  - [General structures](#general-structures)
   - [Files](#files)
   - [Tags](#tags)
+  - [Share](#share)
 - [Additional info](#additional-info)
   - [Security](#security)
+  - [General structures](#general-structures)
 
 ## Usage
 
@@ -126,9 +127,9 @@ There are two Python scripts that you can use to run a local version of the back
 
 #### Data folder
 
-The `data` folder is used as a file storage.
+The `./var/data` folder is used as a file storage.
 
-The `data/resized` folder is used to store resized image previews.
+The `./var/data/resized` folder is used to store resized image previews.
 
 ### SSL folder
 
@@ -144,6 +145,7 @@ Use this command to generate self-signed TLS certificate:
 
 - `GET /` – main page
 - `GET /mobile` – mobile version
+- `GET /share?shareToken=token` - **Tags Drive** in share mode
 - `GET /login` – login page
 - `GET /version` – returns version of the backend part
 - `GET /data/{id}` – returns a file
@@ -171,70 +173,13 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** -
 
-### General structures
-
-#### FileInfo
-
-```go
-    type FileType string
-
-    type PreviewType string
-
-    // Ext is a struct which contains a type of the original file and a type for a preview
-    type Ext struct {
-      Ext         string      `json:"ext"`
-      FileType    FileType    `json:"fileType"`
-      Supported   bool        `json:"supported"`
-      PreviewType PreviewType `json:"previewType"`
-    }
-
-    type File struct {
-      ID       int    `json:"id"`
-      Filename string `json:"filename"`
-      Type     Ext    `json:"type"`
-      Origin   string `json:"origin"`
-      Preview  string `json:"preview,omitempty"`
-      //
-      Tags        []int     `json:"tags"`
-      Description string    `json:"description"`
-      Size        int64     `json:"size"`
-      AddTime     time.Time `json:"addTime"`
-      //
-      Deleted      bool      `json:"deleted"`
-      TimeToDelete time.Time `json:"timeToDelete"`
-    }
-```
-
-#### Tag
-
-```go
-  type Tag struct {
-    ID    int    `json:"id"`
-    Name  string `json:"name"`
-    Color string `json:"color"`
-    Group string `json:"group"`
-  }
-
-  type Tags map[int]Tag
-```
-
-#### multiplyResponse
-
-```go
-  type multiplyResponse struct {
-      Filename string `json:"filename"`
-      IsError  bool   `json:"isError"`
-      Error    string `json:"error"`
-      Status   string `json:"status"` // Status isn't empty when IsError == false
-  }
-```
-
 ### Files
 
 - `GET /api/file/{id}`
 
   **Params:**
   - **id**: id of a file
+  - **shareToken** (optional): allow to use this API method without auth (the response (files, tags) can be limited)
 
   **Response:** json object of [`FileInfo`](#fileinfo)
 
@@ -248,6 +193,7 @@ Use this command to generate self-signed TLS certificate:
   - **order**: asc | desc
   - **offset**: lower bound `[offset:]`
   - **count**: number of returned files (`[offset:offset+count]`). If count == 0, all files will be returned. Default value is 0
+  - **shareToken** (optional): allow to use this API method without auth (the response (files, tags) can be limited)
 
   **Response:** json array of [`FileInfo`](#fileinfo). Status code is `204` when offset is out of bounds.
 
@@ -262,6 +208,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Params:**
   - **ids**: list of file ids for downloading separated by commas `ids=1,2,54,9`
+  - **shareToken** (optional): allow to use this API method without auth (the response (files, tags) can be limited)
 
   **Response:** zip archive
 
@@ -339,7 +286,8 @@ Use this command to generate self-signed TLS certificate:
 
 - `GET /api/tags`
 
-  **Params:** -
+  **Params:**
+  - **shareToken** (optional): allow to use this API method without auth (the response (files, tags) can be limited)
 
   **Response:** json object of [`Tags`](#Tag)
 
@@ -369,8 +317,106 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** -
 
+### Share
+
+- `GET /api/share/tokens` - returns all share tokens
+
+  **Params:** -
+
+  **Response:** json map with tokens and ids of shared files
+
+  ```json
+    {
+      "token1": [1, 2, 3],
+      "token2": [4, 5, 25],
+    }
+  ```
+
+- `GET /api/share/token/{token}` - returns ids of files shared by passed token
+
+  **Params:**
+  - **token**: share token
+
+  **Response:** json array with ids of shared files
+
+- `POST /api/share/token` - create a new share token
+
+  **Params:**
+  - **ids**: list of ids of files to share separated by commas (example: `?ids=1,2,3`)
+
+  **Response**: returns new share token
+
+    ```json
+      { "token": "created token" }
+    ```
+
+- `DELETE /api/share/token/{token}` - delete a share token
+
+  **Params:**
+  - **token**: share token
+
+  **Response:** -
+
 ## Additional info
 
 ### Security
 
 Uploaded files can be encrypted. **Tags Drive** uses sha256 sum of the `PASS_PHRASE` for encryption. Encryption is realized by [minio/sio](https://github.com/minio/sio) package.
+
+### General structures
+
+#### FileInfo
+
+```go
+    type FileType string
+
+    type PreviewType string
+
+    // Ext is a struct which contains a type of the original file and a type for a preview
+    type Ext struct {
+      Ext         string      `json:"ext"`
+      FileType    FileType    `json:"fileType"`
+      Supported   bool        `json:"supported"`
+      PreviewType PreviewType `json:"previewType"`
+    }
+
+    type File struct {
+      ID       int    `json:"id"`
+      Filename string `json:"filename"`
+      Type     Ext    `json:"type"`
+      Origin   string `json:"origin"`
+      Preview  string `json:"preview,omitempty"`
+      //
+      Tags        []int     `json:"tags"`
+      Description string    `json:"description"`
+      Size        int64     `json:"size"`
+      AddTime     time.Time `json:"addTime"`
+      //
+      Deleted      bool      `json:"deleted"`
+      TimeToDelete time.Time `json:"timeToDelete"`
+    }
+```
+
+#### Tag
+
+```go
+  type Tag struct {
+    ID    int    `json:"id"`
+    Name  string `json:"name"`
+    Color string `json:"color"`
+    Group string `json:"group"`
+  }
+
+  type Tags map[int]Tag
+```
+
+#### multiplyResponse
+
+```go
+  type multiplyResponse struct {
+      Filename string `json:"filename"`
+      IsError  bool   `json:"isError"`
+      Error    string `json:"error"`
+      Status   string `json:"status"` // Status isn't empty when IsError == false
+  }
+```
