@@ -97,6 +97,7 @@ func (s *Server) addDebugRoutes(router *mux.Router) {
 	routes := []route{
 		{"/login", "OPTIONS", setDebugHeaders, false, false},
 		{"/logout", "OPTIONS", setDebugHeaders, false, false},
+		//
 		{"/api/file/{id:\\d+}", "OPTIONS", setDebugHeaders, false, false},
 		{"/api/files", "OPTIONS", setDebugHeaders, false, false},
 		{"/api/files/tags", "OPTIONS", setDebugHeaders, false, false},
@@ -104,8 +105,13 @@ func (s *Server) addDebugRoutes(router *mux.Router) {
 		{"/api/file/{id:\\d+}/tags", "OPTIONS", setDebugHeaders, false, false},
 		{"/api/file/{id:\\d+}/name", "OPTIONS", setDebugHeaders, false, false},
 		{"/api/file/{id:\\d+}/description", "OPTIONS", setDebugHeaders, false, false},
+		//
 		{"/api/tags", "OPTIONS", setDebugHeaders, false, false},
 		{"/api/tag/{id:\\d+}", "OPTIONS", setDebugHeaders, false, false},
+		//
+		{"/api/share/token", "OPTIONS", setDebugHeaders, false, false},
+		{"/api/share/tokens", "OPTIONS", setDebugHeaders, false, false},
+		{"/api/share/token/{token}", "OPTIONS", setDebugHeaders, false, false},
 	}
 
 	for _, r := range routes {
