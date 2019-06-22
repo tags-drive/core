@@ -78,14 +78,14 @@ type File struct {
 	ID       int            `json:"id"`
 	Filename string         `json:"filename"`
 	Type     extensions.Ext `json:"type"`
-	Origin   string         `json:"origin"`            // Origin is a path to a file (params.DataFolder/filename)
-	Preview  string         `json:"preview,omitempty"` // Preview is a path to a resized image (only if Type.FileType == FileTypeImage)
-	//
+	Origin   string         `json:"origin"`            // Origin is a URL address of a file
+	Preview  string         `json:"preview,omitempty"` // Preview is a URL address of a resized image (only if Type.FileType == FileTypeImage)
+
 	Tags        []int     `json:"tags"`
 	Description string    `json:"description"`
 	Size        int64     `json:"size"`
 	AddTime     time.Time `json:"addTime"`
-	//
+
 	Deleted      bool      `json:"deleted"`
 	TimeToDelete time.Time `json:"timeToDelete"`
 }

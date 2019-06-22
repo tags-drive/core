@@ -10,7 +10,8 @@ import (
 const (
 	testFolder      = "testdata"
 	passphrase      = "test"
-	jsonFilesConfig = "./configs/files.json"
+	jsonFilesConfig = "./var/files.json"
+	dataFolder      = "./var/data"
 	outputFolder    = "./decrypted-files"
 )
 
@@ -33,6 +34,7 @@ func TestDecryptor(t *testing.T) {
 		config: config{
 			PassPhrase:    passphrase,
 			FilesJSONFile: jsonFilesConfig,
+			DataFolder:    dataFolder,
 			OutputFolder:  outputFolder,
 		},
 		decodeKey: sha256.Sum256([]byte(passphrase)),

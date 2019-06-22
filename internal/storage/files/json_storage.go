@@ -217,7 +217,7 @@ func (jfs jsonFileStorage) getFiles(parsedExpr aggregation.LogicalExpr, search s
 
 // addFile adds an element into js.files and call js.write()
 // It also defines FileInfo.Origin and FileInfo.Preview (if file is image) as
-// `jfs.config.DataFolder + "/" + id` and `jfs.config.ResizedImagesFolder + "/" + id`
+// `originURLPrefix + id` and `previewURLPrefix + id`
 func (jfs *jsonFileStorage) addFile(filename string, fileType extensions.Ext, tags []int, size int64, addTime time.Time) (id int) {
 	fileInfo := File{Filename: filename,
 		Type:    fileType,
@@ -241,9 +241,9 @@ func (jfs *jsonFileStorage) addFile(filename string, fileType extensions.Ext, ta
 	fileID = jfs.maxID
 	fileInfo.ID = fileID
 
-	fileInfo.Origin = jfs.config.DataFolder + "/" + strconv.FormatInt(int64(fileID), 10)
+	fileInfo.Origin = originURLPrefix + strconv.Itoa(fileID)
 	if fileType.FileType == extensions.FileTypeImage {
-		fileInfo.Preview = jfs.config.ResizedImagesFolder + "/" + strconv.FormatInt(int64(fileID), 10)
+		fileInfo.Preview = previewURLPrefix + strconv.Itoa(fileID)
 	}
 
 	jfs.files[jfs.maxID] = fileInfo
