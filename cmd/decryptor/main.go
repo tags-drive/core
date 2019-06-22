@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/jessevdk/go-flags"
@@ -23,6 +24,7 @@ type config struct {
 	PassPhrase string `long:"phrase" required:"true"`
 	//
 	FilesJSONFile string `long:"config-file" default:"./var/files.json"`
+	DataFolder    string `long:"data-folder" default:"./var/data"`
 	//
 	OutputFolder string `short:"o" long:"output-folder" default:"./decrypted-files"`
 	// We don't need DataFolder field because there are valid paths to encrypted files in FilesJSONFile
@@ -82,10 +84,11 @@ func (a *App) Decrypt() error {
 			defer wg.Done()
 
 			var err error
-			var path string
+			var input, output string
 			for file := range filesChan {
-				path = a.config.OutputFolder + "/" + file.Filename
-				err = a.decryptAndSaveFile(file.Origin, path)
+				input = a.config.DataFolder + "/" + strconv.Itoa(file.ID)
+				output = a.config.OutputFolder + "/" + file.Filename
+				err = a.decryptAndSaveFile(input, output)
 				if err != nil {
 					log.Printf("[ERR] can't decrypt file %s: %s\n", file.Filename, err)
 				}
