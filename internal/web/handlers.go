@@ -95,8 +95,7 @@ func (s Server) extensionHandler(dir http.Dir) http.Handler {
 
 		if f, err := dir.Open(ext + iconExt); err == nil {
 			// Return existing icon
-			io.Copy(w, f)
-			if err != nil {
+			if _, err = io.Copy(w, f); err != nil {
 				s.logger.Errorf("can't io.Copy() %s.png: %s\n", ext, err)
 			}
 			f.Close()
