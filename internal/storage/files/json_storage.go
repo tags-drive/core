@@ -165,6 +165,20 @@ func (jfs jsonFileStorage) getFile(id int) (File, error) {
 	return f, nil
 }
 
+func (jfs jsonFileStorage) getFilesWithIDs(ids ...int) []File {
+	jfs.mutex.RLock()
+	defer jfs.mutex.RUnlock()
+
+	files := []File{}
+	for _, id := range ids {
+		if f, ok := jfs.files[id]; ok {
+			files = append(files, f)
+		}
+	}
+
+	return files
+}
+
 // getFiles returns slice of FileInfo. If parsedExpr == "", it returns all files
 func (jfs jsonFileStorage) getFiles(parsedExpr aggregation.LogicalExpr, search string, isRegexp bool) (files []File) {
 	jfs.mutex.RLock()

@@ -9,6 +9,14 @@ import (
 //
 //
 func (s Server) checkUser(w http.ResponseWriter, r *http.Request) {
+	const response = `{"authorized":true}`
+
+	if s.config.SkipLogin {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(response))
+		return
+	}
+
 	cookie, err := r.Cookie(s.config.AuthCookieName)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -20,8 +28,6 @@ func (s Server) checkUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-
-	const response = `{"authorized":true}`
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(response))

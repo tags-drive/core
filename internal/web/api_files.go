@@ -13,6 +13,7 @@ import (
 
 	filesPck "github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
+	"github.com/tags-drive/core/internal/storage/share"
 )
 
 const (
@@ -50,14 +51,28 @@ func getParam(defaultVal, passedVal string, validOptions ...string) (s string) {
 //
 // Params:
 //   - id: id of a file
+//   - shareToken (optional): share token
 //
 // Response: json object
 //
 func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
+	state, ok := getRequestState(r.Context())
+	if !ok {
+		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
+	}
+
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		s.processError(w, "invalid id", http.StatusBadRequest)
 		return
+	}
+
+	if state.shareAccess {
+		if !s.shareStorage.CheckFile(state.shareToken, id) {
+			s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
+			return
+		}
 	}
 
 	file, err := s.fileStorage.GetFile(id)
@@ -90,10 +105,17 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 //   - order: asc | desc
 //   - offset: lower bound [offset:]
 //   - count: number of returned files ([offset:offset+count]). If count == 0, all files will be returned. Default is 0
+//   - shareToken (optional): share token
 //
 // Response: json array
 //
 func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
+	state, ok := getRequestState(r.Context())
+	if !ok {
+		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
+	}
+
 	var (
 		expr     = r.FormValue("expr")
 		search   = r.FormValue("search")
@@ -179,6 +201,20 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if state.shareAccess {
+		// Have to filter files
+		files, err = s.shareStorage.FilterFiles(state.shareToken, files)
+		if err != nil {
+			if err == share.ErrInvalidToken {
+				// Just in case
+				s.processError(w, err.Error(), http.StatusBadRequest)
+			} else {
+				s.processError(w, err.Error(), http.StatusInternalServerError)
+			}
+			return
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if s.config.Debug {
@@ -219,11 +255,17 @@ func (s Server) returnRecentFiles(w http.ResponseWriter, r *http.Request) {
 //
 // Params:
 //   - ids: list of ids of files for downloading separated by comma `ids=1,2,54,9`
+//   - shareToken (optional): share token
 //
 // Response: zip archive
 //
 func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	state, ok := getRequestState(r.Context())
+	if !ok {
+		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
+	}
+
 	ids := func() (res []int) {
 		strIDs := r.FormValue("ids")
 		for _, strID := range strings.Split(strIDs, ",") {
@@ -234,6 +276,17 @@ func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}()
+
+	if state.shareAccess {
+		// Have to filter ids
+		goodIDs := make([]int, 0, len(ids))
+		for _, id := range ids {
+			if s.shareStorage.CheckFile(state.shareToken, id) {
+				goodIDs = append(goodIDs, id)
+			}
+		}
+		ids = goodIDs
+	}
 
 	body, err := s.fileStorage.Archive(ids)
 	if err != nil {
@@ -673,6 +726,9 @@ func (s Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 					Status:   respStatus,
 				}
 			}
+
+			// Delete the file from Share Storage even if deleting is not permanent
+			s.shareStorage.DeleteFile(id)
 
 			responsesChan <- resp
 		}

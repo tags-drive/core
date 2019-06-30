@@ -42,11 +42,15 @@ type internalStorage interface {
 	// getFile returns a file with passed filename
 	getFile(id int) (File, error)
 
+	checkFile(id int) bool
+
 	// getFiles returns files
 	//     expr - parsed logical expression
 	//     search - string, which filename has to contain (lower case)
 	//     isRegexp - is expr a regular expression (if it is true, expr must be valid regular expression)
 	getFiles(expr aggregation.LogicalExpr, search string, isRegexp bool) (files []File)
+
+	getFilesWithIDs(ids ...int) []File
 
 	// add adds a file
 	addFile(filename string, fileType extensions.Ext, tags []int, size int64, addTime time.Time) (id int)
@@ -161,6 +165,14 @@ func (fs FileStorage) Get(expr string, s FilesSortMode, search string, isRegexp 
 
 func (fs FileStorage) GetFile(id int) (File, error) {
 	return fs.storage.getFile(id)
+}
+
+func (fs FileStorage) CheckFile(id int) bool {
+	return fs.storage.checkFile(id)
+}
+
+func (fs FileStorage) GetFiles(ids ...int) []File {
+	return fs.storage.getFilesWithIDs(ids...)
 }
 
 func (fs FileStorage) GetRecent(number int) []File {

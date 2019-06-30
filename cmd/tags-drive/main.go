@@ -48,9 +48,10 @@ type config struct {
 	ResizedImagesFolder string        `default:"./var/data/resized"`
 	TimeBeforeDeleting  time.Duration `envconfig:"TIME_BEFORE_DELETING" default:"168h"` // default is 168h = 7 days
 
-	FilesJSONFile  string `default:"./var/files.json"`  // for files
-	TagsJSONFile   string `default:"./var/tags.json"`   // for tags
-	TokensJSONFile string `default:"./var/tokens.json"` // for tokens
+	FilesJSONFile      string `default:"./var/files.json"`        // for files
+	TagsJSONFile       string `default:"./var/tags.json"`         // for tags
+	AuthTokensJSONFile string `default:"./var/auth_tokens.json"`  // for auth tokens
+	ShareTokenJSONFile string `default:"./var/share_tokens.json"` // for share tokens
 }
 
 type App struct {
@@ -162,19 +163,20 @@ func (app *App) initServices() error {
 
 	// Web server
 	serverConfig := web.Config{
-		Debug:          app.config.Debug,
-		DataFolder:     app.config.DataFolder,
-		Port:           app.config.Port,
-		IsTLS:          app.config.IsTLS,
-		Login:          app.config.Login,
-		Password:       app.config.Password,
-		SkipLogin:      app.config.SkipLogin,
-		AuthCookieName: app.config.AuthCookieName,
-		MaxTokenLife:   app.config.MaxTokenLife,
-		TokensJSONFile: app.config.TokensJSONFile,
-		Encrypt:        app.config.Encrypt,
-		PassPhrase:     app.config.PassPhrase,
-		Version:        app.config.Version,
+		Debug:               app.config.Debug,
+		DataFolder:          app.config.DataFolder,
+		Port:                app.config.Port,
+		IsTLS:               app.config.IsTLS,
+		Login:               app.config.Login,
+		Password:            app.config.Password,
+		SkipLogin:           app.config.SkipLogin,
+		AuthCookieName:      app.config.AuthCookieName,
+		MaxTokenLife:        app.config.MaxTokenLife,
+		AuthTokensJSONFile:  app.config.AuthTokensJSONFile,
+		ShareTokensJSONFile: app.config.ShareTokenJSONFile,
+		Encrypt:             app.config.Encrypt,
+		PassPhrase:          app.config.PassPhrase,
+		Version:             app.config.Version,
 	}
 	app.server, err = web.NewWebServer(serverConfig, app.fileStorage, app.tagStorage, app.logger)
 	if err != nil {

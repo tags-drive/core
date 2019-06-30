@@ -35,6 +35,10 @@ type FileStorageInterface interface {
 	Get(expr string, s FilesSortMode, search string, isRegexp bool, offset, count int) ([]File, error)
 	// GetFile returns a file with passed id
 	GetFile(id int) (File, error)
+	// CheckFile checks if file with passed id exists
+	CheckFile(id int) bool
+	// GetFiles returns files with passed ids
+	GetFiles(ids ...int) []File
 	// GetRecent returns the last uploaded files
 	GetRecent(number int) []File
 	// ArchiveFiles archives passed files and returns io.Reader with archive

@@ -5,17 +5,41 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+
+	"github.com/tags-drive/core/internal/storage/share"
 	"github.com/tags-drive/core/internal/storage/tags"
 )
 
 // GET /api/tags
 //
-// Params: -
+// Params:
+//   - shareToken (optional): share token
 //
 // Response: json map
 //
 func (s Server) returnTags(w http.ResponseWriter, r *http.Request) {
+	state, ok := getRequestState(r.Context())
+	if !ok {
+		s.processError(w, "can't obtain request state", http.StatusInternalServerError)
+		return
+	}
+
 	allTags := s.tagStorage.GetAll()
+
+	if state.shareAccess {
+		// Have to filter tags
+		var err error
+		allTags, err = s.shareStorage.FilterTags(state.shareToken, allTags)
+		if err != nil {
+			if err == share.ErrInvalidToken {
+				// Just in case
+				s.processError(w, err.Error(), http.StatusBadRequest)
+			} else {
+				s.processError(w, err.Error(), http.StatusInternalServerError)
+			}
+			return
+		}
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)

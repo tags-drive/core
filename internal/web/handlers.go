@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 )
 
 const (
@@ -54,6 +55,30 @@ func (s Server) mobile(w http.ResponseWriter, r *http.Request) {
 	f.Close()
 }
 
+// GET /share
+//
+// Params:
+//   - shareToken: share token
+//
+// Response: index or mobile page
+//
+func (s Server) share(w http.ResponseWriter, r *http.Request) {
+	shareToken := r.FormValue("shareToken")
+	if !s.shareStorage.CheckToken(shareToken) {
+		s.processError(w, "invalid share token", http.StatusBadRequest)
+		return
+	}
+
+	// Serve mobile devices (redirect to /mobile)
+	userAgent := r.Header.Get("User-Agent")
+	if isMobileDevice.MatchString(userAgent) {
+		s.mobile(w, r)
+		return
+	}
+
+	s.index(w, r)
+}
+
 // GET /login
 //
 func (s Server) login(w http.ResponseWriter, r *http.Request) {
@@ -83,6 +108,62 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 //
 func (s Server) backendVersion(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(s.config.Version))
+}
+
+// GET /data/.../{id}
+//
+// Params:
+//   - shareToken (optional): share token
+//
+func (s Server) serveData() http.Handler {
+	fileHandler := http.StripPrefix("/data/", s.decryptMiddleware(http.Dir(s.config.DataFolder+"/")))
+	handler := cacheMiddleware(fileHandler, 60*60*24*14) // cache for 14 days
+
+	getFileID := func(url string) (id int, ok bool) {
+		var strID string
+		for i := len(url) - 1; i >= 0; i-- {
+			// Use all chars after last /
+			if url[i] == '/' {
+				strID = url[i+1:]
+				break
+			}
+		}
+
+		if strID == "" {
+			return 0, false
+		}
+
+		id, err := strconv.Atoi(strID)
+		if err != nil {
+			return 0, false
+		}
+
+		return id, true
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, ok := getFileID(r.URL.EscapedPath())
+		if !ok {
+			s.processError(w, "invalid file id", http.StatusBadRequest)
+			return
+		}
+
+		state, ok := getRequestState(r.Context())
+		if !ok {
+			s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
+			return
+		}
+
+		if state.shareAccess {
+			// Have to check if a token grants access to the file
+			if !s.shareStorage.CheckFile(state.shareToken, id) {
+				s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
+				return
+			}
+		}
+
+		handler.ServeHTTP(w, r)
+	})
 }
 
 // extensionHandler servers extensions

@@ -10,33 +10,54 @@ import (
 	"github.com/minio/sio"
 )
 
-func (s Server) authMiddleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if s.config.SkipLogin {
-			h.ServeHTTP(w, r)
-			return
+// authMiddleware checks if a user is authorized. If the user isn't and resource is shareable,
+// it checks if "shareToken" passed and a token is valid.
+func (s Server) authMiddleware(h http.Handler, shareable bool) http.Handler {
+	checkAuth := func(r *http.Request) bool {
+		c, err := r.Cookie(s.config.AuthCookieName)
+		if err != nil {
+			return false
 		}
 
-		validToken := func() bool {
-			c, err := r.Cookie(s.config.AuthCookieName)
-			if err != nil {
-				return false
+		token := c.Value
+		return s.authService.CheckToken(token)
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		state := &requestState{}
+
+		if checkAuth(r) || s.config.SkipLogin {
+			state.authorized = true
+		}
+
+		if shareable {
+			shareToken := r.FormValue("shareToken")
+			if shareToken != "" {
+				state.shareToken = shareToken
+
+				if !s.shareStorage.CheckToken(shareToken) {
+					s.processError(w, "invalid share token", http.StatusBadRequest)
+					return
+				}
+
+				// Limit access even when user is authorized
+				state.shareAccess = true
 			}
+		}
 
-			token := c.Value
-			return s.authService.CheckToken(token)
-		}()
-
-		if !validToken {
-			// Redirect won't help
-			if strings.HasPrefix(r.URL.String(), "/api/") {
-				s.processError(w, "need auth", http.StatusForbidden)
+		if !state.authorized && !state.shareAccess {
+			if strings.HasPrefix(r.URL.String(), "/api/") || strings.HasPrefix(r.URL.String(), "/data/") {
+				// Redirect won't help
+				s.processError(w, "need auth", http.StatusUnauthorized)
 				return
 			}
 
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
+
+		ctx := storeRequestState(r.Context(), state)
+		r = r.WithContext(ctx)
 
 		h.ServeHTTP(w, r)
 	})
