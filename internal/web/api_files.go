@@ -727,6 +727,9 @@ func (s Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
+			// Delete the file from Share Storage even if deleting is not permanent
+			s.shareStorage.DeleteFile(id)
+
 			responsesChan <- resp
 		}
 	})
