@@ -6,21 +6,21 @@ This repository contains the backend part of **Tags Drive**
 
 ##
 
-- [Usage](#usage)
-  - [Environment variables](#environment-variables)
-- [Development](#development)
-- [File structure](#file-structure)
-  - [Var folder](#var-folder)
-  - [SSL folder](#ssl-folder)
-- [API](#api)
-  - [General endpoints](#general-endpoints)
-  - [Auth](#auth)
-  - [Files](#files)
-  - [Tags](#tags)
-  - [Share](#share)
-- [Additional info](#additional-info)
-  - [Security](#security)
-  - [General structures](#general-structures)
+- [Usage](#Usage)
+  - [Environment variables](#Environment-variables)
+- [Development](#Development)
+- [File structure](#File-structure)
+  - [Var folder](#Var-folder)
+  - [SSL folder](#SSL-folder)
+- [API](#API)
+  - [General endpoints](#General-endpoints)
+  - [Auth](#Auth)
+  - [Files](#Files)
+  - [Tags](#Tags)
+  - [Share](#Share)
+- [Additional info](#Additional-info)
+  - [Security](#Security)
+  - [General structures](#General-structures)
 
 ## Usage
 
@@ -124,6 +124,19 @@ There are two Python scripts that you can use to run a local version of the back
     ```
 
   </details>
+
+- `share_tokens.json` - contains share tokens
+
+  <details>
+
+    <summary>Example</summary>
+
+    ```json
+      {
+        "some_token": [1, 2],
+        "another_token": [1, 2, 15, 27]
+      }
+    ```
 
 #### Data folder
 
