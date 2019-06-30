@@ -37,51 +37,58 @@ func (r *route) disableAuth() *route {
 }
 
 func (s *Server) addDefaultRoutes(router *mux.Router) {
+	const (
+		GET    = http.MethodGet
+		POST   = http.MethodPost
+		PUT    = http.MethodPut
+		DELETE = http.MethodDelete
+	)
+
 	routes := []*route{
 		// Pages
-		newRoute("/", "GET", s.index),
-		newRoute("/mobile", "GET", s.mobile),
-		newRoute("/share", "GET", s.share).enableShare(),
-		newRoute("/login", "GET", s.login).disableAuth(),
-		newRoute("/version", "GET", s.backendVersion).disableAuth(),
+		newRoute("/", GET, s.index),
+		newRoute("/mobile", GET, s.mobile),
+		newRoute("/share", GET, s.share).enableShare(),
+		newRoute("/login", GET, s.login).disableAuth(),
+		newRoute("/version", GET, s.backendVersion).disableAuth(),
 
 		// Auth
-		newRoute("/api/user", "GET", s.checkUser).disableAuth(),
-		newRoute("/api/login", "POST", s.authentication).disableAuth(),
-		newRoute("/api/logout", "POST", s.logout),
+		newRoute("/api/user", GET, s.checkUser).disableAuth(),
+		newRoute("/api/login", POST, s.authentication).disableAuth(),
+		newRoute("/api/logout", POST, s.logout),
 		// deprecated
-		newRoute("/login", "POST", s.authentication).disableAuth(),
-		newRoute("/logout", "POST", s.logout),
+		newRoute("/login", POST, s.authentication).disableAuth(),
+		newRoute("/logout", POST, s.logout),
 
 		// Files
-		newRoute("/api/file/{id:\\d+}", "GET", s.returnSingleFile).enableShare(),
-		newRoute("/api/files", "GET", s.returnFiles).enableShare(),
-		newRoute("/api/files/recent", "GET", s.returnRecentFiles),
-		newRoute("/api/files/download", "GET", s.downloadFiles).enableShare(),
+		newRoute("/api/file/{id:\\d+}", GET, s.returnSingleFile).enableShare(),
+		newRoute("/api/files", GET, s.returnFiles).enableShare(),
+		newRoute("/api/files/recent", GET, s.returnRecentFiles),
+		newRoute("/api/files/download", GET, s.downloadFiles).enableShare(),
 		// upload new files
-		newRoute("/api/files", "POST", s.upload),
+		newRoute("/api/files", POST, s.upload),
 		// change file info
-		newRoute("/api/file/{id:\\d+}/name", "PUT", s.changeFilename),
-		newRoute("/api/file/{id:\\d+}/tags", "PUT", s.changeFileTags),
-		newRoute("/api/file/{id:\\d+}/description", "PUT", s.changeFileDescription),
+		newRoute("/api/file/{id:\\d+}/name", PUT, s.changeFilename),
+		newRoute("/api/file/{id:\\d+}/tags", PUT, s.changeFileTags),
+		newRoute("/api/file/{id:\\d+}/description", PUT, s.changeFileDescription),
 		// bulk tags changing
-		newRoute("/api/files/tags", "POST", s.addTagsToFiles),
-		newRoute("/api/files/tags", "DELETE", s.removeTagsFromFiles),
+		newRoute("/api/files/tags", POST, s.addTagsToFiles),
+		newRoute("/api/files/tags", DELETE, s.removeTagsFromFiles),
 		// remove or recover files
-		newRoute("/api/files", "DELETE", s.deleteFile),
-		newRoute("/api/files/recover", "POST", s.recoverFile),
+		newRoute("/api/files", DELETE, s.deleteFile),
+		newRoute("/api/files/recover", POST, s.recoverFile),
 
 		// Tags
-		newRoute("/api/tags", "GET", s.returnTags).enableShare(),
-		newRoute("/api/tags", "POST", s.addTag),
-		newRoute("/api/tag/{id:\\d+}", "PUT", s.changeTag),
-		newRoute("/api/tags", "DELETE", s.deleteTag),
+		newRoute("/api/tags", GET, s.returnTags).enableShare(),
+		newRoute("/api/tags", POST, s.addTag),
+		newRoute("/api/tag/{id:\\d+}", PUT, s.changeTag),
+		newRoute("/api/tags", DELETE, s.deleteTag),
 
 		// Share
-		newRoute("/api/share/tokens", "GET", s.getAllShareTokens),
-		newRoute("/api/share/token/{token}", "GET", s.getFilesSharedByToken),
-		newRoute("/api/share/token", "POST", s.createShareToken),
-		newRoute("/api/share/token/{token}", "DELETE", s.deleteShareToken),
+		newRoute("/api/share/tokens", GET, s.getAllShareTokens),
+		newRoute("/api/share/token/{token}", GET, s.getFilesSharedByToken),
+		newRoute("/api/share/token", POST, s.createShareToken),
+		newRoute("/api/share/token/{token}", DELETE, s.deleteShareToken),
 	}
 
 	for _, r := range routes {
@@ -94,24 +101,26 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 }
 
 func (s *Server) addDebugRoutes(router *mux.Router) {
+	const OPTIONS = http.MethodOptions
+
 	routes := []route{
-		{"/login", "OPTIONS", setDebugHeaders, false, false},
-		{"/logout", "OPTIONS", setDebugHeaders, false, false},
+		{"/login", OPTIONS, setDebugHeaders, false, false},
+		{"/logout", OPTIONS, setDebugHeaders, false, false},
 		//
-		{"/api/file/{id:\\d+}", "OPTIONS", setDebugHeaders, false, false},
-		{"/api/files", "OPTIONS", setDebugHeaders, false, false},
-		{"/api/files/tags", "OPTIONS", setDebugHeaders, false, false},
-		{"/api/files/recover", "OPTIONS", setDebugHeaders, false, false},
-		{"/api/file/{id:\\d+}/tags", "OPTIONS", setDebugHeaders, false, false},
-		{"/api/file/{id:\\d+}/name", "OPTIONS", setDebugHeaders, false, false},
-		{"/api/file/{id:\\d+}/description", "OPTIONS", setDebugHeaders, false, false},
+		{"/api/file/{id:\\d+}", OPTIONS, setDebugHeaders, false, false},
+		{"/api/files", OPTIONS, setDebugHeaders, false, false},
+		{"/api/files/tags", OPTIONS, setDebugHeaders, false, false},
+		{"/api/files/recover", OPTIONS, setDebugHeaders, false, false},
+		{"/api/file/{id:\\d+}/tags", OPTIONS, setDebugHeaders, false, false},
+		{"/api/file/{id:\\d+}/name", OPTIONS, setDebugHeaders, false, false},
+		{"/api/file/{id:\\d+}/description", OPTIONS, setDebugHeaders, false, false},
 		//
-		{"/api/tags", "OPTIONS", setDebugHeaders, false, false},
-		{"/api/tag/{id:\\d+}", "OPTIONS", setDebugHeaders, false, false},
+		{"/api/tags", OPTIONS, setDebugHeaders, false, false},
+		{"/api/tag/{id:\\d+}", OPTIONS, setDebugHeaders, false, false},
 		//
-		{"/api/share/token", "OPTIONS", setDebugHeaders, false, false},
-		{"/api/share/tokens", "OPTIONS", setDebugHeaders, false, false},
-		{"/api/share/token/{token}", "OPTIONS", setDebugHeaders, false, false},
+		{"/api/share/token", OPTIONS, setDebugHeaders, false, false},
+		{"/api/share/tokens", OPTIONS, setDebugHeaders, false, false},
+		{"/api/share/token/{token}", OPTIONS, setDebugHeaders, false, false},
 	}
 
 	for _, r := range routes {
