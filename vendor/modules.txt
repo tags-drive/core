@@ -8,7 +8,7 @@ github.com/disintegration/imaging
 github.com/fatih/color
 # github.com/fvbommel/util v0.0.0-20180919145318-efcd4e0f9787
 github.com/fvbommel/util/sortorder
-# github.com/gorilla/mux v1.7.2
+# github.com/gorilla/mux v1.7.3
 github.com/gorilla/mux
 # github.com/jessevdk/go-flags v1.4.0
 github.com/jessevdk/go-flags
@@ -32,15 +32,16 @@ github.com/pkg/errors
 github.com/pmezard/go-difflib/difflib
 # github.com/stretchr/testify v1.3.0
 github.com/stretchr/testify/assert
-# golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
+# golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4
 golang.org/x/crypto/chacha20poly1305
 golang.org/x/crypto/internal/chacha20
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/poly1305
-# golang.org/x/image v0.0.0-20190523035834-f03afa92d3ff
+# golang.org/x/image v0.0.0-20190622003408-7e034cad6442
 golang.org/x/image/bmp
 golang.org/x/image/tiff
+golang.org/x/image/ccitt
 golang.org/x/image/tiff/lzw
-# golang.org/x/sys v0.0.0-20190524152521-dbbf3f1254d4
+# golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
