@@ -643,7 +643,7 @@ func TestAllTokens(t *testing.T) {
 			},
 			//
 			res: map[string][]int{
-				"1": []int{1, 2, 3},
+				"1": {1, 2, 3},
 			},
 		},
 		{
@@ -653,8 +653,8 @@ func TestAllTokens(t *testing.T) {
 			},
 			//
 			res: map[string][]int{
-				"1": []int{1, 2, 3},
-				"5": []int{1, 2, 3},
+				"1": {1, 2, 3},
+				"5": {1, 2, 3},
 			},
 		},
 	}

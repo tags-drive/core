@@ -25,7 +25,7 @@ type ShareStorageInterface interface {
 
 	// CheckToken checks if a token exists
 	CheckToken(token string) bool
-	
+
 	// CreateToken creates new token with access to passed files
 	CreateToken(filesIDs []int) (token string)
 
