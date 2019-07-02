@@ -19,6 +19,7 @@ import (
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/files/extensions"
 	"github.com/tags-drive/core/internal/storage/files/resizing"
+	"github.com/tags-drive/core/internal/utils"
 )
 
 const (
@@ -181,7 +182,9 @@ func (fs FileStorage) GetRecent(number int) []File {
 }
 
 func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
-	buff := bytes.NewBuffer([]byte(""))
+	// Max size of an archive in memory is 20MB
+	buff := utils.NewBuffer(20 << 20)
+	defer buff.Finish()
 
 	zipWriter := zip.NewWriter(buff)
 	defer zipWriter.Close()
