@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"io"
 	"math/rand"
 	"os"
@@ -264,6 +265,84 @@ func TestBuffer_FuzzTest(t *testing.T) {
 			b.reset()
 		})
 	}
+}
+
+func BenchmarkBuffer(b *testing.B) {
+	benchs := []struct {
+		description    string
+		dataSize       int
+		maxBufferSize  int
+		writeChunkSize int
+		readChunkSize  int
+	}{
+		{
+			description:    "Buffer size is greater than data",
+			dataSize:       1 << 20, // 1MB
+			maxBufferSize:  2 << 20, // 2MB
+			writeChunkSize: 1024,
+			readChunkSize:  2048,
+		},
+		{
+			description:    "Buffer size is equal to data",
+			dataSize:       1 << 20, // 1MB
+			maxBufferSize:  1 << 20, // 1MB
+			writeChunkSize: 1024,
+			readChunkSize:  2048,
+		},
+		{
+			description:    "Buffer size is less than data",
+			dataSize:       20 << 20, // 20MB
+			maxBufferSize:  1 << 20,  // 1MB
+			writeChunkSize: 1024,
+			readChunkSize:  2048,
+		},
+	}
+
+	for _, bench := range benchs {
+		b.Run(bench.description, func(b *testing.B) {
+			slice := make([]byte, bench.dataSize)
+			for i := range slice {
+				slice[i] = byte(rand.Intn(128))
+			}
+
+			b.ResetTimer()
+
+			b.Run("bytes.Buffer", func(b *testing.B) {
+				for n := 0; n < b.N; n++ {
+					buff := bytes.NewBuffer(nil)
+
+					err := writeByChunks(buff, slice, bench.writeChunkSize)
+					if err != nil {
+						b.Fatalf("error during Write(): %s", err)
+					}
+
+					_, err = readByChunks(buff, bench.readChunkSize)
+					if err != nil {
+						b.Fatalf("error during Read(): %s", err)
+					}
+				}
+			})
+
+			b.Run("utils.Buffer", func(b *testing.B) {
+				for n := 0; n < b.N; n++ {
+					buff := NewBuffer(bench.maxBufferSize)
+
+					err := writeByChunks(buff, slice, bench.writeChunkSize)
+					if err != nil {
+						b.Fatalf("error during Write(): %s", err)
+					}
+
+					buff.Finish()
+
+					_, err = readByChunks(buff, bench.readChunkSize)
+					if err != nil {
+						b.Fatalf("error during Read(): %s", err)
+					}
+				}
+			})
+		})
+	}
+
 }
 
 func writeByChunks(w io.Writer, source []byte, chunk int) error {
