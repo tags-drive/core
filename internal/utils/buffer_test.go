@@ -2,8 +2,10 @@ package utils
 
 import (
 	"io"
+	"math/rand"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -104,16 +106,16 @@ func TestBuffer_CheckBufferAndFileSize(t *testing.T) {
 
 func TestBuffer_WriteAndRead(t *testing.T) {
 	tests := []struct {
-		maxSize   int
-		sliceSize int
+		maxSize       int
+		readSliceSize int
 		//
 		data [][]byte
 		//
 		res []byte
 	}{
 		{
-			maxSize:   20,
-			sliceSize: 256,
+			maxSize:       20,
+			readSliceSize: 256,
 			data: [][]byte{
 				[]byte("123"),
 				[]byte("456"),
@@ -122,8 +124,8 @@ func TestBuffer_WriteAndRead(t *testing.T) {
 			res: []byte("123456789"),
 		},
 		{
-			maxSize:   1,
-			sliceSize: 256,
+			maxSize:       1,
+			readSliceSize: 256,
 			data: [][]byte{
 				[]byte("123"),
 				[]byte("456"),
@@ -132,8 +134,8 @@ func TestBuffer_WriteAndRead(t *testing.T) {
 			res: []byte("123456789"),
 		},
 		{
-			maxSize:   5,
-			sliceSize: 10,
+			maxSize:       5,
+			readSliceSize: 10,
 			data: [][]byte{
 				[]byte("123"),
 				[]byte("456"),
@@ -142,8 +144,8 @@ func TestBuffer_WriteAndRead(t *testing.T) {
 			res: []byte("123456789"),
 		},
 		{
-			maxSize:   5,
-			sliceSize: 20,
+			maxSize:       5,
+			readSliceSize: 20,
 			data: [][]byte{
 				[]byte("123"),
 				[]byte("456"),
@@ -152,8 +154,8 @@ func TestBuffer_WriteAndRead(t *testing.T) {
 			res: []byte("123456789"),
 		},
 		{
-			maxSize:   5,
-			sliceSize: 10,
+			maxSize:       5,
+			readSliceSize: 10,
 			data: [][]byte{
 				[]byte("123"),
 				[]byte("456"),
@@ -162,8 +164,8 @@ func TestBuffer_WriteAndRead(t *testing.T) {
 			res: []byte("123456789"),
 		},
 		{
-			maxSize:   5,
-			sliceSize: 5,
+			maxSize:       5,
+			readSliceSize: 5,
 			data: [][]byte{
 				[]byte("123"),
 				[]byte("456"),
@@ -172,8 +174,8 @@ func TestBuffer_WriteAndRead(t *testing.T) {
 			res: []byte("123456789"),
 		},
 		{
-			maxSize:   0,
-			sliceSize: 5,
+			maxSize:       0,
+			readSliceSize: 5,
 			data: [][]byte{
 				[]byte("123"),
 				[]byte("456"),
@@ -182,10 +184,10 @@ func TestBuffer_WriteAndRead(t *testing.T) {
 			res: []byte("123456789"),
 		},
 		{
-			maxSize:   0,
-			sliceSize: 5,
-			data:      [][]byte{},
-			res:       nil,
+			maxSize:       0,
+			readSliceSize: 5,
+			data:          [][]byte{},
+			res:           nil,
 		},
 	}
 
@@ -202,24 +204,103 @@ func TestBuffer_WriteAndRead(t *testing.T) {
 
 		b.Finish()
 
-		var res []byte
-
-		data := make([]byte, tt.sliceSize)
-		for {
-			n, err := b.Read(data)
-			data = data[:n]
-			res = append(res, data...)
-			data = data[:cap(data)]
-
-			if err == io.EOF {
-				break
-			}
-
-			assert.Nilf(err, "Test #%d: error during Read()", i+1)
+		res, err := readByChunks(b, tt.readSliceSize)
+		if !assert.Nilf(err, "Test #%d: error during Read()", i+1) {
+			continue
 		}
 
 		assert.Equal(tt.res, res, "Test #%d: wrong content was read", i+1)
 
 		b.reset()
 	}
+}
+
+func TestBuffer_FuzzTest(t *testing.T) {
+	rand.Seed(time.Now().UnixNano())
+
+	for i := 0; i < 100; i++ {
+		t.Run("", func(t *testing.T) {
+			assert := assert.New(t)
+
+			var (
+				sliceSize      = rand.Intn(1<<10) + 1
+				bufferSize     = rand.Intn(sliceSize * 2) // can be zero
+				writeChunkSize = rand.Intn(sliceSize) + 1
+				readChunkSize  = rand.Intn(sliceSize) + 1
+			)
+
+			defer func() {
+				// Log only when test is failed
+				if t.Failed() {
+					t.Logf("sliceSize: %d; bufferSize: %d; writeChunkSize: %d; readChunkSize: %d\n",
+						sliceSize, bufferSize, writeChunkSize, readChunkSize)
+				}
+			}()
+
+			slice := make([]byte, sliceSize)
+			for i := range slice {
+				slice[i] = byte(rand.Intn(128))
+			}
+
+			b := NewBuffer(bufferSize)
+
+			// Write slice by chunks
+			err := writeByChunks(b, slice, writeChunkSize)
+			if !assert.Nil(err, "error during Write()") {
+				t.FailNow()
+			}
+
+			b.Finish()
+
+			res, err := readByChunks(b, readChunkSize)
+			if !assert.Nil(err, "error during Read()") {
+				t.FailNow()
+			}
+
+			if !assert.Equal(slice, res, "wrong content was read") {
+				t.FailNow()
+			}
+
+			b.reset()
+		})
+	}
+}
+
+func writeByChunks(w io.Writer, source []byte, chunk int) error {
+	// Write slice by chunks
+	for i := 0; i < len(source); i += chunk {
+		bound := i + chunk
+		if bound > len(source) {
+			bound = len(source)
+		}
+
+		_, err := w.Write(source[i:bound])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func readByChunks(r io.Reader, chunk int) ([]byte, error) {
+	var res []byte
+
+	data := make([]byte, chunk)
+	for {
+		n, err := r.Read(data)
+		data = data[:n]
+		res = append(res, data...)
+		data = data[:cap(data)]
+
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			return nil, err
+		}
+	}
+
+	return res, nil
 }
