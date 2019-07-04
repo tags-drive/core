@@ -221,6 +221,8 @@ func TestBuffer_FuzzTest(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		t.Run("", func(t *testing.T) {
+			t.Parallel()
+
 			assert := assert.New(t)
 
 			var (
