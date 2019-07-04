@@ -188,7 +188,7 @@ Use this command to generate self-signed TLS certificate:
 
 ### Files
 
-- `GET /api/file/{id}`
+- `GET /api/file/{id}` – get file info
 
   **Params:**
   - **id**: id of a file
@@ -196,7 +196,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** json object of [`FileInfo`](#fileinfo)
 
-- `GET /api/files`
+- `GET /api/files` – get a list of files
 
   **Params:**
   - **expr**: logical expression. Example: `!(12&15)&(12|15)` means all files that have single tag with the id `12` or `15`
@@ -210,25 +210,25 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** json array of [`FileInfo`](#fileinfo). Status code is `204` when offset is out of bounds.
 
-- `GET /api/files/recent`
+- `GET /api/files/recent` – get a list of recent uploaded files
 
   **Params:**
   - **number**: number of returned files (5 is the default value)
 
   **Response:** json array of [`FileInfo`](#fileinfo)
 
-- `GET /api/files/download`
+- `GET /api/files/download` – download files in a zip archive
 
   **Params:**
-  - **ids**: list of file ids for downloading separated by commas `ids=1,2,54,9`
+  - **ids**: list of files ids for downloading separated by commas `ids=1,2,54,9`
   - **shareToken** (optional): allow to use this API method without auth (the response (files, tags) can be limited)
 
   **Response:** zip archive
 
-- `POST /api/files`
+- `POST /api/files` – upload files
   
   **Params:**
-  - **tags**: tags: list of tags separated by commas (`tags=1,2,3`)
+  - **tags**: list of tags separated by commas (`tags=1,2,3`)
 
   **Body** must be `multipart/form-data`
 
@@ -236,7 +236,7 @@ Use this command to generate self-signed TLS certificate:
 
 #### Changing file info
 
-- `PUT /api/file/{id}/name`
+- `PUT /api/file/{id}/name` – update name of a file
 
   **Params:**
   - **id**: file id
@@ -244,7 +244,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** updated file (json object of [`FileInfo`](#fileinfo))
 
-- `PUT /api/file/{id}/tags`
+- `PUT /api/file/{id}/tags` – update tags of a file
 
   **Params:**
   - **id**: file id
@@ -252,7 +252,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** updated file (json object of [`FileInfo`](#fileinfo))
 
-- `PUT /api/file/{id}/description`
+- `PUT /api/file/{id}/description` – update description of a file
 
   **Params:**
   - **id**: file id
@@ -262,49 +262,49 @@ Use this command to generate self-signed TLS certificate:
 
 #### Editing tags of multiple files
 
-- `POST /api/files/tags`
+- `POST /api/files/tags` – add tags to multiple files
 
   **Params:**
-  - **files**: file ids (list of ids separated by ',')
+  - **files**: files ids (list of ids separated by ',')
   - **tags**: tags for adding (list of tags ids separated by ',')
 
   **Response:** -
 
-- `DELETE /api/files/tags`
+- `DELETE /api/files/tags` – remove tags from multiple files
 
   **Params:**
-  - **files**: file ids (list of ids separated by ',')
+  - **files**: files ids (list of ids separated by ',')
   - **tags**: tags for deleting (list of tags ids separated by ',')
 
   **Response:** -
 
 #### Removing and recovering
 
-- `DELETE /api/files`
+- `DELETE /api/files` – remove files
 
   **Params:**
-  - **ids**: list of file ids for deleting separated by commas `ids=1,2,54,9`
+  - **ids**: list of files ids for deleting separated by commas `ids=1,2,54,9`
   - **force**: enable instant deletion (if not empty, files will be deleted immediately)
 
   **Response:** json array of [`multiplyResponse`](#multiplyresponse)
 
-- `POST /api/files/recover`
+- `POST /api/files/recover` – recover files from the **Trash**
 
   **Params**:
-  - **ids**: list of file ids for recovering (list of ids separated by comma `ids=1,2,54,9`)
+  - **ids**: list of files ids for recovering (list of ids separated by comma `ids=1,2,54,9`)
 
   **Response**: -
 
 ### Tags
 
-- `GET /api/tags`
+- `GET /api/tags` – get list of tags
 
   **Params:**
   - **shareToken** (optional): allow to use this API method without auth (the response (files, tags) can be limited)
 
   **Response:** json object of [`Tags`](#Tag)
 
-- `POST /api/tags`
+- `POST /api/tags` – add a new tag
 
   **Params:**
   - **name**: name of a new tag
@@ -313,7 +313,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** -
 
-- `PUT /api/tag/{id}`
+- `PUT /api/tag/{id}` – update a tag
 
   **Params:**
   - **id**: tag id
@@ -323,7 +323,7 @@ Use this command to generate self-signed TLS certificate:
 
   **Response:** updated tag (json object of [`Tag`](#Tag))
 
-- `DELETE /api/tags`
+- `DELETE /api/tags` – remove a tag
 
   **Params:**
   - **id**: tag id (one tag at a time)
