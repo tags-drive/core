@@ -156,6 +156,14 @@ func (fs FileStorage) Get(cnf GetFilesConfig) ([]File, error) {
 		return []File{}, nil
 	}
 
+	// Filter files at first
+	if cnf.Filter != nil {
+		files, err = cnf.Filter(files)
+		if err != nil {
+			return []File{}, err
+		}
+	}
+
 	if offset >= len(files) {
 		return []File{}, ErrOffsetOutOfBounds
 	}

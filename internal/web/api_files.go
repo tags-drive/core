@@ -13,7 +13,6 @@ import (
 
 	filesPck "github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
-	"github.com/tags-drive/core/internal/storage/share"
 )
 
 const (
@@ -198,6 +197,12 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 		Filter:   nil,
 	}
 
+	if state.shareAccess {
+		cnf.Filter = filesPck.FilterFilesFunction(func(files []filesPck.File) ([]filesPck.File, error) {
+			return s.shareStorage.FilterFiles(state.shareToken, files)
+		})
+	}
+
 	files, err := s.fileStorage.Get(cnf)
 	if err != nil {
 		if err == filesPck.ErrOffsetOutOfBounds {
@@ -209,20 +214,6 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 			s.processError(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
-	}
-
-	if state.shareAccess {
-		// Have to filter files
-		files, err = s.shareStorage.FilterFiles(state.shareToken, files)
-		if err != nil {
-			if err == share.ErrInvalidToken {
-				// Just in case
-				s.processError(w, err.Error(), http.StatusBadRequest)
-			} else {
-				s.processError(w, err.Error(), http.StatusInternalServerError)
-			}
-			return
-		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
