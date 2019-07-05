@@ -188,7 +188,17 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	files, err := s.fileStorage.Get(expr, sortMode, search, isRegexp, offset, count)
+	cnf := filesPck.GetFilesConfig{
+		Expr:     expr,
+		SortMode: sortMode,
+		Search:   search,
+		IsRegexp: isRegexp,
+		Offset:   offset,
+		Count:    count,
+		Filter:   nil,
+	}
+
+	files, err := s.fileStorage.Get(cnf)
 	if err != nil {
 		if err == filesPck.ErrOffsetOutOfBounds {
 			w.WriteHeader(http.StatusNoContent)

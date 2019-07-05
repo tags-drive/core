@@ -23,6 +23,18 @@ type Config struct {
 	PassPhrase [32]byte
 }
 
+type FilterFilesFunction func([]File) ([]File, error)
+
+type GetFilesConfig struct {
+	Expr     string
+	SortMode FilesSortMode
+	Search   string
+	IsRegexp bool
+	Offset   int
+	Count    int                 // count must be greater than 0, else all files will be returned ([offset:])
+	Filter   FilterFilesFunction // can be nil
+}
+
 // FileStorageInterface provides methods for interactions with files
 type FileStorageInterface interface {
 	// Start starts all background services
@@ -30,9 +42,8 @@ type FileStorageInterface interface {
 
 	// Get returns all "good" sorted files
 	//
-	// If expr isn't valid, Get returns ErrBadExpessionSyntax
-	// count must be greater than 0, else all files will be returned ([offset:])
-	Get(expr string, s FilesSortMode, search string, isRegexp bool, offset, count int) ([]File, error)
+	// If cnf.Expr isn't valid, Get returns ErrBadExpessionSyntax
+	Get(cnf GetFilesConfig) ([]File, error)
 	// GetFile returns a file with passed id
 	GetFile(id int) (File, error)
 	// CheckFile checks if file with passed id exists
