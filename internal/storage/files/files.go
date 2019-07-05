@@ -138,24 +138,37 @@ func (fs FileStorage) StartBackgroundServices() {
 	go fs.scheduleDeleting()
 }
 
-func (fs FileStorage) Get(expr string, s FilesSortMode, search string, isRegexp bool, offset, count int) ([]File, error) {
-	parsedExpr, err := aggregation.ParseLogicalExpr(expr)
+func (fs FileStorage) Get(cnf GetFilesConfig) ([]File, error) {
+	var (
+		offset = cnf.Offset
+		count  = cnf.Count
+	)
+
+	parsedExpr, err := aggregation.ParseLogicalExpr(cnf.Expr)
 	if err != nil {
 		return []File{}, err
 	}
 
-	search = strings.ToLower(search)
-	files := fs.storage.getFiles(parsedExpr, search, isRegexp)
+	search := strings.ToLower(cnf.Search)
+	files := fs.storage.getFiles(parsedExpr, search, cnf.IsRegexp)
 	if len(files) == 0 && offset == 0 {
 		// We don't return error, when there're no files and offset isn't set
 		return []File{}, nil
+	}
+
+	// Filter files at first
+	if cnf.Filter != nil {
+		files, err = cnf.Filter(files)
+		if err != nil {
+			return []File{}, err
+		}
 	}
 
 	if offset >= len(files) {
 		return []File{}, ErrOffsetOutOfBounds
 	}
 
-	sortFiles(s, files)
+	sortFiles(cnf.SortMode, files)
 
 	if count == 0 || offset+count > len(files) {
 		count = len(files) - offset
@@ -177,7 +190,8 @@ func (fs FileStorage) GetFiles(ids ...int) []File {
 }
 
 func (fs FileStorage) GetRecent(number int) []File {
-	files, _ := fs.Get("", SortByTimeDesc, "", false, 0, number)
+	cnf := GetFilesConfig{SortMode: SortByTimeDesc, Count: number}
+	files, _ := fs.Get(cnf)
 	return files
 }
 
