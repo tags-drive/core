@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"strings"
 	"time"
@@ -93,6 +94,78 @@ func cacheMiddleware(h http.Handler, maxAge int64) http.Handler {
 		w.Header().Set("Cache-Control", maxAgeString)
 		w.Header().Add("Cache-Control", "private")
 		h.ServeHTTP(w, r)
+	})
+}
+
+func (s Server) openGraphMiddleware(h http.Handler) http.Handler {
+	type ogData struct {
+		SiteURL  string
+		ImageURL string
+	}
+
+	const (
+		imagePath = "/static/icons/tag-1024x1024.png"
+		ogPage    = `
+			<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<title>Tags Drive</title>
+
+				<meta name="description" content="Open source self-hosted cloud drive with tags" />
+				<meta name="robots" content="noindex, nofollow" />
+
+				<meta property="og:title" content="Tags Drive" />
+				<meta property="og:type" content="website" />
+				<meta property="og:description" content="Open source self-hosted cloud drive with tags" />
+				<meta property="og:url" content="{{.SiteURL}}" />
+				<meta property="og:image" content="{{.ImageURL}}" />
+				<meta property="og:image:width" content="1024" />
+				<meta property="og:image:height" content="1024" />
+				<meta property="og:image:type" content="image/png" />
+				<meta property="og:image:alt" content="tag" />
+			</head>
+			</html>`
+	)
+
+	ogPageTemplate := template.Must(template.New("openGraphTemplate").Parse(ogPage))
+
+	isCrawler := func(userAgent string) bool {
+		// List of popular crawlers
+		crawlersUserAgents := [...]string{
+			"TelegramBot",         // Telegram
+			"Twitterbot",          // Twitter
+			"facebookexternalhit", // Facebook
+			"WhatsApp",            // WhatsApp
+			"vkShare",             // VK
+		}
+
+		for i := range crawlersUserAgents {
+			if strings.Contains(userAgent, crawlersUserAgents[i]) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	scheme := "http://"
+	if s.config.IsTLS {
+		scheme = "https://"
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !isCrawler(r.UserAgent()) {
+			// Serve the request as usual
+			h.ServeHTTP(w, r)
+			return
+		}
+
+		data := ogData{
+			SiteURL:  scheme + r.Host,
+			ImageURL: scheme + r.Host + imagePath,
+		}
+
+		ogPageTemplate.Execute(w, data)
 	})
 }
 
