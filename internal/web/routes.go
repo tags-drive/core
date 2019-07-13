@@ -12,8 +12,9 @@ type route struct {
 	methods string
 	handler http.HandlerFunc
 
-	needAuth  bool // true by default
-	shareable bool // false by default
+	needAuth           bool // true by default
+	shareable          bool // false by default
+	openGraphSupported bool // false by default
 }
 
 func newRoute(path, method string, handler http.HandlerFunc) *route {
@@ -33,6 +34,11 @@ func (r *route) enableShare() *route {
 
 func (r *route) disableAuth() *route {
 	r.needAuth = false
+	return r
+}
+
+func (r *route) supportOpenGraph() *route {
+	r.openGraphSupported = true
 	return r
 }
 
@@ -93,9 +99,17 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 
 	for _, r := range routes {
 		var handler http.Handler = r.handler
+
 		if r.needAuth {
-			handler = s.authMiddleware(r.handler, r.shareable)
+			handler = s.authMiddleware(handler, r.shareable)
 		}
+
+		// s.openGraphMiddleware must be the last Middleware here to be the first Middleware to be executed
+		// (s.openGraphMiddleware has the greatest priority)
+		if r.openGraphSupported {
+			handler = s.openGraphMiddleware(handler)
+		}
+
 		router.Path(r.path).Methods(r.methods).Handler(handler)
 	}
 }
