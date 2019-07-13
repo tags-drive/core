@@ -52,10 +52,10 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 
 	routes := []*route{
 		// Pages
-		newRoute("/", GET, s.index),
-		newRoute("/mobile", GET, s.mobile),
-		newRoute("/share", GET, s.share).enableShare(),
-		newRoute("/login", GET, s.login).disableAuth(),
+		newRoute("/", GET, s.index).supportOpenGraph(),
+		newRoute("/mobile", GET, s.mobile).supportOpenGraph(),
+		newRoute("/share", GET, s.share).enableShare().supportOpenGraph(),
+		newRoute("/login", GET, s.login).disableAuth().supportOpenGraph(),
 		newRoute("/version", GET, s.backendVersion).disableAuth(),
 
 		// Auth
