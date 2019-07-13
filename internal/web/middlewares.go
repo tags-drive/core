@@ -97,8 +97,13 @@ func cacheMiddleware(h http.Handler, maxAge int64) http.Handler {
 	})
 }
 
-func (s Server) openGraphMiddleware(h http.Handler) http.Handler {
+// openGraphMiddleware checks whether a request was sent by a crawler. In this case, it returns html with
+// <meta property="og:{property}" content="{content}"/> tags.
+//
+// ogTitle defines "og:title" property. If ogTitle is empty, "Tags Drive" will be used.
+func (s Server) openGraphMiddleware(h http.Handler, ogTitle string) http.Handler {
 	type ogData struct {
+		Title    string
 		SiteURL  string
 		ImageURL string
 	}
@@ -114,7 +119,7 @@ func (s Server) openGraphMiddleware(h http.Handler) http.Handler {
 				<meta name="description" content="Open source self-hosted cloud drive with tags" />
 				<meta name="robots" content="noindex, nofollow" />
 
-				<meta property="og:title" content="Tags Drive" />
+				<meta property="og:title" content="{{.Title}}" />
 				<meta property="og:type" content="website" />
 				<meta property="og:description" content="Open source self-hosted cloud drive with tags" />
 				<meta property="og:url" content="{{.SiteURL}}" />
@@ -153,6 +158,10 @@ func (s Server) openGraphMiddleware(h http.Handler) http.Handler {
 		scheme = "https://"
 	}
 
+	if ogTitle == "" {
+		ogTitle = "Tags Drive"
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !isCrawler(r.UserAgent()) {
 			// Serve the request as usual
@@ -161,6 +170,7 @@ func (s Server) openGraphMiddleware(h http.Handler) http.Handler {
 		}
 
 		data := ogData{
+			Title:    ogTitle,
 			SiteURL:  scheme + r.Host,
 			ImageURL: scheme + r.Host + imagePath,
 		}

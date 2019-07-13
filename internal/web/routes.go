@@ -12,9 +12,11 @@ type route struct {
 	methods string
 	handler http.HandlerFunc
 
-	needAuth           bool // true by default
-	shareable          bool // false by default
+	needAuth  bool // true by default
+	shareable bool // false by default
+	//
 	openGraphSupported bool // false by default
+	openGraphTitle     string
 }
 
 func newRoute(path, method string, handler http.HandlerFunc) *route {
@@ -37,8 +39,9 @@ func (r *route) disableAuth() *route {
 	return r
 }
 
-func (r *route) supportOpenGraph() *route {
+func (r *route) supportOpenGraph(ogTitle string) *route {
 	r.openGraphSupported = true
+	r.openGraphTitle = ogTitle
 	return r
 }
 
@@ -52,10 +55,10 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 
 	routes := []*route{
 		// Pages
-		newRoute("/", GET, s.index).supportOpenGraph(),
-		newRoute("/mobile", GET, s.mobile).supportOpenGraph(),
-		newRoute("/share", GET, s.share).enableShare().supportOpenGraph(),
-		newRoute("/login", GET, s.login).disableAuth().supportOpenGraph(),
+		newRoute("/", GET, s.index).supportOpenGraph("Tags Drive"),
+		newRoute("/mobile", GET, s.mobile).supportOpenGraph("Tags Drive | Mobile Page"),
+		newRoute("/share", GET, s.share).enableShare().supportOpenGraph("Tags Drive | Share"),
+		newRoute("/login", GET, s.login).disableAuth().supportOpenGraph("Tags Drive | Login Page"),
 		newRoute("/version", GET, s.backendVersion).disableAuth(),
 
 		// Auth
@@ -107,7 +110,7 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		// s.openGraphMiddleware must be the last Middleware here to be the first Middleware to be executed
 		// (s.openGraphMiddleware has the greatest priority)
 		if r.openGraphSupported {
-			handler = s.openGraphMiddleware(handler)
+			handler = s.openGraphMiddleware(handler, r.openGraphTitle)
 		}
 
 		router.Path(r.path).Methods(r.methods).Handler(handler)
