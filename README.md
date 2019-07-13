@@ -1,8 +1,10 @@
-# Tags Drive Core
+# Tags Drive (Core)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/tags-drive/core)](https://goreportcard.com/report/github.com/tags-drive/core)
 
 This repository contains the backend part of **Tags Drive**
+
+**The basic information** and **FAQ** can be found in the [tags-drive/tags-drive](https://github.com/tags-drive/tags-drive) repository.
 
 ##
 
