@@ -104,23 +104,23 @@ func (s *Server) addDebugRoutes(router *mux.Router) {
 	const OPTIONS = http.MethodOptions
 
 	routes := []route{
-		{"/login", OPTIONS, setDebugHeaders, false, false},
-		{"/logout", OPTIONS, setDebugHeaders, false, false},
+		{path: "/login", methods: OPTIONS, handler: setDebugHeaders},
+		{path: "/logout", methods: OPTIONS, handler: setDebugHeaders},
 		//
-		{"/api/file/{id:\\d+}", OPTIONS, setDebugHeaders, false, false},
-		{"/api/files", OPTIONS, setDebugHeaders, false, false},
-		{"/api/files/tags", OPTIONS, setDebugHeaders, false, false},
-		{"/api/files/recover", OPTIONS, setDebugHeaders, false, false},
-		{"/api/file/{id:\\d+}/tags", OPTIONS, setDebugHeaders, false, false},
-		{"/api/file/{id:\\d+}/name", OPTIONS, setDebugHeaders, false, false},
-		{"/api/file/{id:\\d+}/description", OPTIONS, setDebugHeaders, false, false},
+		{path: "/api/file/{id:\\d+}", methods: OPTIONS, handler: setDebugHeaders},
+		{path: "/api/files", methods: OPTIONS, handler: setDebugHeaders},
+		{path: "/api/files/tags", methods: OPTIONS, handler: setDebugHeaders},
+		{path: "/api/files/recover", methods: OPTIONS, handler: setDebugHeaders},
+		{path: "/api/file/{id:\\d+}/tags", methods: OPTIONS, handler: setDebugHeaders},
+		{path: "/api/file/{id:\\d+}/name", methods: OPTIONS, handler: setDebugHeaders},
+		{path: "/api/file/{id:\\d+}/description", methods: OPTIONS, handler: setDebugHeaders},
 		//
-		{"/api/tags", OPTIONS, setDebugHeaders, false, false},
-		{"/api/tag/{id:\\d+}", OPTIONS, setDebugHeaders, false, false},
+		{path: "/api/tags", methods: OPTIONS, handler: setDebugHeaders},
+		{path: "/api/tag/{id:\\d+}", methods: OPTIONS, handler: setDebugHeaders},
 		//
-		{"/api/share/token", OPTIONS, setDebugHeaders, false, false},
-		{"/api/share/tokens", OPTIONS, setDebugHeaders, false, false},
-		{"/api/share/token/{token}", OPTIONS, setDebugHeaders, false, false},
+		{path: "/api/share/token", methods: OPTIONS, handler: setDebugHeaders},
+		{path: "/api/share/tokens", methods: OPTIONS, handler: setDebugHeaders},
+		{path: "/api/share/token/{token}", methods: OPTIONS, handler: setDebugHeaders},
 	}
 
 	for _, r := range routes {
