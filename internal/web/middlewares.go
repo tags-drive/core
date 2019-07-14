@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"strings"
 	"time"
@@ -93,6 +94,94 @@ func cacheMiddleware(h http.Handler, maxAge int64) http.Handler {
 		w.Header().Set("Cache-Control", maxAgeString)
 		w.Header().Add("Cache-Control", "private")
 		h.ServeHTTP(w, r)
+	})
+}
+
+// openGraphMiddleware checks whether a request was sent by a crawler. In this case, it returns html with
+// <meta property="og:{property}" content="{content}"/> tags.
+//
+// ogTitle defines "og:title" property. If ogTitle is empty, "Tags Drive" will be used.
+func (s Server) openGraphMiddleware(h http.Handler, ogTitle string) http.Handler {
+	type ogData struct {
+		Title    string
+		SiteURL  string
+		ImageURL string
+	}
+
+	const (
+		imagePath = "/static/icons/tag-1024x1024.png"
+		ogPage    = `
+			<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<title>Tags Drive</title>
+
+				<meta name="description" content="Open source self-hosted cloud drive with tags" />
+				<meta name="robots" content="noindex, nofollow" />
+
+				<meta property="og:title" content="{{.Title}}" />
+				<meta property="og:type" content="website" />
+				<meta property="og:description" content="Open source self-hosted cloud drive with tags" />
+				<meta property="og:url" content="{{.SiteURL}}" />
+				<meta property="og:image" content="{{.ImageURL}}" />
+				<meta property="og:image:width" content="1024" />
+				<meta property="og:image:height" content="1024" />
+				<meta property="og:image:type" content="image/png" />
+				<meta property="og:image:alt" content="tag" />
+			</head>
+			</html>`
+	)
+
+	ogPageTemplate := template.Must(template.New("openGraphTemplate").Parse(ogPage))
+
+	isCrawler := func(userAgent string) bool {
+		// List of popular crawlers in lower case3
+		crawlersUserAgents := [...]string{
+			"telegrambot",         // Telegram
+			"twitterbot",          // Twitter
+			"facebookexternalhit", // Facebook
+			"whatsapp",            // WhatsApp
+			"vkshare",             // VK
+			"googlebot",           // Google
+			"yandexbot",           // Yandex
+			"linkedinbot",         // LinkedIn
+			"crawler",             // Other crawler
+		}
+
+		userAgent = strings.ToLower(userAgent)
+
+		for i := range crawlersUserAgents {
+			if strings.Contains(userAgent, crawlersUserAgents[i]) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	scheme := "http://"
+	if s.config.IsTLS {
+		scheme = "https://"
+	}
+
+	if ogTitle == "" {
+		ogTitle = "Tags Drive"
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !isCrawler(r.UserAgent()) {
+			// Serve the request as usual
+			h.ServeHTTP(w, r)
+			return
+		}
+
+		data := ogData{
+			Title:    ogTitle,
+			SiteURL:  scheme + r.Host,
+			ImageURL: scheme + r.Host + imagePath,
+		}
+
+		ogPageTemplate.Execute(w, data)
 	})
 }
 
