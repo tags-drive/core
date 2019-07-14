@@ -135,14 +135,20 @@ func (s Server) openGraphMiddleware(h http.Handler, ogTitle string) http.Handler
 	ogPageTemplate := template.Must(template.New("openGraphTemplate").Parse(ogPage))
 
 	isCrawler := func(userAgent string) bool {
-		// List of popular crawlers
+		// List of popular crawlers in lower case3
 		crawlersUserAgents := [...]string{
-			"TelegramBot",         // Telegram
-			"Twitterbot",          // Twitter
+			"telegrambot",         // Telegram
+			"twitterbot",          // Twitter
 			"facebookexternalhit", // Facebook
-			"WhatsApp",            // WhatsApp
-			"vkShare",             // VK
+			"whatsapp",            // WhatsApp
+			"vkshare",             // VK
+			"googlebot",           // Google
+			"yandexbot",           // Yandex
+			"linkedinbot",         // LinkedIn
+			"crawler",             // Other crawler
 		}
+
+		userAgent = strings.ToLower(userAgent)
 
 		for i := range crawlersUserAgents {
 			if strings.Contains(userAgent, crawlersUserAgents[i]) {
