@@ -30,7 +30,7 @@ type Server struct {
 
 	fileStorage  *files.FileStorage
 	tagStorage   *tags.TagStorage
-	shareStorage share.ShareStorageInterface
+	shareStorage *share.ShareStorage
 
 	authService     auth.AuthServiceInterface
 	authRateLimiter limiter.RateLimiterInterface

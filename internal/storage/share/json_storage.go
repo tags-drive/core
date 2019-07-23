@@ -40,7 +40,6 @@ func (ids *filesIDs) deleteID(id int) {
 	}
 }
 
-// jsonShareStorage implements ShareStorageInterface interface
 type jsonShareStorage struct {
 	config Config
 
@@ -101,7 +100,7 @@ func (jss *jsonShareStorage) write() {
 	}
 }
 
-func (jss *jsonShareStorage) GetAllTokens() map[string][]int {
+func (jss *jsonShareStorage) getAllTokens() map[string][]int {
 	jss.mu.RLock()
 	defer jss.mu.RUnlock()
 
@@ -114,7 +113,7 @@ func (jss *jsonShareStorage) GetAllTokens() map[string][]int {
 	return res
 }
 
-func (jss *jsonShareStorage) CreateToken(ids []int) (token string) {
+func (jss *jsonShareStorage) createToken(ids []int) (token string) {
 	jss.mu.Lock()
 	defer func() {
 		jss.mu.Unlock()
@@ -127,7 +126,7 @@ func (jss *jsonShareStorage) CreateToken(ids []int) (token string) {
 	return token
 }
 
-func (jss *jsonShareStorage) DeleteToken(token string) {
+func (jss *jsonShareStorage) deleteToken(token string) {
 	jss.mu.Lock()
 	defer func() {
 		jss.mu.Unlock()
@@ -137,7 +136,7 @@ func (jss *jsonShareStorage) DeleteToken(token string) {
 	delete(jss.tokens, token)
 }
 
-func (jss *jsonShareStorage) GetFilesIDs(token string) ([]int, error) {
+func (jss *jsonShareStorage) getFilesIDs(token string) ([]int, error) {
 	jss.mu.RLock()
 	defer jss.mu.RUnlock()
 
@@ -148,7 +147,7 @@ func (jss *jsonShareStorage) GetFilesIDs(token string) ([]int, error) {
 	return jss.tokens[token], nil
 }
 
-func (jss *jsonShareStorage) CheckToken(token string) bool {
+func (jss *jsonShareStorage) checkToken(token string) bool {
 	jss.mu.RLock()
 	defer jss.mu.RUnlock()
 
@@ -156,7 +155,7 @@ func (jss *jsonShareStorage) CheckToken(token string) bool {
 	return ok
 }
 
-func (jss *jsonShareStorage) CheckFile(token string, id int) bool {
+func (jss *jsonShareStorage) checkFile(token string, id int) bool {
 	jss.mu.RLock()
 	defer jss.mu.RUnlock()
 
@@ -168,7 +167,7 @@ func (jss *jsonShareStorage) CheckFile(token string, id int) bool {
 	return ids.hasID(id)
 }
 
-func (jss *jsonShareStorage) DeleteFile(id int) {
+func (jss *jsonShareStorage) deleteFile(id int) {
 	jss.mu.Lock()
 	defer func() {
 		jss.mu.Unlock()
@@ -181,7 +180,7 @@ func (jss *jsonShareStorage) DeleteFile(id int) {
 	}
 }
 
-func (jss *jsonShareStorage) FilterFiles(token string, files []filesPck.File) ([]filesPck.File, error) {
+func (jss *jsonShareStorage) filterFiles(token string, files []filesPck.File) ([]filesPck.File, error) {
 	jss.mu.RLock()
 
 	if _, ok := jss.tokens[token]; !ok {
@@ -203,8 +202,8 @@ func (jss *jsonShareStorage) FilterFiles(token string, files []filesPck.File) ([
 	return res, nil
 }
 
-func (jss *jsonShareStorage) FilterTags(token string, tags tagsPck.Tags) (tagsPck.Tags, error) {
-	ids, err := jss.GetFilesIDs(token)
+func (jss *jsonShareStorage) filterTags(token string, tags tagsPck.Tags) (tagsPck.Tags, error) {
+	ids, err := jss.getFilesIDs(token)
 	if err != nil {
 		return tags, err
 	}
@@ -230,7 +229,7 @@ func (jss *jsonShareStorage) FilterTags(token string, tags tagsPck.Tags) (tagsPc
 	return result, nil
 }
 
-func (jss *jsonShareStorage) Shutdown() error {
+func (jss *jsonShareStorage) shutdown() error {
 	jss.mu.Lock()
 	jss.mu.Unlock()
 
