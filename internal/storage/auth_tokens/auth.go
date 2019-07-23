@@ -30,7 +30,7 @@ type tokenStruct struct {
 	Expires time.Time `json:"expire"`
 }
 
-// NewAuthService create a new AuthService and inits tokens
+// NewAuthService creates a new AuthService
 func NewAuthService(cnf Config, lg *clog.Logger) (*AuthService, error) {
 	service := &AuthService{
 		config:     cnf,
@@ -185,7 +185,7 @@ func (a AuthService) CheckToken(token string) bool {
 	return false
 }
 
-// Shutdown gracefully shutdown FileStorage
+// Shutdown gracefully shutdowns AuthService
 func (a *AuthService) Shutdown() error {
 	// Wait for all locks
 	a.mutex.Lock()

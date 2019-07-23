@@ -12,7 +12,7 @@ import (
 )
 
 // authMiddleware checks if a user is authorized. If the user isn't and resource is shareable,
-// it checks if "shareToken" passed and a token is valid.
+// it checks if "shareToken" is passed and a token is valid.
 func (s Server) authMiddleware(h http.Handler, shareable bool) http.Handler {
 	checkAuth := func(r *http.Request) bool {
 		c, err := r.Cookie(s.config.AuthCookieName)
