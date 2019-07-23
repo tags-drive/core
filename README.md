@@ -8,38 +8,38 @@ This repository contains the backend part of **Tags Drive**
 
 ##
 
-- [Usage](#Usage)
-  - [Environment variables](#Environment-variables)
-- [Development](#Development)
-- [File structure](#File-structure)
-  - [Var folder](#Var-folder)
-  - [SSL folder](#SSL-folder)
-- [API](#API)
-  - [General endpoints](#General-endpoints)
-  - [Auth](#Auth)
-  - [Files](#Files)
-  - [Tags](#Tags)
-  - [Share](#Share)
-- [Additional info](#Additional-info)
-  - [Security](#Security)
-  - [General structures](#General-structures)
+- [Usage](#usage)
+  - [Environment variables](#environment-variables)
+- [Development](#development)
+- [File structure](#file-structure)
+  - [Var folder](#var-folder)
+  - [SSL folder](#ssl-folder)
+- [API](#api)
+  - [General endpoints](#general-endpoints)
+  - [Auth](#auth)
+  - [Files](#files)
+  - [Tags](#tags)
+  - [Share](#share)
+- [Additional info](#additional-info)
+  - [Security](#security)
+  - [General structures](#general-structures)
 
 ## Usage
 
 ### Environment variables
 
-| Variable             | Default | Description                                                          |
-| -------------------- | ------- | -------------------------------------------------------------------- |
-| PORT                 | 80      | Port for http server                                                 |
-| TLS                  | true    | Enable HTTPS                                                         |
-| LOGIN                | user    | Set your login                                                       |
-| PSWRD                | qwerty  | Set your password                                                    |
-| SKIP_LOGIN           | false   | Skip the log-in procedure                                            |
-| MAX_TOKEN_LIFE       | 1440h   | The max lifetime of a token (default lifetime is 60 days)            |
-| ENCRYPT              | false   | Encrypt uploaded files                                               |
-| PASS_PHRASE          | ""      | A phrase for file encryption. Cannot be empty if `ENCRYPT == true`   |
-| TIME_BEFORE_DELETING | 168h    | Time before deleting a file from the Trash (default delay is 7 days) |
-| DBG                  | false   |                                                                      |
+| Variable                     | Default | Description                                                          |
+| ---------------------------- | ------- | -------------------------------------------------------------------- |
+| DEBUG                        | false   |                                                                      |
+| WEB_PORT                     | 80      | Port for http server                                                 |
+| WEB_TLS                      | true    | Enable HTTPS                                                         |
+| WEB_LOGIN                    | user    | Set your login                                                       |
+| WEB_PASSWORD                 | qwerty  | Set your password                                                    |
+| WEB_SKIP_LOGIN               | false   | Skip the log-in procedure                                            |
+| WEB_MAX_TOKEN_LIFE           | 1440h   | The max lifetime of a token (default lifetime is 60 days)            |
+| STORAGE_ENCRYPT              | false   | Encrypt uploaded files                                               |
+| STORAGE_PASS_PHRASE          | ""      | A phrase for file encryption. Cannot be empty if `ENCRYPT == true`   |
+| STORAGE_TIME_BEFORE_DELETING | 168h    | Time before deleting a file from the Trash (default delay is 7 days) |
 
 ## Development
 

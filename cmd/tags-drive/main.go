@@ -24,35 +24,45 @@ const version = "v0.9.0"
 type config struct {
 	Version string `ignored:"true"`
 
-	Debug bool `envconfig:"DBG" default:"false"`
+	Debug bool `envconfig:"DEBUG" default:"false"`
 
-	// Web
+	Web struct {
+		Port     string `envconfig:"WEB_PORT" default:":80"`
+		IsTLS    bool   `envconfig:"WEB_TLS" default:"false"`
+		Login    string `envconfig:"WEB_LOGIN" default:"user"`
+		Password string `envconfig:"WEB_PASSWORD" default:"qwerty"`
+		// SkipLogin is availabel only in debug mode
+		SkipLogin bool `envconfig:"WEB_SKIP_LOGIN" default:"false"`
+		// The default value is 1440h (60 days)
+		MaxTokenLife time.Duration `envconfig:"WEB_MAX_TOKEN_LIFE" default:"1440h"`
+	}
 
-	Port           string        `envconfig:"PORT" default:":80"`
-	IsTLS          bool          `envconfig:"TLS" default:"false"`
-	Login          string        `envconfig:"LOGIN" default:"user"`
-	Password       string        `envconfig:"PSWRD" default:"qwerty"`
-	SkipLogin      bool          `envconfig:"SKIP_LOGIN" default:"false"`     // Debug only
-	MaxTokenLife   time.Duration `envconfig:"MAX_TOKEN_LIFE" default:"1440h"` // default is 60 days
-	AuthCookieName string        `default:"auth"`                             // name of cookie that contains token
+	Storage struct {
+		// TODO
+		StorageType string `envconfig:"STORAGE_TYPE" default:"json"`
 
-	// Storage
+		Encrypt          bool   `envconfig:"STORAGE_ENCRYPT" default:"false"`
+		PassPhraseString string `envconfig:"STORAGE_PASS_PHRASE"`
+		// PassPhrase is a sha256 of PassPhraseString
+		PassPhrase [32]byte
 
-	Encrypt          bool     `envconfig:"ENCRYPT" default:"false"`
-	PassPhraseString string   `envconfig:"PASS_PHRASE"`
-	PassPhrase       [32]byte `ignored:"true"` // sha256 sum of PassPhraseString field
-
-	StorageType string `envconfig:"STORAGE_TYPE" default:"json"`
-
-	DataFolder          string        `default:"./var/data"`
-	ResizedImagesFolder string        `default:"./var/data/resized"`
-	TimeBeforeDeleting  time.Duration `envconfig:"TIME_BEFORE_DELETING" default:"168h"` // default is 168h = 7 days
-
-	FilesJSONFile      string `default:"./var/files.json"`        // for files
-	TagsJSONFile       string `default:"./var/tags.json"`         // for tags
-	AuthTokensJSONFile string `default:"./var/auth_tokens.json"`  // for auth tokens
-	ShareTokenJSONFile string `default:"./var/share_tokens.json"` // for share tokens
+		TimeBeforeDeleting time.Duration `envconfig:"STORAGE_TIME_BEFORE_DELETING" default:"168h"` // default is 168h = 7 days
+	}
 }
+
+// We use const vars for paths because the app is run in Docker container
+const (
+	DataFolder          = "./var/data"
+	ResizedImagesFolder = "./var/data/resized"
+	//
+	FilesJSONFile      = "./var/files.json"        // for files
+	TagsJSONFile       = "./var/tags.json"         // for tags
+	AuthTokensJSONFile = "./var/auth_tokens.json"  // for auth tokens
+	ShareTokenJSONFile = "./var/share_tokens.json" // for share tokens
+)
+
+// AuthCookieName is a name of cookie that contains token
+const AuthCookieName = "auth"
 
 type App struct {
 	config config
@@ -80,15 +90,15 @@ func PrepareNewApp() (*App, error) {
 	}
 
 	// Checks
-	if len(cnf.Port) > 0 && cnf.Port[0] != ':' {
-		cnf.Port = ":" + cnf.Port
+	if len(cnf.Web.Port) > 0 && cnf.Web.Port[0] != ':' {
+		cnf.Web.Port = ":" + cnf.Web.Port
 	}
 
-	if cnf.Encrypt && cnf.PassPhraseString == "" {
+	if cnf.Storage.Encrypt && cnf.Storage.PassPhraseString == "" {
 		return nil, errors.New("wrong env config: PASS_PHRASE can't be empty with ENCRYPT=true")
 	}
 
-	if cnf.SkipLogin && !cnf.Debug {
+	if cnf.Web.SkipLogin && !cnf.Debug {
 		return nil, errors.New("wrong env config: SkipLogin can't be true in Production mode")
 	}
 
@@ -96,10 +106,10 @@ func PrepareNewApp() (*App, error) {
 
 	cnf.Version = version
 	// Encrypt password
-	cnf.Password = encryptPassword(cnf.Password)
-	// Get PassPhrase
-	cnf.PassPhrase = sha256.Sum256([]byte(cnf.PassPhraseString))
-	cnf.PassPhraseString = ""
+	cnf.Web.Password = encryptPassword(cnf.Web.Password)
+	// Get PassPhrase4
+	cnf.Storage.PassPhrase = sha256.Sum256([]byte(cnf.Storage.PassPhraseString))
+	cnf.Storage.PassPhraseString = ""
 
 	app := &App{config: cnf}
 
@@ -135,13 +145,13 @@ func (app *App) initServices() error {
 	// File storage
 	fileStorageConfig := files.Config{
 		Debug:               app.config.Debug,
-		DataFolder:          app.config.DataFolder,
-		ResizedImagesFolder: app.config.ResizedImagesFolder,
-		StorageType:         app.config.StorageType,
-		FilesJSONFile:       app.config.FilesJSONFile,
-		Encrypt:             app.config.Encrypt,
-		PassPhrase:          app.config.PassPhrase,
-		TimeBeforeDeleting:  app.config.TimeBeforeDeleting,
+		DataFolder:          DataFolder,
+		ResizedImagesFolder: ResizedImagesFolder,
+		StorageType:         app.config.Storage.StorageType,
+		FilesJSONFile:       FilesJSONFile,
+		Encrypt:             app.config.Storage.Encrypt,
+		PassPhrase:          app.config.Storage.PassPhrase,
+		TimeBeforeDeleting:  app.config.Storage.TimeBeforeDeleting,
 	}
 	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, app.logger)
 	if err != nil {
@@ -151,10 +161,10 @@ func (app *App) initServices() error {
 	// Tag storage
 	tagStorageConfig := tags.Config{
 		Debug:        app.config.Debug,
-		StorageType:  app.config.StorageType,
-		TagsJSONFile: app.config.TagsJSONFile,
-		Encrypt:      app.config.Encrypt,
-		PassPhrase:   app.config.PassPhrase,
+		StorageType:  app.config.Storage.StorageType,
+		TagsJSONFile: TagsJSONFile,
+		Encrypt:      app.config.Storage.Encrypt,
+		PassPhrase:   app.config.Storage.PassPhrase,
 	}
 	app.tagStorage, err = tags.NewTagStorage(tagStorageConfig, app.logger)
 	if err != nil {
@@ -164,18 +174,18 @@ func (app *App) initServices() error {
 	// Web server
 	serverConfig := web.Config{
 		Debug:               app.config.Debug,
-		DataFolder:          app.config.DataFolder,
-		Port:                app.config.Port,
-		IsTLS:               app.config.IsTLS,
-		Login:               app.config.Login,
-		Password:            app.config.Password,
-		SkipLogin:           app.config.SkipLogin,
-		AuthCookieName:      app.config.AuthCookieName,
-		MaxTokenLife:        app.config.MaxTokenLife,
-		AuthTokensJSONFile:  app.config.AuthTokensJSONFile,
-		ShareTokensJSONFile: app.config.ShareTokenJSONFile,
-		Encrypt:             app.config.Encrypt,
-		PassPhrase:          app.config.PassPhrase,
+		DataFolder:          DataFolder, // TODO
+		Port:                app.config.Web.Port,
+		IsTLS:               app.config.Web.IsTLS,
+		Login:               app.config.Web.Login,
+		Password:            app.config.Web.Password,
+		SkipLogin:           app.config.Web.SkipLogin,
+		AuthCookieName:      AuthCookieName,
+		MaxTokenLife:        app.config.Web.MaxTokenLife,
+		AuthTokensJSONFile:  AuthTokensJSONFile,
+		ShareTokensJSONFile: ShareTokenJSONFile,
+		Encrypt:             app.config.Storage.Encrypt,    // TODO
+		PassPhrase:          app.config.Storage.PassPhrase, // TODO
 		Version:             app.config.Version,
 	}
 	app.server, err = web.NewWebServer(serverConfig, app.fileStorage, app.tagStorage, app.logger)
@@ -253,13 +263,13 @@ func (app *App) printConfig() {
 	}{
 		{"Debug", app.config.Debug},
 		//
-		{"Port", app.config.Port},
-		{"TLS", app.config.IsTLS},
-		{"Login", app.config.Login},
-		{"SkipLogin", app.config.SkipLogin},
+		{"Port", app.config.Web.Port},
+		{"TLS", app.config.Web.IsTLS},
+		{"Login", app.config.Web.Login},
+		{"SkipLogin", app.config.Web.SkipLogin},
 		//
-		{"StorageType", app.config.StorageType},
-		{"Encrypt", app.config.Encrypt},
+		{"StorageType", app.config.Storage.StorageType},
+		{"Encrypt", app.config.Storage.Encrypt},
 	}
 
 	for _, v := range vars {
