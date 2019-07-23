@@ -33,7 +33,7 @@ type Server struct {
 	shareStorage *share.ShareStorage
 
 	authService     *auth.AuthService
-	authRateLimiter limiter.RateLimiterInterface
+	authRateLimiter *limiter.RateLimiter
 
 	httpServer *http.Server
 
