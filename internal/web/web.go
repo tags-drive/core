@@ -11,10 +11,10 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 
+	auth "github.com/tags-drive/core/internal/storage/auth_tokens"
 	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/share"
 	"github.com/tags-drive/core/internal/storage/tags"
-	"github.com/tags-drive/core/internal/web/auth"
 	"github.com/tags-drive/core/internal/web/limiter"
 )
 
@@ -28,12 +28,12 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 type Server struct {
 	config Config
 
-	fileStorage  files.FileStorageInterface
-	tagStorage   tags.TagStorageInterface
-	shareStorage share.ShareStorageInterface
+	fileStorage  *files.FileStorage
+	tagStorage   *tags.TagStorage
+	shareStorage *share.ShareStorage
 
-	authService     auth.AuthServiceInterface
-	authRateLimiter limiter.RateLimiterInterface
+	authService     *auth.AuthService
+	authRateLimiter *limiter.RateLimiter
 
 	httpServer *http.Server
 
@@ -41,7 +41,7 @@ type Server struct {
 }
 
 // NewWebServer just creates new Web struct
-func NewWebServer(cnf Config, fs files.FileStorageInterface, ts tags.TagStorageInterface, lg *clog.Logger) (*Server, error) {
+func NewWebServer(cnf Config, fs *files.FileStorage, ts *tags.TagStorage, lg *clog.Logger) (*Server, error) {
 	s := &Server{
 		config:      cnf,
 		fileStorage: fs,

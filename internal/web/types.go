@@ -28,14 +28,6 @@ type Config struct {
 	Version string
 }
 
-// ServerInterface provides methods for interactions web server
-type ServerInterface interface {
-	Start() error
-
-	// Shutdown gracefully shutdowns server
-	Shutdown() error
-}
-
 // requestState stores state of current request. It is passed by request's context
 type requestState struct {
 	// authorized it always true. It can be false only when shareAccess is true.

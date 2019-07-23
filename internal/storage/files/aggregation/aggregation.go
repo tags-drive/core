@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-// IsGoodFile runs expression for file tags
+// IsGoodFile runs an expression for file tags
 //
 // expr is a logical expression in reverse Polish notation received from ParseLogicalExpr()
 //

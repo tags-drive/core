@@ -38,7 +38,7 @@ type TagStorage struct {
 	logger  *clog.Logger
 }
 
-// NewTagStorage creates new FileStorage
+// NewTagStorage creates new TagStorage
 func NewTagStorage(cnf Config, lg *clog.Logger) (*TagStorage, error) {
 	var st internalStorage
 
@@ -63,38 +63,46 @@ func NewTagStorage(cnf Config, lg *clog.Logger) (*TagStorage, error) {
 	return ts, nil
 }
 
-// Get returns Tag. If a tag doesn't exist, it returns Tag{}, false
+// Get return tag with passed id. If a tag doesn't exist, it returns Tag{}, false
 func (ts TagStorage) Get(id int) (Tag, bool) {
 	allTags := ts.GetAll()
 	tag, ok := allTags[id]
 	return tag, ok
 }
 
+// GetAll returns all tags
 func (ts TagStorage) GetAll() Tags {
 	return ts.storage.getAll()
 }
 
+// Add adds a new tag with passed name and color
 func (ts TagStorage) Add(name, color, group string) {
 	t := Tag{Name: name, Color: color, Group: group}
 	ts.storage.addTag(t)
 }
 
+// UpdateTag changes name and color of a tag with passed id.
+// If newName/newColor is an empty string, it won't be changed.
 func (ts TagStorage) UpdateTag(id int, newName, newColor string) (updatedTag Tag, err error) {
 	return ts.storage.updateTag(id, newName, newColor)
 }
 
+// UpdateGroup changes only group a tag with passed id.
 func (ts TagStorage) UpdateGroup(id int, newGroup string) (updatedTag Tag, err error) {
 	return ts.storage.updateGroup(id, newGroup)
 }
 
+// Delete deletes a tag with passed id
 func (ts TagStorage) Delete(id int) {
 	ts.storage.deleteTag(id)
 }
 
+// Check checks is there tag with passed id
 func (ts TagStorage) Check(id int) bool {
 	return ts.storage.check(id)
 }
 
+// Shutdown gracefully shutdown TagStorage
 func (ts TagStorage) Shutdown() error {
 	return ts.storage.shutdown()
 }

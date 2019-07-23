@@ -16,33 +16,33 @@ type FileStorage interface {
 	GetFiles(ids ...int) []files.File
 }
 
-type ShareStorageInterface interface {
+type internalStorage interface {
 	// GetAllTokens returns all tokens with shared files ids
-	GetAllTokens() map[string][]int
+	getAllTokens() map[string][]int
 
 	// GetFilesIDs returns files shared by a passed token
-	GetFilesIDs(token string) (filesIDs []int, err error)
+	getFilesIDs(token string) (filesIDs []int, err error)
 
 	// CheckToken checks if a token exists
-	CheckToken(token string) bool
+	checkToken(token string) bool
 
 	// CreateToken creates new token with access to passed files
-	CreateToken(filesIDs []int) (token string)
+	createToken(filesIDs []int) (token string)
 
 	// DeleteToken delete a share token
-	DeleteToken(token string)
+	deleteToken(token string)
 
 	// CheckFile checks if a token grants access to a file
-	CheckFile(token string, id int) bool
+	checkFile(token string, id int) bool
 
 	// DeleteFile deletes all refs to a file
-	DeleteFile(id int)
+	deleteFile(id int)
 
 	// FilterFiles filters files according to token share permissions
-	FilterFiles(token string, files []files.File) ([]files.File, error)
+	filterFiles(token string, files []files.File) ([]files.File, error)
 
 	// FilterTags filters tags according to token share permissions
-	FilterTags(token string, tags tags.Tags) (tags.Tags, error)
+	filterTags(token string, tags tags.Tags) (tags.Tags, error)
 
-	Shutdown() error
+	shutdown() error
 }

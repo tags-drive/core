@@ -165,11 +165,11 @@ func TestCheckFile(t *testing.T) {
 		st := newStorage()
 		st.tokens = tt.startTokens
 
-		res := st.CheckFile(tt.checkToken, tt.checkID)
+		res := st.checkFile(tt.checkToken, tt.checkID)
 
 		assert.Equalf(tt.result, res, "iteration #%d", i+1)
 
-		assert.NoError(st.Shutdown())
+		assert.NoError(st.shutdown())
 	}
 }
 
@@ -223,7 +223,7 @@ func TestGetFilesIDs(t *testing.T) {
 		st := newStorage()
 		st.tokens = tt.startTokens
 
-		res, err := st.GetFilesIDs(tt.token)
+		res, err := st.getFilesIDs(tt.token)
 
 		assert.Equal(err != nil, tt.isError, "iteration #%d", i+1)
 
@@ -231,7 +231,7 @@ func TestGetFilesIDs(t *testing.T) {
 			assert.Equal(tt.res, res, "iteration #%d", i+1)
 		}
 
-		assert.NoError(st.Shutdown())
+		assert.NoError(st.shutdown())
 	}
 }
 
@@ -294,11 +294,11 @@ func TestDeleteFile(t *testing.T) {
 		st := newStorage()
 		var tokens []string
 		for j := range tt.startIDs {
-			t := st.CreateToken(tt.startIDs[j])
+			t := st.createToken(tt.startIDs[j])
 			tokens = append(tokens, t)
 		}
 
-		st.DeleteFile(tt.deleteID)
+		st.deleteFile(tt.deleteID)
 
 		var res [][]int
 		for _, token := range tokens {
@@ -307,7 +307,7 @@ func TestDeleteFile(t *testing.T) {
 
 		assert.Equalf(tt.result, res, "iteration #%d", i+1)
 
-		assert.NoError(st.Shutdown())
+		assert.NoError(st.shutdown())
 	}
 }
 
@@ -407,7 +407,7 @@ func TestFilterFiles(t *testing.T) {
 		st := newStorage()
 		st.tokens = tt.tokens
 
-		res, err := st.FilterFiles(tt.filterToken, tt.files)
+		res, err := st.filterFiles(tt.filterToken, tt.files)
 
 		assert.Equal(err != nil, tt.isError, "iteration #%d", i+1)
 
@@ -415,7 +415,7 @@ func TestFilterFiles(t *testing.T) {
 			assert.Equal(tt.res, res, "iteration #%d", i+1)
 		}
 
-		assert.NoError(st.Shutdown())
+		assert.NoError(st.shutdown())
 	}
 }
 
@@ -572,7 +572,7 @@ func TestFilterTags(t *testing.T) {
 		fs := st.fileStorage.(*FileStorageMock)
 		fs.files = files
 
-		res, err := st.FilterTags(tt.token, tt.tags)
+		res, err := st.filterTags(tt.token, tt.tags)
 
 		assert.Equal(err != nil, tt.isError, "iteration #%d", i+1)
 
@@ -580,7 +580,7 @@ func TestFilterTags(t *testing.T) {
 			assert.Equal(tt.res, res, "iteration #%d", i+1)
 		}
 
-		assert.NoError(st.Shutdown())
+		assert.NoError(st.shutdown())
 	}
 }
 
@@ -621,11 +621,11 @@ func TestDeleteToken(t *testing.T) {
 		st := newStorage()
 		st.tokens = tt.tokens
 
-		st.DeleteToken(tt.token)
+		st.deleteToken(tt.token)
 
 		assert.Equal(tt.res, st.tokens, "iteration #%d", i+1)
 
-		assert.NoError(st.Shutdown())
+		assert.NoError(st.shutdown())
 	}
 }
 
@@ -664,11 +664,11 @@ func TestAllTokens(t *testing.T) {
 		st := newStorage()
 		st.tokens = tt.tokens
 
-		res := st.GetAllTokens()
+		res := st.getAllTokens()
 
 		assert.Equal(tt.res, res, "iteration #%d", i+1)
 
-		assert.NoError(st.Shutdown())
+		assert.NoError(st.shutdown())
 	}
 }
 
