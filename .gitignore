@@ -4,3 +4,5 @@
 var/**
 ssl/**
 web/**
+# Ignore files with prefix "tmp-"
+tmp-*
