@@ -58,7 +58,7 @@ type App struct {
 	config config
 
 	server      web.ServerInterface
-	fileStorage files.FileStorageInterface
+	fileStorage *files.FileStorage
 	tagStorage  tags.TagStorageInterface
 
 	logger *clog.Logger

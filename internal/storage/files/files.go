@@ -36,60 +36,6 @@ var (
 	ErrEmptyNewName      = errors.New("new name can't be empty")
 )
 
-// storage is an internal storage for files metadata
-type internalStorage interface {
-	init() error
-
-	// getFile returns a file with passed filename
-	getFile(id int) (File, error)
-
-	checkFile(id int) bool
-
-	// getFiles returns files
-	//     expr - parsed logical expression
-	//     search - string, which filename has to contain (lower case)
-	//     isRegexp - is expr a regular expression (if it is true, expr must be valid regular expression)
-	getFiles(expr aggregation.LogicalExpr, search string, isRegexp bool) (files []File)
-
-	getFilesWithIDs(ids ...int) []File
-
-	// add adds a file
-	addFile(filename string, fileType extensions.Ext, tags []int, size int64, addTime time.Time) (id int)
-
-	// renameFile renames a file
-	renameFile(id int, newName string) (File, error)
-
-	// updateFileTags updates tags of a file
-	updateFileTags(id int, changedTagsID []int) (File, error)
-
-	// updateFileDescription update description of a file
-	updateFileDescription(id int, newDesc string) (File, error)
-
-	// deleteFile marks file deleted and sets TimeToDelete
-	// File can't be deleted several times (function should return ErrFileDeletedAgain)
-	deleteFile(id int) error
-
-	// deleteFileForce deletes file
-	deleteFileForce(id int) error
-
-	// recover removes file from Trash
-	recover(id int)
-
-	// addTagsToFiles adds a tag to files
-	addTagsToFiles(filesIDs, tagsID []int)
-
-	// removeTagsFromFiles removes tags from selected files
-	removeTagsFromFiles(filesIDs, tagsID []int)
-
-	// deleteTagFromFiles deletes a tag
-	deleteTagFromFiles(tagID int)
-
-	// getExpiredDeletedFiles returns names of files with expired TimeToDelete
-	getExpiredDeletedFiles() []int
-
-	shutdown() error
-}
-
 // FileStorage exposes methods for interactions with files
 type FileStorage struct {
 	config Config
@@ -134,10 +80,14 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	return fs, nil
 }
 
+// StartBackgroundServices starts all background services
 func (fs FileStorage) StartBackgroundServices() {
 	go fs.scheduleDeleting()
 }
 
+// Get returns all "good" sorted files
+//
+// If cnf.Expr isn't valid, Get returns ErrBadExpessionSyntax
 func (fs FileStorage) Get(cnf GetFilesConfig) ([]File, error) {
 	var (
 		offset = cnf.Offset
@@ -177,24 +127,29 @@ func (fs FileStorage) Get(cnf GetFilesConfig) ([]File, error) {
 	return files[offset : offset+count], nil
 }
 
+// GetFile returns a file with passed id
 func (fs FileStorage) GetFile(id int) (File, error) {
 	return fs.storage.getFile(id)
 }
 
+// CheckFile checks if file with passed id exists
 func (fs FileStorage) CheckFile(id int) bool {
 	return fs.storage.checkFile(id)
 }
 
+// GetFiles returns files with passed ids
 func (fs FileStorage) GetFiles(ids ...int) []File {
 	return fs.storage.getFilesWithIDs(ids...)
 }
 
+// GetRecent returns the last uploaded files
 func (fs FileStorage) GetRecent(number int) []File {
 	cnf := GetFilesConfig{SortMode: SortByTimeDesc, Count: number}
 	files, _ := fs.Get(cnf)
 	return files
 }
 
+// Archive archives passed files and returns io.Reader with archive
 func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 	// Max size of an archive in memory is 20MB
 	buff := utils.NewBuffer(20 << 20)
@@ -249,6 +204,7 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 	return buff, nil
 }
 
+// Upload uploads a new file
 func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 	file, err := f.Open()
 	if err != nil {
@@ -371,18 +327,27 @@ func (fs FileStorage) Rename(id int, newName string) (File, error) {
 	return file, nil
 }
 
+// ChangeTags changes the tags
 func (fs FileStorage) ChangeTags(id int, tags []int) (File, error) {
 	return fs.storage.updateFileTags(id, tags)
 }
 
+// ChangeDescription changes the description
 func (fs FileStorage) ChangeDescription(id int, newDescription string) (File, error) {
 	return fs.storage.updateFileDescription(id, newDescription)
 }
 
+// Delete "moves" a file into Trash
 func (fs FileStorage) Delete(id int) error {
 	return fs.storage.deleteFile(id)
 }
 
+// Recover "removes" file from Trash
+func (fs FileStorage) Recover(id int) {
+	fs.storage.recover(id)
+}
+
+// DeleteForce deletes file from storage and from disk
 func (fs FileStorage) DeleteForce(id int) error {
 	file, err := fs.storage.getFile(id)
 	if err != nil {
@@ -415,14 +380,17 @@ func (fs FileStorage) DeleteForce(id int) error {
 	return nil
 }
 
+// AddTagsToFiles adds a tag to files
 func (fs FileStorage) AddTagsToFiles(filesIDs, tagsIDs []int) {
 	fs.storage.addTagsToFiles(filesIDs, tagsIDs)
 }
 
+// RemoveTagsFromFiles removes tags from files
 func (fs FileStorage) RemoveTagsFromFiles(filesIDs, tagsIDs []int) {
 	fs.storage.removeTagsFromFiles(filesIDs, tagsIDs)
 }
 
+// DeleteTagFromFiles deletes a tag from all files
 func (fs FileStorage) DeleteTagFromFiles(tagID int) {
 	fs.storage.deleteTagFromFiles(tagID)
 }
@@ -448,10 +416,7 @@ func (fs FileStorage) scheduleDeleting() {
 	}
 }
 
-func (fs FileStorage) Recover(id int) {
-	fs.storage.recover(id)
-}
-
+// Shutdown gracefully shutdown FileStorage
 func (fs FileStorage) Shutdown() error {
 	return fs.storage.shutdown()
 }

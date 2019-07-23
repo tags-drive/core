@@ -28,7 +28,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 type Server struct {
 	config Config
 
-	fileStorage  files.FileStorageInterface
+	fileStorage  *files.FileStorage
 	tagStorage   tags.TagStorageInterface
 	shareStorage share.ShareStorageInterface
 
@@ -41,7 +41,7 @@ type Server struct {
 }
 
 // NewWebServer just creates new Web struct
-func NewWebServer(cnf Config, fs files.FileStorageInterface, ts tags.TagStorageInterface, lg *clog.Logger) (*Server, error) {
+func NewWebServer(cnf Config, fs *files.FileStorage, ts tags.TagStorageInterface, lg *clog.Logger) (*Server, error) {
 	s := &Server{
 		config:      cnf,
 		fileStorage: fs,
