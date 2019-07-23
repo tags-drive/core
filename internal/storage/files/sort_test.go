@@ -1,10 +1,8 @@
-package files_test
+package files
 
 import (
 	"testing"
 	"time"
-
-	"github.com/tags-drive/core/internal/storage/files"
 )
 
 func TestSortFiles(t *testing.T) {
@@ -16,7 +14,7 @@ func TestSortFiles(t *testing.T) {
 		return tm
 	}
 
-	isEqual := func(a, b []files.File) bool {
+	isEqual := func(a, b []File) bool {
 		if len(a) != len(b) {
 			return false
 		}
@@ -32,12 +30,12 @@ func TestSortFiles(t *testing.T) {
 	}
 
 	tests := []struct {
-		s     files.FilesSortMode
-		files []files.File
-		res   []files.File
+		s     FilesSortMode
+		files []File
+		res   []File
 	}{
-		{files.SortByNameAsc,
-			[]files.File{
+		{SortByNameAsc,
+			[]File{
 				{Filename: "1"},
 				{Filename: "100"},
 				{Filename: "3"},
@@ -45,7 +43,7 @@ func TestSortFiles(t *testing.T) {
 				{Filename: "21"},
 				{Filename: "20"},
 			},
-			[]files.File{
+			[]File{
 				{Filename: "1"},
 				{Filename: "2"},
 				{Filename: "3"},
@@ -54,22 +52,22 @@ func TestSortFiles(t *testing.T) {
 				{Filename: "100"},
 			},
 		},
-		{files.SortByNameAsc,
-			[]files.File{
+		{SortByNameAsc,
+			[]File{
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "aaa"},
 				{Filename: "fer"},
 			},
-			[]files.File{
+			[]File{
 				{Filename: "aaa"},
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "fer"},
 			},
 		},
-		{files.SortByNameDesc,
-			[]files.File{
+		{SortByNameDesc,
+			[]File{
 				{Filename: "1"},
 				{Filename: "100"},
 				{Filename: "3"},
@@ -77,7 +75,7 @@ func TestSortFiles(t *testing.T) {
 				{Filename: "21"},
 				{Filename: "20"},
 			},
-			[]files.File{
+			[]File{
 				{Filename: "100"},
 				{Filename: "21"},
 				{Filename: "20"},
@@ -86,57 +84,57 @@ func TestSortFiles(t *testing.T) {
 				{Filename: "1"},
 			},
 		},
-		{files.SortByNameDesc,
-			[]files.File{
+		{SortByNameDesc,
+			[]File{
 				{Filename: "abc"},
 				{Filename: "cbd"},
 				{Filename: "aaa"},
 				{Filename: "fer"},
 			},
-			[]files.File{
+			[]File{
 				{Filename: "fer"},
 				{Filename: "cbd"},
 				{Filename: "abc"},
 				{Filename: "aaa"},
 			},
 		},
-		{files.SortByTimeAsc,
-			[]files.File{
+		{SortByTimeAsc,
+			[]File{
 				{AddTime: getTime("05-05-2018 15:45:35")},
 				{AddTime: getTime("05-05-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:16:35")},
 				{AddTime: getTime("05-04-2018 15:22:35")},
 			},
-			[]files.File{
+			[]File{
 				{AddTime: getTime("05-04-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:16:35")},
 				{AddTime: getTime("05-05-2018 15:22:35")},
 				{AddTime: getTime("05-05-2018 15:45:35")},
-			},
-		},
-		{files.SortByTimeDesc,
-			[]files.File{
-				{AddTime: getTime("05-05-2018 15:45:35")},
-				{AddTime: getTime("05-05-2018 15:22:35")},
-				{AddTime: getTime("05-05-2018 15:16:35")},
-				{AddTime: getTime("05-04-2018 15:22:35")},
-			},
-			[]files.File{
-				{AddTime: getTime("05-05-2018 15:45:35")},
-				{AddTime: getTime("05-05-2018 15:22:35")},
-				{AddTime: getTime("05-05-2018 15:16:35")},
-				{AddTime: getTime("05-04-2018 15:22:35")},
 			},
 		},
-		{files.SortBySizeAsc,
-			[]files.File{
+		{SortByTimeDesc,
+			[]File{
+				{AddTime: getTime("05-05-2018 15:45:35")},
+				{AddTime: getTime("05-05-2018 15:22:35")},
+				{AddTime: getTime("05-05-2018 15:16:35")},
+				{AddTime: getTime("05-04-2018 15:22:35")},
+			},
+			[]File{
+				{AddTime: getTime("05-05-2018 15:45:35")},
+				{AddTime: getTime("05-05-2018 15:22:35")},
+				{AddTime: getTime("05-05-2018 15:16:35")},
+				{AddTime: getTime("05-04-2018 15:22:35")},
+			},
+		},
+		{SortBySizeAsc,
+			[]File{
 				{Size: 15},
 				{Size: 1515},
 				{Size: 1885},
 				{Size: 1365},
 				{Size: 1551561651},
 			},
-			[]files.File{
+			[]File{
 				{Size: 15},
 				{Size: 1365},
 				{Size: 1515},
@@ -144,15 +142,15 @@ func TestSortFiles(t *testing.T) {
 				{Size: 1551561651},
 			},
 		},
-		{files.SortBySizeDecs,
-			[]files.File{
+		{SortBySizeDecs,
+			[]File{
 				{Size: 15},
 				{Size: 1515},
 				{Size: 1885},
 				{Size: 1365},
 				{Size: 1551561651},
 			},
-			[]files.File{
+			[]File{
 				{Size: 1551561651},
 				{Size: 1885},
 				{Size: 1515},
@@ -163,7 +161,7 @@ func TestSortFiles(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		files.SortFiles(tt.s, tt.files)
+		sortFiles(tt.s, tt.files)
 		if !isEqual(tt.files, tt.res) {
 			t.Errorf("Test #%d Want: %v Got: %v", i, tt.res, tt.files)
 		}
