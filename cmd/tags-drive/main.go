@@ -57,7 +57,7 @@ type config struct {
 type App struct {
 	config config
 
-	server      web.ServerInterface
+	server      *web.Server
 	fileStorage *files.FileStorage
 	tagStorage  *tags.TagStorage
 
