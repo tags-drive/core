@@ -76,7 +76,7 @@ func originalTokens() []tokenStruct {
 func TestAdd(t *testing.T) {
 	tt := newAuth()
 
-	tt.add("999")
+	tt.AddToken("999")
 	answerSlice := []tokenStruct{
 		{Token: "123"},
 		{Token: "465"},
@@ -90,7 +90,7 @@ func TestAdd(t *testing.T) {
 		t.Errorf("Wrong add result Want: %v Got: %v", want, got)
 	}
 
-	tt.add("15")
+	tt.AddToken("15")
 	answerSlice = []tokenStruct{
 		{Token: "123"},
 		{Token: "465"},
@@ -112,7 +112,7 @@ func TestAdd(t *testing.T) {
 func TestDelete(t *testing.T) {
 	tt := newAuth()
 
-	tt.delete("465")
+	tt.DeleteToken("465")
 	answerSlice := []tokenStruct{
 		{Token: "123"},
 		{Token: "789"},
@@ -124,7 +124,7 @@ func TestDelete(t *testing.T) {
 		t.Errorf("Wrong delete result Want: %v Got: %v", want, got)
 	}
 
-	tt.delete("123")
+	tt.DeleteToken("123")
 	answerSlice = []tokenStruct{
 		{Token: "789"},
 		{Token: "101"},
@@ -135,7 +135,7 @@ func TestDelete(t *testing.T) {
 		t.Errorf("Wrong delete result Want: %v Got: %v", want, got)
 	}
 
-	tt.delete("789")
+	tt.DeleteToken("789")
 	answerSlice = []tokenStruct{
 		{Token: "101"},
 	}
@@ -145,7 +145,7 @@ func TestDelete(t *testing.T) {
 		t.Errorf("Wrong delete result Want: %v Got: %v", want, got)
 	}
 
-	tt.delete("101")
+	tt.DeleteToken("101")
 	answerSlice = []tokenStruct{}
 	want = toStringSlice(answerSlice)
 	got = toStringSlice(tt.tokens)
@@ -153,7 +153,7 @@ func TestDelete(t *testing.T) {
 		t.Errorf("Wrong delete result Want: %v Got: %v", want, got)
 	}
 
-	tt.delete("999")
+	tt.DeleteToken("999")
 	answerSlice = []tokenStruct{}
 	want = toStringSlice(answerSlice)
 	got = toStringSlice(tt.tokens)
@@ -168,13 +168,13 @@ func TestDelete(t *testing.T) {
 func TestCheck(t *testing.T) {
 	tt := newAuth()
 
-	res := tt.check("15")
+	res := tt.CheckToken("15")
 	answerBool := false
 	if res != answerBool {
 		t.Errorf("Wrong check result Want: %v Got: %v", answerBool, res)
 	}
 
-	res = tt.check("123")
+	res = tt.CheckToken("123")
 	answerBool = true
 	if res != answerBool {
 		t.Errorf("Wrong check result Want: %v Got: %v", answerBool, res)

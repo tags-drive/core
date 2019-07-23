@@ -1,14 +1,11 @@
 package auth
 
 import (
-	"bytes"
-	"encoding/json"
 	"os"
 	"sync"
 	"time"
 
 	clog "github.com/ShoshinNikita/log/v2"
-	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/utils"
@@ -64,6 +61,18 @@ func NewAuthService(cnf Config, lg *clog.Logger) (*AuthService, error) {
 	return service, nil
 }
 
+func (a AuthService) createNewFile() error {
+	a.logger.Debugf("file %s doesn't exist. Need to create a new file\n", a.config.TokensJSONFile)
+
+	f, err := os.OpenFile(a.config.TokensJSONFile, os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		return errors.Wrap(err, "can't create a new file")
+	}
+	defer f.Close()
+
+	return utils.Encode(f, a.tokens, a.config.Encrypt, a.config.PassPhrase)
+}
+
 // Start starts all background services
 func (a *AuthService) StartBackgroundServices() {
 	// Start expiration function
@@ -86,32 +95,42 @@ func (a *AuthService) StartBackgroundServices() {
 	}()
 }
 
-func (a AuthService) createNewFile() error {
-	a.logger.Debugf("file %s doesn't exist. Need to create a new file\n", a.config.TokensJSONFile)
+// expire removes expired tokens
+func (a *AuthService) expire() {
+	a.mutex.Lock()
+	defer func() {
+		a.mutex.Unlock()
+		a.write()
+	}()
 
-	f, err := os.OpenFile(a.config.TokensJSONFile, os.O_CREATE|os.O_RDWR, 0666)
+	freshTokens := []tokenStruct{}
+	now := time.Now()
+	for _, tok := range a.tokens {
+		if now.Before(tok.Expires) {
+			freshTokens = append(freshTokens, tok)
+		} else {
+			a.logger.Debugf("token \"%s\" expired\n", tok.Token)
+		}
+	}
+
+	a.tokens = freshTokens
+}
+
+func (a AuthService) write() {
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
+
+	f, err := os.OpenFile(a.config.TokensJSONFile, os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
-		return errors.Wrap(err, "can't create a new file")
+		a.logger.Errorf("can't open file %s: %s\n", a.config.TokensJSONFile, err)
+		return
 	}
 	defer f.Close()
 
-	// Write empty structure
-	if !a.config.Encrypt {
-		return json.NewEncoder(f).Encode(a.tokens)
+	err = utils.Encode(f, a.tokens, a.config.Encrypt, a.config.PassPhrase)
+	if err != nil {
+		a.logger.Warnf("can't write '%s': %s\n", a.config.TokensJSONFile, err)
 	}
-
-	// Encode into buffer
-	buff := bytes.NewBuffer([]byte{})
-	enc := json.NewEncoder(buff)
-	if a.config.Debug {
-		enc.SetIndent("", "  ")
-	}
-	enc.Encode(a.tokens)
-
-	// Write into the file (params.Encrypt is true, if we are here)
-	_, err = sio.Encrypt(f, buff, sio.Config{Key: a.config.PassPhrase[:]})
-
-	return err
 }
 
 // GenerateToken generates a new token. GenerateToken doesn't add new token, just return it!
@@ -121,21 +140,57 @@ func (a AuthService) GenerateToken() string {
 
 // AddToken adds passed token into storage
 func (a *AuthService) AddToken(token string) {
-	a.add(token)
+	a.mutex.Lock()
+	defer func() {
+		a.mutex.Unlock()
+		a.write()
+	}()
+
+	a.tokens = append(a.tokens, tokenStruct{Token: token, Expires: time.Now().Add(a.config.MaxTokenLife)})
 }
 
 // DeleteToken deletes token from a storage
 func (a *AuthService) DeleteToken(token string) {
-	a.delete(token)
+	a.mutex.Lock()
+	defer func() {
+		a.mutex.Unlock()
+		a.write()
+	}()
+
+	tokenIndex := -1
+	for i, tok := range a.tokens {
+		if tok.Token == token {
+			tokenIndex = i
+			break
+		}
+	}
+	if tokenIndex == -1 {
+		return
+	}
+
+	a.tokens = append(a.tokens[:tokenIndex], a.tokens[tokenIndex+1:]...)
 }
 
 // CheckToken returns true if token is in storage
 func (a AuthService) CheckToken(token string) bool {
-	return a.check(token)
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
+
+	for _, tok := range a.tokens {
+		if tok.Token == token {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Shutdown gracefully shutdown FileStorage
 func (a *AuthService) Shutdown() error {
+	// Wait for all locks
+	a.mutex.Lock()
+	a.mutex.Unlock()
+
 	close(a.shutdowned)
 
 	return nil
