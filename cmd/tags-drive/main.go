@@ -59,7 +59,7 @@ type App struct {
 
 	server      web.ServerInterface
 	fileStorage *files.FileStorage
-	tagStorage  tags.TagStorageInterface
+	tagStorage  *tags.TagStorage
 
 	logger *clog.Logger
 }
