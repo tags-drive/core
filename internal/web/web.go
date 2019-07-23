@@ -11,10 +11,10 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 
+	auth "github.com/tags-drive/core/internal/storage/auth_tokens"
 	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/share"
 	"github.com/tags-drive/core/internal/storage/tags"
-	"github.com/tags-drive/core/internal/web/auth"
 	"github.com/tags-drive/core/internal/web/limiter"
 )
 
