@@ -16,13 +16,13 @@ import (
 
 const maxTokenSize = 30
 
-type Auth struct {
+type AuthService struct {
 	config Config
 
 	tokens []tokenStruct // we can use array instead of map because number of tokens is small and O(n) is enough
 	mutex  *sync.RWMutex
 
-	// this channel signals that Auth.Shutdown() function was called
+	// this channel signals that AuthService.Shutdown() function was called
 	shutdowned chan struct{}
 
 	logger *clog.Logger
@@ -33,9 +33,9 @@ type tokenStruct struct {
 	Expires time.Time `json:"expire"`
 }
 
-// NewAuthService create new Auth and inits tokens
-func NewAuthService(cnf Config, lg *clog.Logger) (*Auth, error) {
-	service := &Auth{
+// NewAuthService create a new AuthService and inits tokens
+func NewAuthService(cnf Config, lg *clog.Logger) (*AuthService, error) {
+	service := &AuthService{
 		config:     cnf,
 		mutex:      new(sync.RWMutex),
 		logger:     lg,
@@ -64,7 +64,8 @@ func NewAuthService(cnf Config, lg *clog.Logger) (*Auth, error) {
 	return service, nil
 }
 
-func (a *Auth) StartBackgroundServices() {
+// Start starts all background services
+func (a *AuthService) StartBackgroundServices() {
 	// Start expiration function
 	go func() {
 		// Check tokens right now
@@ -85,7 +86,7 @@ func (a *Auth) StartBackgroundServices() {
 	}()
 }
 
-func (a Auth) createNewFile() error {
+func (a AuthService) createNewFile() error {
 	a.logger.Debugf("file %s doesn't exist. Need to create a new file\n", a.config.TokensJSONFile)
 
 	f, err := os.OpenFile(a.config.TokensJSONFile, os.O_CREATE|os.O_RDWR, 0666)
@@ -113,27 +114,28 @@ func (a Auth) createNewFile() error {
 	return err
 }
 
-// GenerateToken generates a new token
-func (a Auth) GenerateToken() string {
+// GenerateToken generates a new token. GenerateToken doesn't add new token, just return it!
+func (a AuthService) GenerateToken() string {
 	return utils.GenerateRandomString(maxTokenSize)
 }
 
-// AddToken adds new generated token
-func (a *Auth) AddToken(token string) {
+// AddToken adds passed token into storage
+func (a *AuthService) AddToken(token string) {
 	a.add(token)
 }
 
-// DeleteToken deletes token
-func (a *Auth) DeleteToken(token string) {
+// DeleteToken deletes token from a storage
+func (a *AuthService) DeleteToken(token string) {
 	a.delete(token)
 }
 
-// CheckToken return true, if there's a passed token
-func (a Auth) CheckToken(token string) bool {
+// CheckToken returns true if token is in storage
+func (a AuthService) CheckToken(token string) bool {
 	return a.check(token)
 }
 
-func (a *Auth) Shutdown() error {
+// Shutdown gracefully shutdown FileStorage
+func (a *AuthService) Shutdown() error {
 	close(a.shutdowned)
 
 	return nil

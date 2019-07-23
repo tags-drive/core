@@ -42,7 +42,7 @@ func toStringSlice(t []tokenStruct) (s []string) {
 	return
 }
 
-func newAuth() *Auth {
+func newAuth() *AuthService {
 	cnf := Config{
 		Debug:          false,
 		TokensJSONFile: "tokens.json",
@@ -50,7 +50,7 @@ func newAuth() *Auth {
 		MaxTokenLife:   time.Hour,
 	}
 
-	auth := &Auth{
+	auth := &AuthService{
 		config:     cnf,
 		mutex:      new(sync.RWMutex),
 		tokens:     originalTokens(),

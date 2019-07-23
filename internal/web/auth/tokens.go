@@ -7,7 +7,7 @@ import (
 	"github.com/tags-drive/core/internal/utils"
 )
 
-func (a Auth) write() {
+func (a AuthService) write() {
 	a.mutex.RLock()
 	defer a.mutex.RUnlock()
 
@@ -24,7 +24,7 @@ func (a Auth) write() {
 	}
 }
 
-func (a *Auth) add(token string) {
+func (a *AuthService) add(token string) {
 	a.mutex.Lock()
 	a.tokens = append(a.tokens, tokenStruct{Token: token, Expires: time.Now().Add(a.config.MaxTokenLife)})
 	a.mutex.Unlock()
@@ -32,7 +32,7 @@ func (a *Auth) add(token string) {
 	a.write()
 }
 
-func (a *Auth) delete(token string) {
+func (a *AuthService) delete(token string) {
 	a.mutex.Lock()
 
 	tokenIndex := -1
@@ -54,7 +54,7 @@ func (a *Auth) delete(token string) {
 	a.write()
 }
 
-func (a Auth) check(token string) bool {
+func (a AuthService) check(token string) bool {
 	a.mutex.RLock()
 	defer a.mutex.RUnlock()
 
@@ -68,7 +68,7 @@ func (a Auth) check(token string) bool {
 }
 
 // expire removes expired tokens
-func (a *Auth) expire() {
+func (a *AuthService) expire() {
 	a.mutex.Lock()
 
 	freshTokens := []tokenStruct{}
