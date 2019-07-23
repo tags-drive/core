@@ -40,7 +40,7 @@ var (
 type FileStorage struct {
 	config Config
 
-	storage internalStorage
+	storage metadataStorage
 	logger  *clog.Logger
 }
 
@@ -57,7 +57,7 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 		return nil, errors.Wrapf(err, "can't create a folder %s", cnf.ResizedImagesFolder)
 	}
 
-	var st internalStorage
+	var st metadataStorage
 
 	switch cnf.StorageType {
 	case "json":

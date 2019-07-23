@@ -63,7 +63,7 @@ const (
 )
 
 // storage is an internal storage for files metadata
-type internalStorage interface {
+type metadataStorage interface {
 	init() error
 
 	// getFile returns a file with passed filename
