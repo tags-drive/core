@@ -390,9 +390,9 @@ func (fs FileStorage) RemoveTagsFromFiles(filesIDs, tagsIDs []int) {
 	fs.storage.removeTagsFromFiles(filesIDs, tagsIDs)
 }
 
-// DeleteTagFromFiles deletes a tag from all files
-func (fs FileStorage) DeleteTagFromFiles(tagID int) {
-	fs.storage.deleteTagFromFiles(tagID)
+// RemoveTagFromAllFiles deletes a tag from all files
+func (fs FileStorage) RemoveTagFromAllFiles(tagID int) {
+	fs.storage.removeTagFromAllFiles(tagID)
 }
 
 // scheduleDeleting deletes files with expired TimeToDelete

@@ -153,5 +153,5 @@ func (s Server) deleteTag(w http.ResponseWriter, r *http.Request) {
 	}
 	s.tagStorage.Delete(id)
 	// Delete refs to tag
-	s.fileStorage.DeleteTagFromFiles(id)
+	s.fileStorage.RemoveTagFromAllFiles(id)
 }

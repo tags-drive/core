@@ -108,7 +108,7 @@ type metadataStorage interface {
 	removeTagsFromFiles(filesIDs, tagsID []int)
 
 	// deleteTagFromFiles deletes a tag
-	deleteTagFromFiles(tagID int)
+	removeTagFromAllFiles(tagID int)
 
 	// getExpiredDeletedFiles returns names of files with expired TimeToDelete
 	getExpiredDeletedFiles() []int

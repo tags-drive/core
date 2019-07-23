@@ -465,7 +465,7 @@ func (jfs *jsonFileStorage) removeTagsFromFiles(filesIDs, tagsID []int) {
 	atomic.AddUint32(jfs.changes, 1)
 }
 
-func (jfs *jsonFileStorage) deleteTagFromFiles(tagID int) {
+func (jfs *jsonFileStorage) removeTagFromAllFiles(tagID int) {
 	jfs.mutex.Lock()
 	defer jfs.mutex.Unlock()
 

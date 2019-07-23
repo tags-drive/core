@@ -818,7 +818,7 @@ func TestDeleteTagFromFiles(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		storage.deleteTagFromFiles(tt.idToDelete)
+		storage.removeTagFromAllFiles(tt.idToDelete)
 
 		res := make(map[int][]int)
 		for _, f := range storage.files {
