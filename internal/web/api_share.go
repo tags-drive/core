@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/tags-drive/core/internal/storage/share"
+	"github.com/tags-drive/core/internal/storage/share_tokens"
 )
 
 // GET /api/share/tokens

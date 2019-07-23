@@ -13,7 +13,7 @@ import (
 
 	auth "github.com/tags-drive/core/internal/storage/auth_tokens"
 	"github.com/tags-drive/core/internal/storage/files"
-	"github.com/tags-drive/core/internal/storage/share"
+	"github.com/tags-drive/core/internal/storage/share_tokens"
 	"github.com/tags-drive/core/internal/storage/tags"
 	"github.com/tags-drive/core/internal/web/limiter"
 )
