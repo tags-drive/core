@@ -11,7 +11,6 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 
-	auth "github.com/tags-drive/core/internal/storage/auth_tokens"
 	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/share_tokens"
 	"github.com/tags-drive/core/internal/storage/tags"
@@ -42,7 +41,12 @@ type Server struct {
 }
 
 // NewWebServer just creates new Web struct
-func NewWebServer(cnf Config, fs *files.FileStorage, ts *tags.TagStorage, lg *clog.Logger) (*Server, error) {
+func NewWebServer(cnf Config,
+	fs *files.FileStorage,
+	ts *tags.TagStorage,
+	auth AuthServiceInterface,
+	lg *clog.Logger,
+) (*Server, error) {
 	s := &Server{
 		config:      cnf,
 		fileStorage: fs,
@@ -63,18 +67,7 @@ func NewWebServer(cnf Config, fs *files.FileStorage, ts *tags.TagStorage, lg *cl
 		return nil, errors.Wrap(err, "can't init new Share Storage")
 	}
 
-	// Auth service
-	authConfig := auth.Config{
-		Debug:          cnf.Debug,
-		TokensJSONFile: cnf.AuthTokensJSONFile,
-		Encrypt:        cnf.Encrypt,
-		PassPhrase:     cnf.PassPhrase,
-		MaxTokenLife:   cnf.MaxTokenLife,
-	}
-	s.authService, err = auth.NewAuthService(authConfig, lg)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't init new Auth Service")
-	}
+	s.authService = auth
 
 	// Rate limiter
 	s.authRateLimiter = limiter.NewRateLimiter(authMaxRequests, authLimiterTimeout)
@@ -138,11 +131,6 @@ func (s Server) Shutdown() error {
 	s.httpServer.SetKeepAlivesEnabled(false)
 
 	serverErr := s.httpServer.Shutdown(shutdown)
-
-	// Shutdown auth service
-	if err := s.authService.Shutdown(); err != nil {
-		s.logger.Warnf("can't shutdown authService gracefully: %s\n", err)
-	}
 
 	// Shutdown share storage
 	if err := s.shareService.Shutdown(); err != nil {

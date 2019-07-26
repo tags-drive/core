@@ -14,6 +14,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 
+	auth "github.com/tags-drive/core/internal/storage/auth_tokens"
 	"github.com/tags-drive/core/internal/storage/files"
 	"github.com/tags-drive/core/internal/storage/tags"
 	"github.com/tags-drive/core/internal/web"
@@ -67,9 +68,10 @@ const AuthCookieName = "auth"
 type App struct {
 	config config
 
-	server      *web.Server
 	fileStorage *files.FileStorage
 	tagStorage  *tags.TagStorage
+	authService *auth.AuthService
+	server      *web.Server
 
 	logger *clog.Logger
 }
@@ -171,6 +173,19 @@ func (app *App) initServices() error {
 		return errors.Wrap(err, "can't create new TagStorage")
 	}
 
+	// Auth service
+	authConfig := auth.Config{
+		Debug:          app.config.Debug,
+		TokensJSONFile: AuthTokensJSONFile,
+		Encrypt:        app.config.Storage.Encrypt,
+		PassPhrase:     app.config.Storage.PassPhrase,
+		MaxTokenLife:   app.config.Web.MaxTokenLife,
+	}
+	app.authService, err = auth.NewAuthService(authConfig, app.logger)
+	if err != nil {
+		return errors.Wrap(err, "can't init new Auth Service")
+	}
+
 	// Web server
 	serverConfig := web.Config{
 		Debug:               app.config.Debug,
@@ -182,13 +197,17 @@ func (app *App) initServices() error {
 		SkipLogin:           app.config.Web.SkipLogin,
 		AuthCookieName:      AuthCookieName,
 		MaxTokenLife:        app.config.Web.MaxTokenLife,
-		AuthTokensJSONFile:  AuthTokensJSONFile,
 		ShareTokensJSONFile: ShareTokenJSONFile,
 		Encrypt:             app.config.Storage.Encrypt,    // TODO
 		PassPhrase:          app.config.Storage.PassPhrase, // TODO
 		Version:             app.config.Version,
 	}
-	app.server, err = web.NewWebServer(serverConfig, app.fileStorage, app.tagStorage, app.logger)
+
+	app.server, err = web.NewWebServer(serverConfig,
+		app.fileStorage,
+		app.tagStorage,
+		app.authService,
+		app.logger)
 	if err != nil {
 		return errors.Wrap(err, "can't init WebServer")
 	}
@@ -218,11 +237,18 @@ func (app *App) Start() error {
 			// Nothing
 		}
 
-		// Shutdowns. Server must be first
+		// Shutdowns. Server must be the first
+
 		app.logger.Debugln("shutdown WebServer")
 		err := app.server.Shutdown()
 		if err != nil {
 			app.logger.Warnf("can't shutdown server gracefully: %s\n", err)
+		}
+
+		app.logger.Debugln("shutdown Auth Service")
+		err = app.authService.Shutdown()
+		if err != nil {
+			app.logger.Warnf("can't shutdown Auth Service gracefully: %s\n", err)
 		}
 
 		app.logger.Debugln("shutdown FileStorage")

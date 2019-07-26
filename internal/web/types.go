@@ -22,7 +22,6 @@ type Config struct {
 	AuthCookieName string
 	MaxTokenLife   time.Duration
 
-	AuthTokensJSONFile  string
 	ShareTokensJSONFile string
 
 	Encrypt    bool
