@@ -16,6 +16,7 @@ import (
 
 	auth "github.com/tags-drive/core/internal/storage/auth_tokens"
 	"github.com/tags-drive/core/internal/storage/files"
+	share "github.com/tags-drive/core/internal/storage/share_tokens"
 	"github.com/tags-drive/core/internal/storage/tags"
 	"github.com/tags-drive/core/internal/web"
 )
@@ -56,10 +57,10 @@ const (
 	DataFolder          = "./var/data"
 	ResizedImagesFolder = "./var/data/resized"
 	//
-	FilesJSONFile      = "./var/files.json"        // for files
-	TagsJSONFile       = "./var/tags.json"         // for tags
-	AuthTokensJSONFile = "./var/auth_tokens.json"  // for auth tokens
-	ShareTokenJSONFile = "./var/share_tokens.json" // for share tokens
+	FilesJSONFile       = "./var/files.json"        // for files
+	TagsJSONFile        = "./var/tags.json"         // for tags
+	AuthTokensJSONFile  = "./var/auth_tokens.json"  // for auth tokens
+	ShareTokensJSONFile = "./var/share_tokens.json" // for share tokens
 )
 
 // AuthCookieName is a name of cookie that contains token
@@ -68,10 +69,11 @@ const AuthCookieName = "auth"
 type App struct {
 	config config
 
-	fileStorage *files.FileStorage
-	tagStorage  *tags.TagStorage
-	authService *auth.AuthService
-	server      *web.Server
+	fileStorage  *files.FileStorage
+	tagStorage   *tags.TagStorage
+	authService  *auth.AuthService
+	shareService *share.ShareService
+	server       *web.Server
 
 	logger *clog.Logger
 }
@@ -186,27 +188,38 @@ func (app *App) initServices() error {
 		return errors.Wrap(err, "can't init new Auth Service")
 	}
 
+	// Share service
+	shareConfig := share.Config{
+		ShareTokenJSONFile: ShareTokensJSONFile,
+		Encrypt:            app.config.Storage.Encrypt,
+		PassPhrase:         app.config.Storage.PassPhrase,
+	}
+	app.shareService, err = share.NewShareStorage(shareConfig, app.fileStorage, app.logger)
+	if err != nil {
+		return errors.Wrap(err, "can't init new Share Service")
+	}
+
 	// Web server
 	serverConfig := web.Config{
-		Debug:               app.config.Debug,
-		DataFolder:          DataFolder, // TODO
-		Port:                app.config.Web.Port,
-		IsTLS:               app.config.Web.IsTLS,
-		Login:               app.config.Web.Login,
-		Password:            app.config.Web.Password,
-		SkipLogin:           app.config.Web.SkipLogin,
-		AuthCookieName:      AuthCookieName,
-		MaxTokenLife:        app.config.Web.MaxTokenLife,
-		ShareTokensJSONFile: ShareTokenJSONFile,
-		Encrypt:             app.config.Storage.Encrypt,    // TODO
-		PassPhrase:          app.config.Storage.PassPhrase, // TODO
-		Version:             app.config.Version,
+		Debug:          app.config.Debug,
+		DataFolder:     DataFolder, // TODO
+		Port:           app.config.Web.Port,
+		IsTLS:          app.config.Web.IsTLS,
+		Login:          app.config.Web.Login,
+		Password:       app.config.Web.Password,
+		SkipLogin:      app.config.Web.SkipLogin,
+		AuthCookieName: AuthCookieName,
+		MaxTokenLife:   app.config.Web.MaxTokenLife,
+		Encrypt:        app.config.Storage.Encrypt,    // TODO
+		PassPhrase:     app.config.Storage.PassPhrase, // TODO
+		Version:        app.config.Version,
 	}
 
 	app.server, err = web.NewWebServer(serverConfig,
 		app.fileStorage,
 		app.tagStorage,
 		app.authService,
+		app.shareService,
 		app.logger)
 	if err != nil {
 		return errors.Wrap(err, "can't init WebServer")
@@ -249,6 +262,12 @@ func (app *App) Start() error {
 		err = app.authService.Shutdown()
 		if err != nil {
 			app.logger.Warnf("can't shutdown Auth Service gracefully: %s\n", err)
+		}
+
+		app.logger.Debugln("shutdown Share Service")
+		err = app.shareService.Shutdown()
+		if err != nil {
+			app.logger.Warnf("can't shutdown Share Service gracefully: %s\n", err)
 		}
 
 		app.logger.Debugln("shutdown FileStorage")

@@ -9,10 +9,8 @@ import (
 	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/gorilla/mux"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/storage/files"
-	"github.com/tags-drive/core/internal/storage/share_tokens"
 	"github.com/tags-drive/core/internal/storage/tags"
 	"github.com/tags-drive/core/internal/web/limiter"
 )
@@ -45,6 +43,7 @@ func NewWebServer(cnf Config,
 	fs *files.FileStorage,
 	ts *tags.TagStorage,
 	auth AuthServiceInterface,
+	share ShareServiceInterface,
 	lg *clog.Logger,
 ) (*Server, error) {
 	s := &Server{
@@ -54,20 +53,8 @@ func NewWebServer(cnf Config,
 		logger:      lg,
 	}
 
-	var err error
-
-	// Share service
-	shareConfig := share.Config{
-		ShareTokenJSONFile: cnf.ShareTokensJSONFile,
-		Encrypt:            cnf.Encrypt,
-		PassPhrase:         cnf.PassPhrase,
-	}
-	s.shareService, err = share.NewShareStorage(shareConfig, fs, lg)
-	if err != nil {
-		return nil, errors.Wrap(err, "can't init new Share Storage")
-	}
-
 	s.authService = auth
+	s.shareService = share
 
 	// Rate limiter
 	s.authRateLimiter = limiter.NewRateLimiter(authMaxRequests, authLimiterTimeout)
@@ -130,12 +117,5 @@ func (s Server) Shutdown() error {
 
 	s.httpServer.SetKeepAlivesEnabled(false)
 
-	serverErr := s.httpServer.Shutdown(shutdown)
-
-	// Shutdown share storage
-	if err := s.shareService.Shutdown(); err != nil {
-		s.logger.Warnf("can't shutdown shareStorage gracefully: %s\n", err)
-	}
-
-	return serverErr
+	return s.httpServer.Shutdown(shutdown)
 }
