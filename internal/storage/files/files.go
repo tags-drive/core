@@ -132,6 +132,30 @@ func (fs FileStorage) GetFile(id int) (File, error) {
 	return fs.storage.getFile(id)
 }
 
+// CopyFile copies files from disk or another storage to a passed io.Writer
+func (fs FileStorage) CopyFile(w io.Writer, fileID int, resizedImage bool) error {
+	path := fs.config.DataFolder + "/" + strconv.Itoa(fileID)
+	if resizedImage {
+		path = fs.config.ResizedImagesFolder + "/" + strconv.Itoa(fileID)
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	copier := io.Copy
+	if fs.config.Encrypt {
+		copier = func(dst io.Writer, src io.Reader) (int64, error) {
+			return sio.Decrypt(dst, src, sio.Config{Key: fs.config.PassPhrase[:]})
+		}
+	}
+
+	_, err = copier(w, f)
+	return err
+}
+
 // CheckFile checks if file with passed id exists
 func (fs FileStorage) CheckFile(id int) bool {
 	return fs.storage.checkFile(id)

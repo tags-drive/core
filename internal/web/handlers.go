@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -115,10 +116,7 @@ func (s Server) backendVersion(w http.ResponseWriter, r *http.Request) {
 // Params:
 //   - shareToken (optional): share token
 //
-func (s Server) serveData() http.Handler {
-	fileHandler := http.StripPrefix("/data/", s.decryptMiddleware(http.Dir(s.config.DataFolder+"/")))
-	handler := cacheMiddleware(fileHandler, 60*60*24*14) // cache for 14 days
-
+func (s Server) serveData() (handler http.Handler) {
 	getFileID := func(url string) (id int, ok bool) {
 		var strID string
 		for i := len(url) - 1; i >= 0; i-- {
@@ -141,8 +139,10 @@ func (s Server) serveData() http.Handler {
 		return id, true
 	}
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, ok := getFileID(r.URL.EscapedPath())
+	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		url := r.URL.EscapedPath()
+
+		id, ok := getFileID(url)
 		if !ok {
 			s.processError(w, "invalid file id", http.StatusBadRequest)
 			return
@@ -162,8 +162,14 @@ func (s Server) serveData() http.Handler {
 			}
 		}
 
-		handler.ServeHTTP(w, r)
+		resized := strings.Contains(url, "resized")
+		// Ignore error.
+		_ = s.fileStorage.CopyFile(w, id, resized)
 	})
+
+	handler = cacheMiddleware(handler, 60*60*24*14) // cache for 14 days
+
+	return handler
 }
 
 // extensionHandler servers extensions

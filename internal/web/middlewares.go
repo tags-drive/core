@@ -8,7 +8,6 @@ import (
 	"time"
 
 	clog "github.com/ShoshinNikita/log/v2"
-	"github.com/minio/sio"
 )
 
 // authMiddleware checks if a user is authorized. If the user isn't and resource is shareable,
@@ -61,28 +60,6 @@ func (s Server) authMiddleware(h http.Handler, shareable bool) http.Handler {
 		r = r.WithContext(ctx)
 
 		h.ServeHTTP(w, r)
-	})
-}
-
-func (s Server) decryptMiddleware(dir http.Dir) http.Handler {
-	if !s.config.Encrypt {
-		return http.FileServer(dir)
-	}
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fileName := r.URL.Path
-		f, err := dir.Open(fileName)
-		if err != nil {
-			s.processError(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		defer f.Close()
-
-		_, err = sio.Decrypt(w, f, sio.Config{Key: s.config.PassPhrase[:]})
-		if err != nil {
-			s.processError(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 	})
 }
 
