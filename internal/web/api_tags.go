@@ -29,7 +29,7 @@ func (s Server) returnTags(w http.ResponseWriter, r *http.Request) {
 	if state.shareAccess {
 		// Have to filter tags
 		var err error
-		allTags, err = s.shareStorage.FilterTags(state.shareToken, allTags)
+		allTags, err = s.shareService.FilterTags(state.shareToken, allTags)
 		if err != nil {
 			if err == share.ErrInvalidToken {
 				// Just in case

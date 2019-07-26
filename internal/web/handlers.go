@@ -64,7 +64,7 @@ func (s Server) mobile(w http.ResponseWriter, r *http.Request) {
 //
 func (s Server) share(w http.ResponseWriter, r *http.Request) {
 	shareToken := r.FormValue("shareToken")
-	if !s.shareStorage.CheckToken(shareToken) {
+	if !s.shareService.CheckToken(shareToken) {
 		s.processError(w, "invalid share token", http.StatusBadRequest)
 		return
 	}
@@ -156,7 +156,7 @@ func (s Server) serveData() http.Handler {
 
 		if state.shareAccess {
 			// Have to check if a token grants access to the file
-			if !s.shareStorage.CheckFile(state.shareToken, id) {
+			if !s.shareService.CheckFile(state.shareToken, id) {
 				s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
 				return
 			}

@@ -68,7 +68,7 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if state.shareAccess {
-		if !s.shareStorage.CheckFile(state.shareToken, id) {
+		if !s.shareService.CheckFile(state.shareToken, id) {
 			s.processError(w, "share token doesn't grant access to this file", http.StatusForbidden)
 			return
 		}
@@ -199,7 +199,7 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 
 	if state.shareAccess {
 		cnf.Filter = filesPck.FilterFilesFunction(func(files []filesPck.File) ([]filesPck.File, error) {
-			return s.shareStorage.FilterFiles(state.shareToken, files)
+			return s.shareService.FilterFiles(state.shareToken, files)
 		})
 	}
 
@@ -282,7 +282,7 @@ func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
 		// Have to filter ids
 		goodIDs := make([]int, 0, len(ids))
 		for _, id := range ids {
-			if s.shareStorage.CheckFile(state.shareToken, id) {
+			if s.shareService.CheckFile(state.shareToken, id) {
 				goodIDs = append(goodIDs, id)
 			}
 		}
@@ -729,7 +729,7 @@ func (s Server) deleteFile(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Delete the file from Share Storage even if deleting is not permanent
-			s.shareStorage.DeleteFile(id)
+			s.shareService.DeleteFile(id)
 
 			responsesChan <- resp
 		}

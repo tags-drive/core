@@ -18,7 +18,7 @@ import (
 // Response: json map with tokens and ids of shared files
 //
 func (s Server) getAllShareTokens(w http.ResponseWriter, r *http.Request) {
-	allTokens := s.shareStorage.GetAllTokens()
+	allTokens := s.shareService.GetAllTokens()
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
@@ -43,7 +43,7 @@ func (s Server) getFilesSharedByToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sharedFiles, err := s.shareStorage.GetFilesIDs(token)
+	sharedFiles, err := s.shareService.GetFilesIDs(token)
 	if err != nil {
 		if err == share.ErrInvalidToken {
 			s.processError(w, "invalid share token", http.StatusBadRequest)
@@ -93,7 +93,7 @@ func (s Server) createShareToken(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	token := s.shareStorage.CreateToken(goodIDs)
+	token := s.shareService.CreateToken(goodIDs)
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -114,5 +114,5 @@ func (s Server) deleteShareToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.shareStorage.DeleteToken(token)
+	s.shareService.DeleteToken(token)
 }

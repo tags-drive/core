@@ -43,6 +43,34 @@ type AuthServiceInterface interface {
 	Shutdown() error
 }
 
+type ShareServiceInterface interface {
+	// Tokens
+
+	GetAllTokens() map[string][]int
+
+	CheckToken(token string) bool
+
+	CreateToken(filesIDs []int) (token string)
+
+	GetFilesIDs(token string) ([]int, error)
+
+	DeleteToken(token string)
+
+	// Files and tags
+
+	CheckFile(token string, id int) bool
+
+	FilterFiles(token string, files []files.File) ([]files.File, error)
+
+	FilterTags(token string, tags tags.Tags) (tags.Tags, error)
+
+	DeleteFile(id int)
+
+	//
+
+	Shutdown() error
+}
+
 // requestState stores state of current request. It is passed by request's context
 type requestState struct {
 	// authorized it always true. It can be false only when shareAccess is true.

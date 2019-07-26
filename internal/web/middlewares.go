@@ -36,7 +36,7 @@ func (s Server) authMiddleware(h http.Handler, shareable bool) http.Handler {
 			if shareToken != "" {
 				state.shareToken = shareToken
 
-				if !s.shareStorage.CheckToken(shareToken) {
+				if !s.shareService.CheckToken(shareToken) {
 					s.processError(w, "invalid share token", http.StatusBadRequest)
 					return
 				}
