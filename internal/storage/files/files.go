@@ -40,8 +40,8 @@ var (
 type FileStorage struct {
 	config Config
 
-	storage metadataStorage
-	logger  *clog.Logger
+	metaStorage metadataStorage
+	logger      *clog.Logger
 }
 
 // NewFileStorage creates new FileStorage
@@ -67,12 +67,12 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	}
 
 	fs := &FileStorage{
-		config:  cnf,
-		storage: st,
-		logger:  lg,
+		config:      cnf,
+		metaStorage: st,
+		logger:      lg,
 	}
 
-	err = fs.storage.init()
+	err = fs.metaStorage.init()
 	if err != nil {
 		return nil, errors.Wrapf(err, "can't init files storage")
 	}
@@ -100,7 +100,7 @@ func (fs FileStorage) Get(cnf GetFilesConfig) ([]File, error) {
 	}
 
 	search := strings.ToLower(cnf.Search)
-	files := fs.storage.getFiles(parsedExpr, search, cnf.IsRegexp)
+	files := fs.metaStorage.getFiles(parsedExpr, search, cnf.IsRegexp)
 	if len(files) == 0 && offset == 0 {
 		// We don't return error, when there're no files and offset isn't set
 		return []File{}, nil
@@ -129,7 +129,7 @@ func (fs FileStorage) Get(cnf GetFilesConfig) ([]File, error) {
 
 // GetFile returns a file with passed id
 func (fs FileStorage) GetFile(id int) (File, error) {
-	return fs.storage.getFile(id)
+	return fs.metaStorage.getFile(id)
 }
 
 // CopyFile copies files from disk or another storage to a passed io.Writer
@@ -158,12 +158,12 @@ func (fs FileStorage) CopyFile(w io.Writer, fileID int, resizedImage bool) error
 
 // CheckFile checks if file with passed id exists
 func (fs FileStorage) CheckFile(id int) bool {
-	return fs.storage.checkFile(id)
+	return fs.metaStorage.checkFile(id)
 }
 
 // GetFiles returns files with passed ids
 func (fs FileStorage) GetFiles(ids ...int) []File {
-	return fs.storage.getFilesWithIDs(ids...)
+	return fs.metaStorage.getFilesWithIDs(ids...)
 }
 
 // GetRecent returns the last uploaded files
@@ -183,7 +183,7 @@ func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 	defer zipWriter.Close()
 
 	for _, id := range ids {
-		fileInfo, err := fs.storage.getFile(id)
+		fileInfo, err := fs.metaStorage.getFile(id)
 		if err != nil {
 			// Skip non-existent file
 			continue
@@ -239,14 +239,14 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 	ext := filepath.Ext(f.Filename)
 	fileType := extensions.GetExt(ext)
 
-	newFileID := fs.storage.addFile(f.Filename, fileType, tags, f.Size, time.Now())
+	newFileID := fs.metaStorage.addFile(f.Filename, fileType, tags, f.Size, time.Now())
 
 	// If we will get a major error, we will have to panic to delete record in file storage
 	defer func() {
 		if r := recover(); r != nil {
 			// Remove record in storage
 			// We can only log this error
-			e := fs.storage.deleteFileForce(newFileID)
+			e := fs.metaStorage.deleteFileForce(newFileID)
 			if e != nil {
 				fs.logger.Errorf("can't delete record in file storage after error in Upload function: %s\n", e)
 			}
@@ -342,7 +342,7 @@ func (fs FileStorage) copyToFile(src io.Reader, path string) error {
 
 // Rename renames a file
 func (fs FileStorage) Rename(id int, newName string) (File, error) {
-	file, err := fs.storage.renameFile(id, newName)
+	file, err := fs.metaStorage.renameFile(id, newName)
 	if err != nil {
 		return File{}, errors.Wrap(err, "can't rename file in a storage")
 	}
@@ -353,32 +353,32 @@ func (fs FileStorage) Rename(id int, newName string) (File, error) {
 
 // ChangeTags changes the tags
 func (fs FileStorage) ChangeTags(id int, tags []int) (File, error) {
-	return fs.storage.updateFileTags(id, tags)
+	return fs.metaStorage.updateFileTags(id, tags)
 }
 
 // ChangeDescription changes the description
 func (fs FileStorage) ChangeDescription(id int, newDescription string) (File, error) {
-	return fs.storage.updateFileDescription(id, newDescription)
+	return fs.metaStorage.updateFileDescription(id, newDescription)
 }
 
 // Delete "moves" a file into Trash
 func (fs FileStorage) Delete(id int) error {
-	return fs.storage.deleteFile(id)
+	return fs.metaStorage.deleteFile(id)
 }
 
 // Recover "removes" file from Trash
 func (fs FileStorage) Recover(id int) {
-	fs.storage.recover(id)
+	fs.metaStorage.recover(id)
 }
 
 // DeleteForce deletes file from storage and from disk
 func (fs FileStorage) DeleteForce(id int) error {
-	file, err := fs.storage.getFile(id)
+	file, err := fs.metaStorage.getFile(id)
 	if err != nil {
 		return err
 	}
 
-	err = fs.storage.deleteFileForce(id)
+	err = fs.metaStorage.deleteFileForce(id)
 	if err != nil {
 		return err
 	}
@@ -406,17 +406,17 @@ func (fs FileStorage) DeleteForce(id int) error {
 
 // AddTagsToFiles adds a tag to files
 func (fs FileStorage) AddTagsToFiles(filesIDs, tagsIDs []int) {
-	fs.storage.addTagsToFiles(filesIDs, tagsIDs)
+	fs.metaStorage.addTagsToFiles(filesIDs, tagsIDs)
 }
 
 // RemoveTagsFromFiles removes tags from files
 func (fs FileStorage) RemoveTagsFromFiles(filesIDs, tagsIDs []int) {
-	fs.storage.removeTagsFromFiles(filesIDs, tagsIDs)
+	fs.metaStorage.removeTagsFromFiles(filesIDs, tagsIDs)
 }
 
 // RemoveTagFromAllFiles deletes a tag from all files
 func (fs FileStorage) RemoveTagFromAllFiles(tagID int) {
-	fs.storage.removeTagFromAllFiles(tagID)
+	fs.metaStorage.removeTagFromAllFiles(tagID)
 }
 
 // scheduleDeleting deletes files with expired TimeToDelete
@@ -428,8 +428,8 @@ func (fs FileStorage) scheduleDeleting() {
 		fs.logger.Debugln("delete old files")
 
 		var err error
-		for _, id := range fs.storage.getExpiredDeletedFiles() {
-			file, _ := fs.storage.getFile(id)
+		for _, id := range fs.metaStorage.getExpiredDeletedFiles() {
+			file, _ := fs.metaStorage.getFile(id)
 			err = fs.DeleteForce(id)
 			if err != nil {
 				fs.logger.Errorf("can't remove file \"%s\" from trash: %s\n", file.Filename, err)
@@ -442,5 +442,5 @@ func (fs FileStorage) scheduleDeleting() {
 
 // Shutdown gracefully shutdown FileStorage
 func (fs FileStorage) Shutdown() error {
-	return fs.storage.shutdown()
+	return fs.metaStorage.shutdown()
 }
