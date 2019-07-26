@@ -286,6 +286,7 @@ func (app *App) Start() error {
 	}()
 
 	app.fileStorage.StartBackgroundServices()
+	app.authService.StartBackgroundServices()
 
 	if err := app.server.Start(); err != nil {
 		app.logger.Errorf("server error: %s\n", err)
