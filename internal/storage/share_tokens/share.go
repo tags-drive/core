@@ -12,12 +12,12 @@ var (
 	ErrInvalidToken = errors.New("invalid share token")
 )
 
-type ShareStorage struct {
+type ShareService struct {
 	storage internalStorage
 }
 
-func NewShareStorage(cnf Config, fs FileStorage, lg *clog.Logger) (*ShareStorage, error) {
-	storage := &ShareStorage{}
+func NewShareStorage(cnf Config, fs FileStorage, lg *clog.Logger) (*ShareService, error) {
+	storage := &ShareService{}
 
 	// Init an internal storage
 	st := newJsonShareStorage(cnf, fs, lg)
@@ -32,42 +32,42 @@ func NewShareStorage(cnf Config, fs FileStorage, lg *clog.Logger) (*ShareStorage
 	return storage, nil
 }
 
-func (st ShareStorage) GetAllTokens() map[string][]int {
+func (st ShareService) GetAllTokens() map[string][]int {
 	return st.storage.getAllTokens()
 }
 
-func (st ShareStorage) CreateToken(ids []int) (token string) {
+func (st ShareService) CreateToken(ids []int) (token string) {
 	return st.storage.createToken(ids)
 }
 
-func (st ShareStorage) DeleteToken(token string) {
+func (st ShareService) DeleteToken(token string) {
 	st.storage.deleteToken(token)
 }
 
-func (st ShareStorage) GetFilesIDs(token string) ([]int, error) {
+func (st ShareService) GetFilesIDs(token string) ([]int, error) {
 	return st.storage.getFilesIDs(token)
 }
 
-func (st ShareStorage) CheckToken(token string) bool {
+func (st ShareService) CheckToken(token string) bool {
 	return st.storage.checkToken(token)
 }
 
-func (st ShareStorage) CheckFile(token string, id int) bool {
+func (st ShareService) CheckFile(token string, id int) bool {
 	return st.storage.checkFile(token, id)
 }
 
-func (st ShareStorage) DeleteFile(id int) {
+func (st ShareService) DeleteFile(id int) {
 	st.storage.deleteFile(id)
 }
 
-func (st ShareStorage) FilterFiles(token string, files []filesPck.File) ([]filesPck.File, error) {
+func (st ShareService) FilterFiles(token string, files []filesPck.File) ([]filesPck.File, error) {
 	return st.storage.filterFiles(token, files)
 }
 
-func (st ShareStorage) FilterTags(token string, tags tagsPck.Tags) (tagsPck.Tags, error) {
+func (st ShareService) FilterTags(token string, tags tagsPck.Tags) (tagsPck.Tags, error) {
 	return st.storage.filterTags(token, tags)
 }
 
-func (st ShareStorage) Shutdown() error {
+func (st ShareService) Shutdown() error {
 	return st.storage.shutdown()
 }
