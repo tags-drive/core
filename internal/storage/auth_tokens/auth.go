@@ -30,7 +30,7 @@ type tokenStruct struct {
 	Expires time.Time `json:"expire"`
 }
 
-// NewAuthService creates a new AuthService
+// NewAuthService creates a new AuthService and starts StartBackgroundServices()
 func NewAuthService(cnf Config, lg *clog.Logger) (*AuthService, error) {
 	service := &AuthService{
 		config:     cnf,
@@ -57,6 +57,8 @@ func NewAuthService(cnf Config, lg *clog.Logger) (*AuthService, error) {
 
 		f.Close()
 	}
+
+	service.StartBackgroundServices()
 
 	return service, nil
 }

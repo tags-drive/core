@@ -28,11 +28,12 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 type Server struct {
 	config Config
 
-	fileStorage  *files.FileStorage
-	tagStorage   *tags.TagStorage
+	fileStorage *files.FileStorage
+	tagStorage  *tags.TagStorage
+
 	shareStorage *share.ShareStorage
 
-	authService     *auth.AuthService
+	authService     AuthServiceInterface
 	authRateLimiter *limiter.RateLimiter
 
 	httpServer *http.Server
@@ -119,9 +120,6 @@ func (s *Server) Start() error {
 			return s.httpServer.ListenAndServeTLS("ssl/cert.cert", "ssl/key.key")
 		}
 	}
-
-	// Start background services
-	s.authService.StartBackgroundServices()
 
 	s.logger.Debugln("start web server")
 

@@ -3,6 +3,9 @@ package web
 import (
 	"context"
 	"time"
+
+	"github.com/tags-drive/core/internal/storage/files"
+	"github.com/tags-drive/core/internal/storage/tags"
 )
 
 type Config struct {
@@ -26,6 +29,18 @@ type Config struct {
 	PassPhrase [32]byte
 
 	Version string
+}
+
+type AuthServiceInterface interface {
+	CheckToken(token string) bool
+
+	GenerateToken() string
+
+	AddToken(token string)
+
+	DeleteToken(token string)
+
+	Shutdown() error
 }
 
 // requestState stores state of current request. It is passed by request's context
