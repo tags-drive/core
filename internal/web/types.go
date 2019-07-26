@@ -9,23 +9,18 @@ import (
 )
 
 type Config struct {
-	Debug bool
-
-	DataFolder string
+	Debug   bool
+	Version string
 
 	Port  string
 	IsTLS bool
 
-	Login          string
-	Password       string
+	Login    string
+	Password string
+
 	SkipLogin      bool
 	AuthCookieName string
 	MaxTokenLife   time.Duration
-
-	Encrypt    bool
-	PassPhrase [32]byte
-
-	Version string
 }
 
 type AuthServiceInterface interface {

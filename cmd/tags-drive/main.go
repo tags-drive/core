@@ -202,7 +202,6 @@ func (app *App) initServices() error {
 	// Web server
 	serverConfig := web.Config{
 		Debug:          app.config.Debug,
-		DataFolder:     DataFolder, // TODO
 		Port:           app.config.Web.Port,
 		IsTLS:          app.config.Web.IsTLS,
 		Login:          app.config.Web.Login,
@@ -210,8 +209,6 @@ func (app *App) initServices() error {
 		SkipLogin:      app.config.Web.SkipLogin,
 		AuthCookieName: AuthCookieName,
 		MaxTokenLife:   app.config.Web.MaxTokenLife,
-		Encrypt:        app.config.Storage.Encrypt,    // TODO
-		PassPhrase:     app.config.Storage.PassPhrase, // TODO
 		Version:        app.config.Version,
 	}
 
