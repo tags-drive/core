@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
+	bs "github.com/tags-drive/core/internal/storage/files/binary_storage"
 	"github.com/tags-drive/core/internal/storage/files/extensions"
 	"github.com/tags-drive/core/internal/storage/files/resizing"
 	"github.com/tags-drive/core/internal/utils"
@@ -45,8 +46,9 @@ type FileStorage struct {
 // NewFileStorage creates new FileStorage
 func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	var (
-		ms metadataStorage
-		bs binaryStorage
+		metaStorage metadataStorage
+		binStorage  binaryStorage
+		err         error
 	)
 
 	// Init metadata storage
@@ -54,8 +56,8 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	case "json":
 		fallthrough
 	default:
-		ms = newJsonFileStorage(cnf, lg)
-		if err := ms.init(); err != nil {
+		metaStorage = newJsonFileStorage(cnf, lg)
+		if err := metaStorage.init(); err != nil {
 			return nil, errors.Wrap(err, "can't init a new Metadata Storage")
 		}
 	}
@@ -65,13 +67,21 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	// Switch if for future use
 	switch {
 	default:
-		bs = binaryStorageMock{}
+		binStorage, err = bs.NewDiskStorage(bs.DiskStorageConfig{
+			DataFolder:          cnf.DataFolder,
+			ResizedImagesFolder: cnf.ResizedImagesFolder,
+			Encrypt:             cnf.Encrypt,
+			PassPhrase:          cnf.PassPhrase,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "can't init a new DiskStorage")
+		}
 	}
 
 	return &FileStorage{
 		config:      cnf,
-		metaStorage: ms,
-		binStorage:  bs,
+		metaStorage: metaStorage,
+		binStorage:  binStorage,
 		logger:      lg,
 	}, nil
 }
