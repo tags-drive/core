@@ -80,8 +80,8 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	return fs, nil
 }
 
-// StartBackgroundServices starts all background services
-func (fs FileStorage) StartBackgroundServices() {
+// StartBackgroundJobs starts all background services
+func (fs FileStorage) StartBackgroundJobs() {
 	go fs.scheduleDeleting()
 }
 

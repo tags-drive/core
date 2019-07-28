@@ -73,8 +73,8 @@ func (a AuthService) createNewFile() error {
 	return utils.Encode(f, a.tokens, a.config.Encrypt, a.config.PassPhrase)
 }
 
-// Start starts all background services
-func (a *AuthService) StartBackgroundServices() {
+// StartBackgroundJobs starts all background jobs
+func (a *AuthService) StartBackgroundJobs() {
 	// Start expiration function
 	go func() {
 		// Check tokens right now
