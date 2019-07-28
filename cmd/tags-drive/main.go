@@ -78,7 +78,7 @@ type App struct {
 	logger *clog.Logger
 }
 
-// PrepareNewApp parses globalConfig and inits services
+// PrepareNewApp parses globalConfig and creates configurated App instance. It doesn't init any services!
 func PrepareNewApp() (*App, error) {
 	defer func() {
 		// Reset sensitive env vars
@@ -115,14 +115,7 @@ func PrepareNewApp() (*App, error) {
 	cnf.Storage.PassPhrase = sha256.Sum256([]byte(cnf.Storage.PassPhraseString))
 	cnf.Storage.PassPhraseString = ""
 
-	app := &App{config: cnf}
-
-	err = app.initServices()
-	if err != nil {
-		return nil, errors.Wrap(err, "can't init services")
-	}
-
-	return app, nil
+	return &App{config: cnf}, nil
 }
 
 const encryptRepeats = 11
@@ -137,8 +130,8 @@ func encryptPassword(s string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-// initServices inits storages and server
-func (app *App) initServices() error {
+// ConfigureServices configures services, storages and a web server
+func (app *App) ConfigureServices() error {
 	app.logger = clog.NewProdLogger()
 	if app.config.Debug {
 		app.logger = clog.NewDevLogger()
@@ -159,7 +152,7 @@ func (app *App) initServices() error {
 	}
 	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, app.logger)
 	if err != nil {
-		return errors.Wrap(err, "can't create new FileStorage")
+		return errors.Wrap(err, "can't create a new FileStorage")
 	}
 
 	// Tag storage
@@ -172,7 +165,7 @@ func (app *App) initServices() error {
 	}
 	app.tagStorage, err = tags.NewTagStorage(tagStorageConfig, app.logger)
 	if err != nil {
-		return errors.Wrap(err, "can't create new TagStorage")
+		return errors.Wrap(err, "can't create a new TagStorage")
 	}
 
 	// Auth service
@@ -185,7 +178,7 @@ func (app *App) initServices() error {
 	}
 	app.authService, err = auth.NewAuthService(authConfig, app.logger)
 	if err != nil {
-		return errors.Wrap(err, "can't init new Auth Service")
+		return errors.Wrap(err, "can't create a new Auth Service")
 	}
 
 	// Share service
@@ -196,7 +189,7 @@ func (app *App) initServices() error {
 	}
 	app.shareService, err = share.NewShareStorage(shareConfig, app.fileStorage, app.logger)
 	if err != nil {
-		return errors.Wrap(err, "can't init new Share Service")
+		return errors.Wrap(err, "can't create a new Share Service")
 	}
 
 	// Web server
@@ -219,7 +212,7 @@ func (app *App) initServices() error {
 		app.shareService,
 		app.logger)
 	if err != nil {
-		return errors.Wrap(err, "can't init WebServer")
+		return errors.Wrap(err, "can't create a new WebServer")
 	}
 
 	return nil
@@ -303,7 +296,12 @@ func main() {
 
 	app, err := PrepareNewApp()
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("[FAT] can't prepare a new App instance: %s\n", err)
+	}
+
+	err = app.ConfigureServices()
+	if err != nil {
+		log.Fatalf("[FAT] can't configure services: %s\n", err)
 	}
 
 	serverErr := make(chan struct{})
