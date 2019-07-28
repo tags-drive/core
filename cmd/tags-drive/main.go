@@ -220,8 +220,6 @@ func (app *App) ConfigureServices() error {
 
 // Start starts the web server and the background jobs. It block the process (like http.ListenAndServe())
 func (app *App) Start() error {
-	app.printConfig()
-
 	app.logger.Infoln("start Tags Drive")
 
 	app.fileStorage.StartBackgroundJobs()
@@ -265,7 +263,7 @@ func (app *App) Shutdown() {
 	}
 }
 
-func (app *App) printConfig() {
+func (app *App) PrintConfig() {
 	s := "Config:\n"
 
 	vars := []struct {
@@ -327,6 +325,7 @@ func main() {
 		close(shutdowned)
 	}()
 
+	app.PrintConfig()
 	if err := app.Start(); err != nil {
 		app.logger.Errorf("server error: %s\n", err)
 		app.logger.Warnln("shutdown Tags Drive")
