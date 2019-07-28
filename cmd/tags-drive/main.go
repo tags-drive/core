@@ -225,76 +225,51 @@ func (app *App) initServices() error {
 	return nil
 }
 
+// Start starts the web server and the background jobs. It block the process (like http.ListenAndServe())
 func (app *App) Start() error {
 	app.printConfig()
 
-	app.logger.Infoln("start")
-
-	shutdowned := make(chan struct{})
-
-	// fatalErr is used when server went down
-	fatalServerErr := make(chan struct{})
-
-	// Goroutine to shutdown services
-	go func() {
-		term := make(chan os.Signal, 1)
-		signal.Notify(term, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-
-		select {
-		case <-term:
-			app.logger.Warnln("interrupt signal")
-		case <-fatalServerErr:
-			// Nothing
-		}
-
-		// Shutdowns. Server must be the first
-
-		app.logger.Debugln("shutdown WebServer")
-		err := app.server.Shutdown()
-		if err != nil {
-			app.logger.Warnf("can't shutdown server gracefully: %s\n", err)
-		}
-
-		app.logger.Debugln("shutdown Auth Service")
-		err = app.authService.Shutdown()
-		if err != nil {
-			app.logger.Warnf("can't shutdown Auth Service gracefully: %s\n", err)
-		}
-
-		app.logger.Debugln("shutdown Share Service")
-		err = app.shareService.Shutdown()
-		if err != nil {
-			app.logger.Warnf("can't shutdown Share Service gracefully: %s\n", err)
-		}
-
-		app.logger.Debugln("shutdown FileStorage")
-		err = app.fileStorage.Shutdown()
-		if err != nil {
-			app.logger.Warnf("can't shutdown FileStorage gracefully: %s\n", err)
-		}
-
-		app.logger.Debugln("shutdown TagStorage")
-		err = app.tagStorage.Shutdown()
-		if err != nil {
-			app.logger.Warnf("can't shutdown TagStorage gracefully: %s\n", err)
-		}
-
-		close(shutdowned)
-	}()
+	app.logger.Infoln("start Tags Drive")
 
 	app.fileStorage.StartBackgroundJobs()
 	app.authService.StartBackgroundJobs()
 
-	if err := app.server.Start(); err != nil {
-		app.logger.Errorf("server error: %s\n", err)
-		close(fatalServerErr)
+	return app.server.Start()
+}
+
+// Shutdown stops all services like Web Server, File Storage and etc. It gracefully stops the Web Server, so app.Start() must return <nil> error.
+func (app *App) Shutdown() {
+	// Server must be the first
+
+	app.logger.Debugln("shutdown Web Server")
+	err := app.server.Shutdown()
+	if err != nil {
+		app.logger.Warnf("can't shutdown Web Server gracefully: %s\n", err)
 	}
 
-	<-shutdowned
+	app.logger.Debugln("shutdown Auth Service")
+	err = app.authService.Shutdown()
+	if err != nil {
+		app.logger.Warnf("can't shutdown Auth Service gracefully: %s\n", err)
+	}
 
-	app.logger.Infoln("stop")
+	app.logger.Debugln("shutdown Share Service")
+	err = app.shareService.Shutdown()
+	if err != nil {
+		app.logger.Warnf("can't shutdown Share Service gracefully: %s\n", err)
+	}
 
-	return nil
+	app.logger.Debugln("shutdown File Storage")
+	err = app.fileStorage.Shutdown()
+	if err != nil {
+		app.logger.Warnf("can't shutdown File Storage gracefully: %s\n", err)
+	}
+
+	app.logger.Debugln("shutdown Tag Storage")
+	err = app.tagStorage.Shutdown()
+	if err != nil {
+		app.logger.Warnf("can't shutdown Tag Storage gracefully: %s\n", err)
+	}
 }
 
 func (app *App) printConfig() {
@@ -331,7 +306,34 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	serverErr := make(chan struct{})
+	shutdowned := make(chan struct{})
+
+	// Goroutine to shutdown services
+	go func() {
+		term := make(chan os.Signal, 1)
+		signal.Notify(term, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+
+		select {
+		case <-term:
+			app.logger.Warnln("got interrupt signal")
+		case <-serverErr:
+			// Nothing
+		}
+
+		// Shutdown also
+		app.Shutdown()
+
+		app.logger.Infoln("Tags Drive is stopped")
+
+		close(shutdowned)
+	}()
+
 	if err := app.Start(); err != nil {
-		log.Fatalln(err)
+		app.logger.Errorf("server error: %s\n", err)
+		app.logger.Warnln("shutdown Tags Drive")
+		close(serverErr)
 	}
+
+	<-shutdowned
 }
