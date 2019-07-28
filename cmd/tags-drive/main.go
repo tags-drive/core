@@ -82,9 +82,9 @@ type App struct {
 func PrepareNewApp() (*App, error) {
 	defer func() {
 		// Reset sensitive env vars
-		os.Setenv("LOGIN", "CLEARED")
-		os.Setenv("PSWRD", "CLEARED")
-		os.Setenv("PASS_PHRASE", "CLEARED")
+		os.Setenv("WEB_LOGIN", "CLEARED")
+		os.Setenv("WEB_PASSWORD", "CLEARED")
+		os.Setenv("STORAGE_PASS_PHRASE", "CLEARED")
 	}()
 
 	var cnf config
