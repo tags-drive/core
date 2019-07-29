@@ -162,9 +162,16 @@ func (s Server) serveData() (handler http.Handler) {
 			}
 		}
 
+		if !s.fileStorage.CheckFile(id) {
+			s.processError(w, "file doesn't exist", http.StatusNotFound)
+			return
+		}
+
 		resized := strings.Contains(url, "resized")
-		// Ignore error.
-		_ = s.fileStorage.CopyFile(w, id, resized)
+		err := s.fileStorage.CopyFile(w, id, resized)
+		if err != nil {
+			s.processError(w, "can't load file: "+err.Error(), http.StatusInternalServerError)
+		}
 	})
 
 	handler = cacheMiddleware(handler, 60*60*24*14) // cache for 14 days
