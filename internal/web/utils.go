@@ -1,22 +1,41 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 )
 
 // processError is a wrapper over http.Error
-func (s Server) processError(w http.ResponseWriter, err string, code int) {
-	if s.config.Debug {
-		s.logger.Errorf("request error: %s (code: %d)\n", err, code)
-	} else {
-		// We should log server errors
-		if 500 <= code && code < 600 {
-			s.logger.Errorf("request error: %s (code: %d)\n", err, code)
+func (s Server) processError(w http.ResponseWriter, err string, code int, reasons ...interface{}) {
+	// Send error at first
+	http.Error(w, err, code)
+
+	msg := fmt.Sprintf("request error: %s (code: %d)", err, code)
+
+	if len(reasons) == 0 {
+		// Log an errors if it's a server error or Debug Mode is enabled.
+		if 500 <= code && code < 600 || s.config.Debug {
+			s.logger.Errorln(msg)
+		}
+		return
+	}
+
+	// We have to build an error message
+	var b strings.Builder
+
+	b.WriteString(msg)
+	b.WriteString(". Reason: ")
+	for i, r := range reasons {
+		b.WriteString(fmt.Sprintf("%+v", r))
+
+		if i < len(reasons)-1 {
+			b.WriteByte(' ')
 		}
 	}
 
-	http.Error(w, err, code)
+	s.logger.Errorln(b.String())
 }
 
 func runPool(n int, data <-chan interface{}, worker func(data <-chan interface{})) {
