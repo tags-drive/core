@@ -1,8 +1,11 @@
 package files
 
 import (
+	"io"
+	"os"
 	"time"
 
+	"errors"
 	"github.com/tags-drive/core/internal/storage/files/aggregation"
 	"github.com/tags-drive/core/internal/storage/files/extensions"
 )
@@ -62,7 +65,7 @@ const (
 	SortBySizeDecs
 )
 
-// storage is an internal storage for files metadata
+// metadataStorage is a storage for the files metadata
 type metadataStorage interface {
 	init() error
 
@@ -115,3 +118,24 @@ type metadataStorage interface {
 
 	shutdown() error
 }
+
+// binaryStorage is a storage for the files themselves
+type binaryStorage interface {
+	// GetFile writes a file into passed io.Writer
+	GetFile(w io.Writer, fileID int, resized bool) error
+
+	GetFileStats(fileID int) (os.FileInfo, error)
+
+	SaveFile(r io.Reader, fileID int, resized bool) error
+
+	DeleteFile(fileID int, resized bool) error
+}
+
+type binaryStorageMock struct{}
+
+var mockError = errors.New("mock storage is used")
+
+func (_ binaryStorageMock) GetFile(w io.Writer, fileID int, resized bool) error  { return mockError }
+func (_ binaryStorageMock) GetFileStats(fileID int) (os.FileInfo, error)         { return nil, mockError }
+func (_ binaryStorageMock) SaveFile(r io.Reader, fileID int, resized bool) error { return mockError }
+func (_ binaryStorageMock) DeleteFile(fileID int, resized bool) error            { return mockError }
