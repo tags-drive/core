@@ -13,6 +13,7 @@ import (
 type Config struct {
 	Debug bool
 
+	VarFolder           string
 	DataFolder          string
 	ResizedImagesFolder string
 	// A file is deleted from the storage and from a disk after this time since user add the file into the Trash

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"io"
 	"mime/multipart"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -50,6 +51,11 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 		binStorage  binaryStorage
 		err         error
 	)
+
+	// Create var folder
+	if err := os.MkdirAll(cnf.VarFolder, 0666); err != nil && !os.IsExist(err) {
+		return nil, errors.Wrapf(err, "can't create var folder '%s'", cnf.VarFolder)
+	}
 
 	// Init metadata storage
 	switch cnf.StorageType {
