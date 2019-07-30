@@ -48,7 +48,7 @@ func (s Server) getFilesSharedByToken(w http.ResponseWriter, r *http.Request) {
 		if err == share.ErrInvalidToken {
 			s.processError(w, "invalid share token", http.StatusBadRequest)
 		} else {
-			s.processError(w, err.Error(), http.StatusInternalServerError)
+			s.processError(w, "can't get shareable files", http.StatusInternalServerError, err)
 		}
 
 		return

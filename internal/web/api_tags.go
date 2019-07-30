@@ -33,9 +33,9 @@ func (s Server) returnTags(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			if err == share.ErrInvalidToken {
 				// Just in case
-				s.processError(w, err.Error(), http.StatusBadRequest)
+				s.processError(w, "invalid share token", http.StatusBadRequest)
 			} else {
-				s.processError(w, err.Error(), http.StatusInternalServerError)
+				s.processError(w, "can't get shareable tags", http.StatusInternalServerError, err)
 			}
 			return
 		}
@@ -101,7 +101,7 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 
 	// Check id
 	if !s.tagStorage.Check(id) {
-		s.processError(w, "tag with id "+tagID+" doesn't exist", http.StatusBadRequest)
+		s.processError(w, "tag doesn't exist", http.StatusBadRequest)
 		return
 	}
 
@@ -111,7 +111,7 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 		// name or color was passed, we should update tag
 		updatedTag, err = s.tagStorage.UpdateTag(id, newName, newColor)
 		if err != nil {
-			s.processError(w, err.Error(), http.StatusInternalServerError)
+			s.processError(w, "can't update tag", http.StatusInternalServerError, err)
 			return
 		}
 	}
@@ -121,7 +121,7 @@ func (s Server) changeTag(w http.ResponseWriter, r *http.Request) {
 		newGroup := values[0]
 		updatedTag, err = s.tagStorage.UpdateGroup(id, newGroup)
 		if err != nil {
-			s.processError(w, err.Error(), http.StatusInternalServerError)
+			s.processError(w, "can't update tag group", http.StatusInternalServerError, err)
 			return
 		}
 	}

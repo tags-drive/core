@@ -29,7 +29,7 @@ func (s Server) index(w http.ResponseWriter, r *http.Request) {
 
 	f, err := os.Open(indexPath)
 	if err != nil {
-		s.processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, "can't load index page", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -45,7 +45,7 @@ func (s Server) index(w http.ResponseWriter, r *http.Request) {
 func (s Server) mobile(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open(mobilePage)
 	if err != nil {
-		s.processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, "can't load mobile page", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -92,7 +92,7 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 
 	f, err := os.Open(loginPath)
 	if err != nil {
-		s.processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, "can't load login page", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -170,7 +170,7 @@ func (s Server) serveData() (handler http.Handler) {
 		resized := strings.Contains(url, "resized")
 		err := s.fileStorage.CopyFile(w, id, resized)
 		if err != nil {
-			s.processError(w, "can't load file: "+err.Error(), http.StatusInternalServerError)
+			s.processError(w, "can't load file", http.StatusInternalServerError, err)
 		}
 	})
 

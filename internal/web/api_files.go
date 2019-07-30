@@ -81,7 +81,7 @@ func (s Server) returnSingleFile(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		s.processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, "can't get file", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -205,13 +205,13 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 
 	files, err := s.fileStorage.Get(cnf)
 	if err != nil {
-		if err == filesPck.ErrOffsetOutOfBounds {
-			w.WriteHeader(http.StatusNoContent)
-			fmt.Fprint(w, err.Error())
-		} else if err == aggregation.ErrBadSyntax {
-			s.processError(w, err.Error(), http.StatusBadRequest)
-		} else {
-			s.processError(w, err.Error(), http.StatusInternalServerError)
+		switch err {
+		case filesPck.ErrOffsetOutOfBounds:
+			s.processError(w, "offset is out of bounds", http.StatusNoContent, err)
+		case aggregation.ErrBadSyntax:
+			s.processError(w, "bad syntax of logical expression", http.StatusBadRequest, err)
+		default:
+			s.processError(w, "can't get files", http.StatusInternalServerError, err)
 		}
 		return
 	}
@@ -291,7 +291,7 @@ func (s Server) downloadFiles(w http.ResponseWriter, r *http.Request) {
 
 	body, err := s.fileStorage.Archive(ids)
 	if err != nil {
-		s.processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, "can't archive files", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -330,9 +330,9 @@ func (s Server) upload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case http.ErrNotMultipart:
-			s.processError(w, err.Error(), http.StatusBadRequest)
+			s.processError(w, "invalid form type", http.StatusBadRequest, err)
 		default:
-			s.processError(w, err.Error(), http.StatusInternalServerError)
+			s.processError(w, "can't parse request form", http.StatusInternalServerError, err)
 		}
 		return
 	}
@@ -462,7 +462,7 @@ func (s Server) changeFilename(w http.ResponseWriter, r *http.Request) {
 	// We can skip checking of invalid characters, because Go will return an error
 	updatedFile, err := s.fileStorage.Rename(id, newName)
 	if err != nil {
-		s.processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, "can't rename file", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -514,7 +514,7 @@ func (s Server) changeFileTags(w http.ResponseWriter, r *http.Request) {
 
 	updatedFile, err := s.fileStorage.ChangeTags(fileID, goodTags)
 	if err != nil {
-		s.processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, "can't change file tags", http.StatusInternalServerError, err)
 		return
 	}
 
@@ -544,7 +544,7 @@ func (s Server) changeFileDescription(w http.ResponseWriter, r *http.Request) {
 
 	updatedFile, err := s.fileStorage.ChangeDescription(id, newDescription)
 	if err != nil {
-		s.processError(w, err.Error(), http.StatusInternalServerError)
+		s.processError(w, "can't change file description", http.StatusInternalServerError, err)
 		return
 	}
 
