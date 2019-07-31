@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"log"
+	"net/http"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"log"
 )
 
 const (
@@ -72,7 +76,28 @@ func runIntegrationTests(t *testing.T) {
 	tests := []struct {
 		description string
 		test        func(*assert.Assertions)
-	}{}
+	}{
+		{
+			description: "create a new tag",
+			test: func(assert *assert.Assertions) {
+				const code = http.StatusOK
+
+				body := marshall(
+					struct {
+						test string
+					}{},
+				)
+
+				r, err := http.NewRequest("POST", host+"/api/tags", body)
+				panicIfNotNil(err)
+
+				resp, err := http.DefaultClient.Do(r)
+				panicIfNotNil(err)
+
+				assert.Equal(code, resp.StatusCode)
+			},
+		},
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
@@ -84,6 +109,22 @@ func runIntegrationTests(t *testing.T) {
 	time.Sleep(time.Second * 2)
 }
 
+// marshall encode v as json. It panics if an error occurres
+func marshall(v interface{}) io.Reader {
+	b := &bytes.Buffer{}
+
+	err := json.NewEncoder(b).Encode(v)
+	panicIfNotNil(err)
+
+	return b
+}
+
+func panicIfNotNil(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 // clear removes the test folder and all subfolders ("./test/var/*").
 // Current directory must be 'testFolder'!
 func clear() {
@@ -91,44 +132,39 @@ func clear() {
 }
 
 func TestTagsDrive(t *testing.T) {
-	// Example of a substest:
-	//
-	// defer clear()
-	//
-	// assert := assert.New(t)
-	//
-	// // Setup envs
-	// envs := getCommonEnvVars()
-	// envs["key"] = "value"
-	// ...
-	// for k, v := range envs {
-	//     os.Setenv(k, v)
-	// }
-	//
-	// app := prepareAppInstance(assert)
-	//
-	// // Start the app and check an error after shutdown
-	// serverChecked := make(chan struct{})
-	// go func() {
-	//    if err := app.Start(); err != nil {
-	//       assert.FailNow("app.Start finished with non-nil error:", err)
-	//    }
-	//
-	// close(serverChecked)
-	// }()
-	//
-	// // Run tests
-	// runIntegrationTests(t)
-	//
-	// // Shutdown
-	// app.Shutdown()
-	//
-	// // Wait for server shutdown
-	// <-serverChecked
-	//
-
 	t.Run("First launch (no 'var' folder)", func(t *testing.T) {
-		// TODO
+		defer clear()
+
+		assert := assert.New(t)
+
+		// Setup envs
+		envs := getCommonEnvVars()
+		envs["STORAGE_ENCRYPT"] = "false"
+		for k, v := range envs {
+			os.Setenv(k, v)
+		}
+
+		app := prepareAppInstance(assert)
+
+		// Start the app and check an error after shutdown
+		serverChecked := make(chan struct{})
+		go func() {
+			if err := app.Start(); err != nil {
+				assert.FailNow("app.Start finished with non-nil error:", err)
+			}
+
+			close(serverChecked)
+		}()
+
+		// Run tests
+		runIntegrationTests(t)
+
+		// Shutdown
+		app.Shutdown()
+
+		// Wait for server shutdown
+		<-serverChecked
+
 	})
 
 	t.Run("Restart ('var' folder exists)", func(t *testing.T) {
