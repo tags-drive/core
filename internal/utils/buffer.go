@@ -64,9 +64,8 @@ func (b *Buffer) Write(data []byte) (n int, err error) {
 
 		b.useFile = true
 
-		// Create a file
-
-		b.filename = GenerateRandomString(tempFileNameLength) + ".tmp"
+		// Create a file in TempDir
+		b.filename = os.TempDir() + "/" + GenerateRandomString(tempFileNameLength) + ".tmp"
 		b.file, err = os.Create(b.filename)
 		if err != nil {
 			return n, errors.Wrap(err, "can't create a temp file")
