@@ -1,5 +1,8 @@
 # Tags Drive (Core)
 
+[
+  ![The latest release](https://img.shields.io/github/release/tags-drive/core.svg?style=flat-square&label=The%20latest%20release)
+](https://github.com/tags-drive/core/releases/latest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/tags-drive/core)](https://goreportcard.com/report/github.com/tags-drive/core)
 
 This repository contains the backend part of **Tags Drive**
