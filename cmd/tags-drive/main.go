@@ -40,13 +40,13 @@ type config struct {
 	}
 
 	Storage struct {
-		// TODO
-		StorageType string `envconfig:"STORAGE_TYPE" default:"json"`
+		// Valid options: json. Ignore now. Can be used in future
+		MetadataStorageType string `envconfig:"IGNORE_STORAGE_METADATA_TYPE" default:"json"`
 
 		Encrypt          bool   `envconfig:"STORAGE_ENCRYPT" default:"false"`
 		PassPhraseString string `envconfig:"STORAGE_PASS_PHRASE"`
 		// PassPhrase is a sha256 of PassPhraseString
-		PassPhrase [32]byte
+		PassPhrase [32]byte `ignored:"true"`
 
 		TimeBeforeDeleting time.Duration `envconfig:"STORAGE_TIME_BEFORE_DELETING" default:"168h"` // default is 168h = 7 days
 	}
@@ -148,7 +148,7 @@ func (app *App) ConfigureServices() error {
 		VarFolder:           VarFolder,
 		DataFolder:          DataFolder,
 		ResizedImagesFolder: ResizedImagesFolder,
-		StorageType:         app.config.Storage.StorageType,
+		MetadataStorageType: app.config.Storage.MetadataStorageType,
 		FilesJSONFile:       FilesJSONFile,
 		Encrypt:             app.config.Storage.Encrypt,
 		PassPhrase:          app.config.Storage.PassPhrase,
@@ -161,11 +161,11 @@ func (app *App) ConfigureServices() error {
 
 	// Tag storage
 	tagStorageConfig := tags.Config{
-		Debug:        app.config.Debug,
-		StorageType:  app.config.Storage.StorageType,
-		TagsJSONFile: TagsJSONFile,
-		Encrypt:      app.config.Storage.Encrypt,
-		PassPhrase:   app.config.Storage.PassPhrase,
+		Debug:               app.config.Debug,
+		MetadataStorageType: app.config.Storage.MetadataStorageType,
+		TagsJSONFile:        TagsJSONFile,
+		Encrypt:             app.config.Storage.Encrypt,
+		PassPhrase:          app.config.Storage.PassPhrase,
 	}
 	app.tagStorage, err = tags.NewTagStorage(tagStorageConfig, app.logger)
 	if err != nil {
@@ -281,7 +281,7 @@ func (app *App) PrintConfig() {
 		{"Login", app.config.Web.Login},
 		{"SkipLogin", app.config.Web.SkipLogin},
 		//
-		{"StorageType", app.config.Storage.StorageType},
+		{"MetadataStorageType", app.config.Storage.MetadataStorageType},
 		{"Encrypt", app.config.Storage.Encrypt},
 	}
 

@@ -19,8 +19,8 @@ type Config struct {
 	// A file is deleted from the storage and from a disk after this time since user add the file into the Trash
 	TimeBeforeDeleting time.Duration
 
-	StorageType   string
-	FilesJSONFile string
+	MetadataStorageType string
+	FilesJSONFile       string
 
 	Encrypt    bool
 	PassPhrase [32]byte

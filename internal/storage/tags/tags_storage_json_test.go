@@ -12,10 +12,10 @@ const testFile = "./tags.json"
 
 func newReadyStorage() (*jsonTagStorage, error) {
 	cnf := Config{
-		Debug:        false,
-		StorageType:  "json",
-		TagsJSONFile: testFile,
-		Encrypt:      false,
+		Debug:               false,
+		MetadataStorageType: "json",
+		TagsJSONFile:        testFile,
+		Encrypt:             false,
 		// PassPhrase:   sha256.Sum256([]byte("sha256")),
 	}
 
@@ -28,10 +28,10 @@ func newReadyStorage() (*jsonTagStorage, error) {
 func TestInit(t *testing.T) {
 	assert := assert.New(t)
 	cnf := Config{
-		Debug:        false,
-		StorageType:  "json",
-		TagsJSONFile: testFile,
-		Encrypt:      false,
+		Debug:               false,
+		MetadataStorageType: "json",
+		TagsJSONFile:        testFile,
+		Encrypt:             false,
 		// PassPhrase:   sha256.Sum256([]byte("sha256")),
 	}
 

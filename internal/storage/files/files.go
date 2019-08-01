@@ -58,7 +58,7 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	}
 
 	// Init metadata storage
-	switch cnf.StorageType {
+	switch cnf.MetadataStorageType {
 	case "json":
 		fallthrough
 	default:

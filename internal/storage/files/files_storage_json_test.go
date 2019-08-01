@@ -835,7 +835,7 @@ func newStorage() *jsonFileStorage {
 		Debug:               false,
 		DataFolder:          "./data",
 		ResizedImagesFolder: "./data/resizing",
-		StorageType:         "json",
+		MetadataStorageType: "json",
 		FilesJSONFile:       "files.json",
 		Encrypt:             true,
 		PassPhrase:          sha256.Sum256([]byte("sha256")),

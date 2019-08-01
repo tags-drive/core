@@ -42,7 +42,7 @@ type TagStorage struct {
 func NewTagStorage(cnf Config, lg *clog.Logger) (*TagStorage, error) {
 	var st internalStorage
 
-	switch cnf.StorageType {
+	switch cnf.MetadataStorageType {
 	case "json":
 		fallthrough
 	default:

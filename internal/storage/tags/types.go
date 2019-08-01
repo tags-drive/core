@@ -3,8 +3,8 @@ package tags
 type Config struct {
 	Debug bool
 
-	StorageType  string
-	TagsJSONFile string
+	MetadataStorageType string
+	TagsJSONFile        string
 
 	Encrypt    bool
 	PassPhrase [32]byte
