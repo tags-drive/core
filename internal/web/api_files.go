@@ -32,20 +32,6 @@ type multiplyResponse struct {
 	Status   string `json:"status"` // Status isn't empty when IsError == false
 }
 
-func getParam(defaultVal, passedVal string, validOptions ...string) (s string) {
-	s = defaultVal
-	if passedVal == defaultVal {
-		return
-	}
-	for _, opt := range validOptions {
-		if passedVal == opt {
-			return passedVal
-		}
-	}
-
-	return
-}
-
 // GET /api/file/{id}
 //
 // Params:
@@ -115,88 +101,64 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var (
-		expr     = r.FormValue("expr")
-		search   = r.FormValue("search")
-		isRegexp = r.FormValue("regexp") != ""
-		sortMode = filesPck.SortByNameAsc
-		order    = getParam("asc", r.FormValue("order"), "asc", "desc")
-		offset   = 0
-		count    = 0
-	)
+	getSortMode := func(sortType, sortOrder string) filesPck.FilesSortMode {
+		// Set default values if needed
+		sortType = getParam(sortType, "name", []string{"name", "size", "time"})
+		sortOrder = getParam(sortOrder, "asc", []string{"asc", "desc"})
+
+		switch sortType {
+		case "name":
+			if sortOrder == "asc" {
+				return filesPck.SortByNameAsc
+			}
+			return filesPck.SortByNameDesc
+		case "size":
+			if sortOrder == "asc" {
+				return filesPck.SortBySizeAsc
+			}
+			return filesPck.SortBySizeDecs
+		case "time":
+			if sortOrder == "asc" {
+				return filesPck.SortByTimeAsc
+			}
+			return filesPck.SortByTimeDesc
+		default:
+			return filesPck.SortByNameAsc
+		}
+	}
+
+	customAtoi := func(value string, defaultValue int) int {
+		if value == "" {
+			return defaultValue
+		}
+
+		n, err := strconv.Atoi(value)
+		if err != nil || n < 0 {
+			return defaultValue
+		}
+
+		return n
+	}
+
+	cnf := filesPck.GetFilesConfig{
+		Expr:     r.FormValue("expr"),
+		Search:   r.FormValue("search"),
+		IsRegexp: r.FormValue("regexp") != "",
+		SortMode: getSortMode(r.FormValue("sort"), r.FormValue("order")),
+		Offset:   customAtoi(r.FormValue("offset"), 0),
+		Count:    customAtoi(r.FormValue("count"), 0),
+		Filter:   nil,
+	}
 
 	// Check if a regexp is valid
-	if isRegexp {
-		_, err := regexp.Compile(search)
-		if err != nil {
+	if cnf.IsRegexp {
+		if _, err := regexp.Compile(cnf.Search); err != nil {
 			s.processError(w, "invalid regular expression", http.StatusBadRequest)
 			return
 		}
 	}
 
-	// Get offset
-	offset = func() int {
-		param := r.FormValue("offset")
-		if param == "" {
-			return 0
-		}
-
-		r, err := strconv.Atoi(param)
-		if err != nil || r < 0 {
-			return 0
-		}
-
-		return r
-	}()
-
-	// Get offset
-	count = func() int {
-		param := r.FormValue("count")
-		if param == "" {
-			return 0
-		}
-
-		r, err := strconv.Atoi(param)
-		if err != nil || r < 0 {
-			return 0
-		}
-
-		return r
-	}()
-
-	// Set sortMode
-	// Can skip default
-	switch r.FormValue("sort") {
-	case "name":
-		if order == "asc" {
-			sortMode = filesPck.SortByNameAsc
-		} else {
-			sortMode = filesPck.SortByNameDesc
-		}
-	case "size":
-		if order == "asc" {
-			sortMode = filesPck.SortBySizeAsc
-		} else {
-			sortMode = filesPck.SortBySizeDecs
-		}
-	case "time":
-		if order == "asc" {
-			sortMode = filesPck.SortByTimeAsc
-		} else {
-			sortMode = filesPck.SortByTimeDesc
-		}
-	}
-
-	cnf := filesPck.GetFilesConfig{
-		Expr:     expr,
-		SortMode: sortMode,
-		Search:   search,
-		IsRegexp: isRegexp,
-		Offset:   offset,
-		Count:    count,
-		Filter:   nil,
-	}
-
+	// Add a filter if needed
 	if state.shareAccess {
 		cnf.Filter = filesPck.FilterFilesFunction(func(files []filesPck.File) ([]filesPck.File, error) {
 			return s.shareService.FilterFiles(state.shareToken, files)
@@ -223,6 +185,16 @@ func (s Server) returnFiles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc.Encode(files)
+}
+
+func getParam(passedVal, defaultVal string, validOptions []string) string {
+	for _, opt := range validOptions {
+		if passedVal == opt {
+			return passedVal
+		}
+	}
+
+	return defaultVal
 }
 
 // GET /api/files/recent
