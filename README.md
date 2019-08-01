@@ -31,18 +31,24 @@ This repository contains the backend part of **Tags Drive**
 
 ### Environment variables
 
-| Variable                     | Default | Description                                                          |
-| ---------------------------- | ------- | -------------------------------------------------------------------- |
-| DEBUG                        | false   |                                                                      |
-| WEB_PORT                     | 80      | Port for http server                                                 |
-| WEB_TLS                      | true    | Enable HTTPS                                                         |
-| WEB_LOGIN                    | user    | Set your login                                                       |
-| WEB_PASSWORD                 | qwerty  | Set your password                                                    |
-| WEB_SKIP_LOGIN               | false   | Skip the log-in procedure                                            |
-| WEB_MAX_TOKEN_LIFE           | 1440h   | The max lifetime of a token (default lifetime is 60 days)            |
-| STORAGE_ENCRYPT              | false   | Encrypt uploaded files                                               |
-| STORAGE_PASS_PHRASE          | ""      | A phrase for file encryption. Cannot be empty if `ENCRYPT == true`   |
-| STORAGE_TIME_BEFORE_DELETING | 168h    | Time before deleting a file from the Trash (default delay is 7 days) |
+| Variable                     | Default | Description                                                             |
+| ---------------------------- | ------- | ----------------------------------------------------------------------- |
+| DEBUG                        | false   |                                                                         |
+| WEB_PORT                     | 80      | Port for http server                                                    |
+| WEB_TLS                      | true    | Enable HTTPS                                                            |
+| WEB_LOGIN                    | user    | Set your login                                                          |
+| WEB_PASSWORD                 | qwerty  | Set your password                                                       |
+| WEB_SKIP_LOGIN               | false   | Skip the log-in procedure                                               |
+| WEB_MAX_TOKEN_LIFE           | 1440h   | The max lifetime of a token (default lifetime is 60 days)               |
+| STORAGE_ENCRYPT              | false   | Encrypt uploaded files                                                  |
+| STORAGE_PASS_PHRASE          | ""      | A phrase for file encryption. Cannot be empty if `ENCRYPT == true`      |
+| STORAGE_TIME_BEFORE_DELETING | 168h    | Time before deleting a file from the Trash (default delay is 7 days)    |
+| STORAGE_FILES_TYPE           | disk    | Define the kind of File Storage. The available options are `disk`, `s3` |
+| STORAGE_S3_ENDPOINT          | ""      | URL to object storage service                                           |
+| STORAGE_S3_ACCESS_KEY_ID     | ""      | The user ID that uniquely identifies the account                        |
+| STORAGE_S3_SECRET_ACCESS_KEY | ""      | Password to the account                                                 |
+| STORAGE_S3_SECURE            | false   | Enable secure (HTTPS) access                                            |
+| STORAGE_S3_BUCKET_LOCATION   | ""      | S3 bucket location (can be empty)                                       |
 
 ## Development
 

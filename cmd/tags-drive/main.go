@@ -40,15 +40,26 @@ type config struct {
 	}
 
 	Storage struct {
-		// Valid options: json. Ignore now. Can be used in future
-		MetadataStorageType string `envconfig:"IGNORE_STORAGE_METADATA_TYPE" default:"json"`
-
 		Encrypt          bool   `envconfig:"STORAGE_ENCRYPT" default:"false"`
 		PassPhraseString string `envconfig:"STORAGE_PASS_PHRASE"`
 		// PassPhrase is a sha256 of PassPhraseString
 		PassPhrase [32]byte `ignored:"true"`
 
 		TimeBeforeDeleting time.Duration `envconfig:"STORAGE_TIME_BEFORE_DELETING" default:"168h"` // default is 168h = 7 days
+
+		// Valid options: json. Ignore now. Can be used in future
+		MetadataStorageType string `envconfig:"IGNORE_STORAGE_METADATA_TYPE" default:"json"`
+
+		// Valid options: disk, s3
+		FileStorageType string `envconfig:"STORAGE_FILES_TYPE" default:"disk"`
+
+		S3 struct {
+			Endpoint        string `envconfig:"STORAGE_S3_ENDPOINT"`
+			AccessKeyID     string `envconfig:"STORAGE_S3_ACCESS_KEY_ID"`
+			SecretAccessKey string `envconfig:"STORAGE_S3_SECRET_ACCESS_KEY"`
+			Secure          bool   `envconfig:"STORAGE_S3_SECURE" default:"false"`
+			BucketLocation  string `envconfig:"STORAGE_S3_BUCKET_LOCATION"`
+		}
 	}
 }
 
