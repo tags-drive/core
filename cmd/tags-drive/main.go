@@ -65,12 +65,17 @@ type config struct {
 
 // We use const vars for paths because the app is run in Docker container
 const (
+	// Storage
+
 	// VarFolder is the main folder. All files are kept here.
 	// DatFolder and ResizedImagesFolder must be subfolders of this directory.
 	VarFolder           = "./var"
 	DataFolder          = "./var/data"
 	ResizedImagesFolder = "./var/data/resized"
 	//
+	DataBucket          = "var-data"
+	ResizedImagesBucket = "var-data-resized"
+
 	FilesJSONFile       = "./var/files.json"        // for files
 	TagsJSONFile        = "./var/tags.json"         // for tags
 	AuthTokensJSONFile  = "./var/auth_tokens.json"  // for auth tokens
