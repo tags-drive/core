@@ -13,17 +13,40 @@ import (
 type Config struct {
 	Debug bool
 
-	VarFolder           string
-	DataFolder          string
-	ResizedImagesFolder string
+	// Common
+
+	VarFolder  string
+	Encrypt    bool
+	PassPhrase [32]byte
 	// A file is deleted from the storage and from a disk after this time since user add the file into the Trash
 	TimeBeforeDeleting time.Duration
+
+	// Metadata storage
 
 	MetadataStorageType string
 	FilesJSONFile       string
 
-	Encrypt    bool
-	PassPhrase [32]byte
+	// Binary Storage
+
+	FileStorageType string
+	DiskStorage     Config_DiskStorage
+	S3Storage       Config_S3Storage
+}
+
+type Config_DiskStorage struct {
+	DataFolder          string
+	ResizedImagesFolder string
+}
+
+type Config_S3Storage struct {
+	Endpoint        string
+	AccessKeyID     string
+	SecretAccessKey string
+	Secure          bool
+	BucketLocation  string
+
+	DataBucket          string
+	ResizedImagesBucket string
 }
 
 type FilterFilesFunction func([]File) ([]File, error)

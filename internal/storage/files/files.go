@@ -74,8 +74,8 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	switch {
 	default:
 		binStorage, err = bs.NewDiskStorage(bs.DiskStorageConfig{
-			DataFolder:          cnf.DataFolder,
-			ResizedImagesFolder: cnf.ResizedImagesFolder,
+			DataFolder:          cnf.DiskStorage.DataFolder,
+			ResizedImagesFolder: cnf.DiskStorage.ResizedImagesFolder,
 			Encrypt:             cnf.Encrypt,
 			PassPhrase:          cnf.PassPhrase,
 		})

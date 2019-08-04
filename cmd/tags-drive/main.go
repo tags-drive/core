@@ -160,15 +160,27 @@ func (app *App) ConfigureServices() error {
 
 	// File storage
 	fileStorageConfig := files.Config{
-		Debug:               app.config.Debug,
-		VarFolder:           VarFolder,
-		DataFolder:          DataFolder,
-		ResizedImagesFolder: ResizedImagesFolder,
+		Debug:              app.config.Debug,
+		VarFolder:          VarFolder,
+		Encrypt:            app.config.Storage.Encrypt,
+		PassPhrase:         app.config.Storage.PassPhrase,
+		TimeBeforeDeleting: app.config.Storage.TimeBeforeDeleting,
+		// Binary Storage
+		FileStorageType: app.config.Storage.FileStorageType,
+		DiskStorage: files.Config_DiskStorage{
+			DataFolder:          DataFolder,
+			ResizedImagesFolder: ResizedImagesFolder,
+		},
+		S3Storage: files.Config_S3Storage{
+			Endpoint:            app.config.Storage.S3.Endpoint,
+			AccessKeyID:         app.config.Storage.S3.AccessKeyID,
+			SecretAccessKey:     app.config.Storage.S3.SecretAccessKey,
+			DataBucket:          DataBucket,
+			ResizedImagesBucket: ResizedImagesBucket,
+		},
+		// Metadata Storage
 		MetadataStorageType: app.config.Storage.MetadataStorageType,
 		FilesJSONFile:       FilesJSONFile,
-		Encrypt:             app.config.Storage.Encrypt,
-		PassPhrase:          app.config.Storage.PassPhrase,
-		TimeBeforeDeleting:  app.config.Storage.TimeBeforeDeleting,
 	}
 	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, app.logger)
 	if err != nil {
