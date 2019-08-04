@@ -45,7 +45,7 @@ func TestDiskStorage_SaveFile(t *testing.T) {
 			copy(cp, original)
 
 			buff := bytes.NewBuffer(cp)
-			storage.SaveFile(buff, id, false)
+			storage.SaveFile(buff, id, buffSize, false)
 
 			path := dataFolder + "/" + strconv.Itoa(id)
 			assert.True(checkFile(path, original, false, nil), "files are not equal")
@@ -57,7 +57,7 @@ func TestDiskStorage_SaveFile(t *testing.T) {
 			copy(cp, original)
 
 			buff := bytes.NewBuffer(cp)
-			storage.SaveFile(buff, id, true)
+			storage.SaveFile(buff, id, buffSize, true)
 
 			path := resizedImagesFolder + "/" + strconv.Itoa(id)
 			assert.True(checkFile(path, original, false, nil), "files are not equal")
@@ -89,7 +89,7 @@ func TestDiskStorage_SaveFile(t *testing.T) {
 			copy(cp, original)
 
 			buff := bytes.NewBuffer(cp)
-			storage.SaveFile(buff, id, false)
+			storage.SaveFile(buff, id, buffSize, false)
 
 			path := dataFolder + "/" + strconv.Itoa(id)
 			assert.True(checkFile(path, original, true, cnf.PassPhrase[:]), "files are not equal")
@@ -101,7 +101,7 @@ func TestDiskStorage_SaveFile(t *testing.T) {
 			copy(cp, original)
 
 			buff := bytes.NewBuffer(cp)
-			storage.SaveFile(buff, id, true)
+			storage.SaveFile(buff, id, buffSize, true)
 
 			path := resizedImagesFolder + "/" + strconv.Itoa(id)
 			assert.True(checkFile(path, original, true, cnf.PassPhrase[:]), "files are not equal")
@@ -136,7 +136,7 @@ func TestDiskStorage_GetFile(t *testing.T) {
 			copy(cp, tt.data)
 
 			buff := bytes.NewBuffer(cp)
-			err := storage.SaveFile(buff, tt.id, tt.resized)
+			err := storage.SaveFile(buff, tt.id, int64(len(tt.data)), tt.resized)
 			if !assert.Nilf(err, "Test #%d: can't create a file", i) {
 				assert.FailNow("can't create a file. Fail now")
 			}
@@ -234,7 +234,7 @@ func TestDiskStorage_DeleteFile(t *testing.T) {
 		copy(cp, tt.data)
 
 		buff := bytes.NewBuffer(cp)
-		err := storage.SaveFile(buff, tt.id, tt.resized)
+		err := storage.SaveFile(buff, tt.id, int64(len(tt.data)), tt.resized)
 		if !assert.Nilf(err, "Test #%d: can't create a file", i) {
 			assert.FailNow("can't create a file. Fail now")
 		}
