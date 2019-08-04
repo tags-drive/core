@@ -127,7 +127,7 @@ type binaryStorage interface {
 
 	GetFileStats(fileID int) (os.FileInfo, error)
 
-	SaveFile(r io.Reader, fileID int, resized bool) error
+	SaveFile(r io.Reader, fileID int, fileSize int64, resized bool) error
 
 	DeleteFile(fileID int, resized bool) error
 }

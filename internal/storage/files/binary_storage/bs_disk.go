@@ -82,7 +82,7 @@ func (ds DiskStorage) GetFileStats(fileID int) (os.FileInfo, error) {
 	return stats, err
 }
 
-func (ds DiskStorage) SaveFile(r io.Reader, fileID int, resized bool) error {
+func (ds DiskStorage) SaveFile(r io.Reader, fileID int, fileSize int64, resized bool) error {
 	path := ds.getFilePath(fileID, resized)
 
 	f, err := os.Create(path)

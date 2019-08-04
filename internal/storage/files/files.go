@@ -251,7 +251,7 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 		fileReader := io.TeeReader(file, imageReader)
 
 		// Save an original image
-		err = fs.binStorage.SaveFile(fileReader, newFileID, false)
+		err = fs.binStorage.SaveFile(fileReader, newFileID, f.Size, false)
 		if err != nil {
 			// Panic will be recovered
 			panic(err)
@@ -273,13 +273,16 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 			fs.logger.Errorf("can't encode a resized image %s: %s\n", f.Filename, err)
 			break
 		}
-		fs.binStorage.SaveFile(r, newFileID, true)
+
+		var size int64
+		r, size = utils.GetReaderSize(r)
+		fs.binStorage.SaveFile(r, newFileID, size, true)
 		if err != nil {
 			fs.logger.Errorf("can't save a resized image %s: %s\n", f.Filename, err)
 		}
 	default:
 		// Save a file
-		err = fs.binStorage.SaveFile(file, newFileID, false)
+		err = fs.binStorage.SaveFile(file, newFileID, f.Size, false)
 		if err != nil {
 			// Panic will be recovered
 			panic(err)
