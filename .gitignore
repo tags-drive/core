@@ -1,7 +1,8 @@
 # IDEs
 .vscode/
 # Folders
-var/**
+# Ingore folders with "var" prefix
+var*/**
 ssl/**
 web/**
 # Ignore files with prefix "tmp-"
