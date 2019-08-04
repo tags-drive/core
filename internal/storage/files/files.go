@@ -71,7 +71,22 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	// Init binary storage
 	//
 	// Switch if for future use
-	switch {
+	switch cnf.FileStorageType {
+	case "s3":
+		binStorage, err = bs.NewS3Storage(bs.S3StorageConfig{
+			Endpoint:            cnf.S3Storage.Endpoint,
+			AccessKeyID:         cnf.S3Storage.AccessKeyID,
+			SecretAccessKey:     cnf.S3Storage.SecretAccessKey,
+			Secure:              cnf.S3Storage.Secure,
+			BucketLocation:      cnf.S3Storage.BucketLocation,
+			DataBucket:          cnf.S3Storage.DataBucket,
+			ResizedImagesBucket: cnf.S3Storage.ResizedImagesBucket,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "can't init a new S3Storage")
+		}
+	case "disk":
+		fallthrough
 	default:
 		binStorage, err = bs.NewDiskStorage(bs.DiskStorageConfig{
 			DataFolder:          cnf.DiskStorage.DataFolder,
