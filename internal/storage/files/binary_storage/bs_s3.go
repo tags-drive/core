@@ -39,6 +39,10 @@ func NewS3Storage(cnf S3StorageConfig) (*S3Storage, error) {
 		return nil, errors.Wrap(err, "can't init connection with an S3 storage")
 	}
 
+	if err := ping(storage.client); err != nil {
+		return nil, errors.Wrap(err, "S3 Storage is unavailable")
+	}
+
 	// Create buckets if needed
 
 	if exist, err := storage.client.BucketExists(cnf.DataBucket); !exist || err != nil {
@@ -58,6 +62,15 @@ func NewS3Storage(cnf S3StorageConfig) (*S3Storage, error) {
 	}
 
 	return storage, nil
+}
+
+func ping(client *minio.Client) error {
+	// There are no other ways to ping any S3 Storage
+	defMaxRetry := minio.MaxRetry
+	minio.MaxRetry = 1
+	_, err := client.ListBuckets()
+	minio.MaxRetry = defMaxRetry
+	return err
 }
 
 func (s3 S3Storage) GetFile(w io.Writer, fileID int, resized bool) error {
