@@ -3,7 +3,6 @@ package files
 import (
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -240,11 +239,6 @@ func (jfs *jsonFileStorage) addFile(filename string, fileType extensions.Ext, ta
 	jfs.maxID++
 	fileID = jfs.maxID
 	fileInfo.ID = fileID
-
-	fileInfo.Origin = originURLPrefix + strconv.Itoa(fileID)
-	if fileType.FileType == extensions.FileTypeImage {
-		fileInfo.Preview = previewURLPrefix + strconv.Itoa(fileID)
-	}
 
 	jfs.files[jfs.maxID] = fileInfo
 
