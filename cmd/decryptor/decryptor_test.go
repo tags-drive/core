@@ -1,4 +1,4 @@
-package main
+package decryptor
 
 import (
 	"crypto/sha256"

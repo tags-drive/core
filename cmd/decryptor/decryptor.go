@@ -1,4 +1,4 @@
-package main
+package decryptor
 
 import (
 	"bytes"
@@ -156,7 +156,7 @@ func (a *app) decryptAndSaveFile(encryptedFilePath, decryptedFilePath string) er
 	return errors.Wrap(err, "can't decrypt file")
 }
 
-func main() {
+func StartDecryptor() <-chan struct{} {
 	app, err := newApp()
 	if err != nil {
 		log.Fatalln(err)
@@ -171,4 +171,8 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	done := make(chan struct{})
+	close(done)
+	return done
 }
