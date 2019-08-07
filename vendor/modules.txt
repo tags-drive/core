@@ -8,6 +8,8 @@ github.com/disintegration/imaging
 github.com/fatih/color
 # github.com/fvbommel/util v0.0.0-20180919145318-efcd4e0f9787
 github.com/fvbommel/util/sortorder
+# github.com/go-ini/ini v1.44.0
+github.com/go-ini/ini
 # github.com/gorilla/mux v1.7.3
 github.com/gorilla/mux
 # github.com/jessevdk/go-flags v1.4.0
@@ -20,8 +22,17 @@ github.com/kelseyhightower/envconfig
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.8
 github.com/mattn/go-isatty
+# github.com/minio/minio-go v6.0.14+incompatible
+github.com/minio/minio-go
+github.com/minio/minio-go/pkg/credentials
+github.com/minio/minio-go/pkg/encrypt
+github.com/minio/minio-go/pkg/s3signer
+github.com/minio/minio-go/pkg/s3utils
+github.com/minio/minio-go/pkg/set
 # github.com/minio/sio v0.2.0
 github.com/minio/sio
+# github.com/mitchellh/go-homedir v1.1.0
+github.com/mitchellh/go-homedir
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
@@ -37,11 +48,22 @@ golang.org/x/crypto/chacha20poly1305
 golang.org/x/crypto/internal/chacha20
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/poly1305
+golang.org/x/crypto/argon2
+golang.org/x/crypto/blake2b
 # golang.org/x/image v0.0.0-20190622003408-7e034cad6442
 golang.org/x/image/bmp
 golang.org/x/image/tiff
 golang.org/x/image/ccitt
 golang.org/x/image/tiff/lzw
+# golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
+golang.org/x/net/http/httpguts
+golang.org/x/net/publicsuffix
+golang.org/x/net/idna
 # golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
+# golang.org/x/text v0.3.0
+golang.org/x/text/secure/bidirule
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
+golang.org/x/text/transform

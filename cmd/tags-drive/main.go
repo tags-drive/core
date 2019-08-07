@@ -40,34 +40,52 @@ type config struct {
 	}
 
 	Storage struct {
-		// Valid options: json. Ignore now. Can be used in future
-		MetadataStorageType string `envconfig:"IGNORE_STORAGE_METADATA_TYPE" default:"json"`
-
 		Encrypt          bool   `envconfig:"STORAGE_ENCRYPT" default:"false"`
 		PassPhraseString string `envconfig:"STORAGE_PASS_PHRASE"`
 		// PassPhrase is a sha256 of PassPhraseString
 		PassPhrase [32]byte `ignored:"true"`
 
 		TimeBeforeDeleting time.Duration `envconfig:"STORAGE_TIME_BEFORE_DELETING" default:"168h"` // default is 168h = 7 days
+
+		// Valid options: json. Ignore now. Can be used in future
+		MetadataStorageType string `envconfig:"IGNORE_STORAGE_METADATA_TYPE" default:"json"`
+
+		// Valid options: disk, s3
+		FileStorageType string `envconfig:"STORAGE_FILES_TYPE" default:"disk"`
+
+		S3 struct {
+			Endpoint        string `envconfig:"STORAGE_S3_ENDPOINT"`
+			AccessKeyID     string `envconfig:"STORAGE_S3_ACCESS_KEY_ID"`
+			SecretAccessKey string `envconfig:"STORAGE_S3_SECRET_ACCESS_KEY"`
+			Secure          bool   `envconfig:"STORAGE_S3_SECURE" default:"false"`
+			BucketLocation  string `envconfig:"STORAGE_S3_BUCKET_LOCATION"`
+		}
 	}
 }
 
 // We use const vars for paths because the app is run in Docker container
 const (
+	// Web
+
+	// AuthCookieName is a name of cookie that contains token
+	AuthCookieName = "auth"
+
+	// Storage
+
 	// VarFolder is the main folder. All files are kept here.
 	// DatFolder and ResizedImagesFolder must be subfolders of this directory.
 	VarFolder           = "./var"
 	DataFolder          = "./var/data"
 	ResizedImagesFolder = "./var/data/resized"
 	//
+	DataBucket          = "var-data"
+	ResizedImagesBucket = "var-data-resized"
+
 	FilesJSONFile       = "./var/files.json"        // for files
 	TagsJSONFile        = "./var/tags.json"         // for tags
 	AuthTokensJSONFile  = "./var/auth_tokens.json"  // for auth tokens
 	ShareTokensJSONFile = "./var/share_tokens.json" // for share tokens
 )
-
-// AuthCookieName is a name of cookie that contains token
-const AuthCookieName = "auth"
 
 type App struct {
 	config config
@@ -121,9 +139,9 @@ func PrepareNewApp() (*App, error) {
 	return &App{config: cnf}, nil
 }
 
-const encryptRepeats = 11
-
 func encryptPassword(s string) string {
+	const encryptRepeats = 11
+
 	hash := sha256.Sum256([]byte(s))
 
 	for i := 1; i < encryptRepeats; i++ {
@@ -144,15 +162,27 @@ func (app *App) ConfigureServices() error {
 
 	// File storage
 	fileStorageConfig := files.Config{
-		Debug:               app.config.Debug,
-		VarFolder:           VarFolder,
-		DataFolder:          DataFolder,
-		ResizedImagesFolder: ResizedImagesFolder,
+		Debug:              app.config.Debug,
+		VarFolder:          VarFolder,
+		Encrypt:            app.config.Storage.Encrypt,
+		PassPhrase:         app.config.Storage.PassPhrase,
+		TimeBeforeDeleting: app.config.Storage.TimeBeforeDeleting,
+		// Binary Storage
+		FileStorageType: app.config.Storage.FileStorageType,
+		DiskStorage: files.Config_DiskStorage{
+			DataFolder:          DataFolder,
+			ResizedImagesFolder: ResizedImagesFolder,
+		},
+		S3Storage: files.Config_S3Storage{
+			Endpoint:            app.config.Storage.S3.Endpoint,
+			AccessKeyID:         app.config.Storage.S3.AccessKeyID,
+			SecretAccessKey:     app.config.Storage.S3.SecretAccessKey,
+			DataBucket:          DataBucket,
+			ResizedImagesBucket: ResizedImagesBucket,
+		},
+		// Metadata Storage
 		MetadataStorageType: app.config.Storage.MetadataStorageType,
 		FilesJSONFile:       FilesJSONFile,
-		Encrypt:             app.config.Storage.Encrypt,
-		PassPhrase:          app.config.Storage.PassPhrase,
-		TimeBeforeDeleting:  app.config.Storage.TimeBeforeDeleting,
 	}
 	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, app.logger)
 	if err != nil {
@@ -276,17 +306,17 @@ func (app *App) PrintConfig() {
 	}{
 		{"Debug", app.config.Debug},
 		//
-		{"Port", app.config.Web.Port},
-		{"TLS", app.config.Web.IsTLS},
-		{"Login", app.config.Web.Login},
-		{"SkipLogin", app.config.Web.SkipLogin},
+		{"Web.Port", app.config.Web.Port},
+		{"Web.TLS", app.config.Web.IsTLS},
+		{"Web.SkipLogin", app.config.Web.SkipLogin},
 		//
-		{"MetadataStorageType", app.config.Storage.MetadataStorageType},
-		{"Encrypt", app.config.Storage.Encrypt},
+		{"Storage.Encrypt", app.config.Storage.Encrypt},
+		{"Storage.MetadataStorageType", app.config.Storage.MetadataStorageType},
+		{"Storage.FileStorageType", app.config.Storage.FileStorageType},
 	}
 
 	for _, v := range vars {
-		s += fmt.Sprintf("  * %-11s %v\n", v.name, v.v)
+		s += fmt.Sprintf("  - %-30s %v\n", v.name, v.v)
 	}
 
 	app.logger.WriteString(s)

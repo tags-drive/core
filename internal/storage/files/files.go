@@ -71,11 +71,26 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	// Init binary storage
 	//
 	// Switch if for future use
-	switch {
+	switch cnf.FileStorageType {
+	case "s3":
+		binStorage, err = bs.NewS3Storage(bs.S3StorageConfig{
+			Endpoint:            cnf.S3Storage.Endpoint,
+			AccessKeyID:         cnf.S3Storage.AccessKeyID,
+			SecretAccessKey:     cnf.S3Storage.SecretAccessKey,
+			Secure:              cnf.S3Storage.Secure,
+			BucketLocation:      cnf.S3Storage.BucketLocation,
+			DataBucket:          cnf.S3Storage.DataBucket,
+			ResizedImagesBucket: cnf.S3Storage.ResizedImagesBucket,
+		})
+		if err != nil {
+			return nil, errors.Wrap(err, "can't init a new S3Storage")
+		}
+	case "disk":
+		fallthrough
 	default:
 		binStorage, err = bs.NewDiskStorage(bs.DiskStorageConfig{
-			DataFolder:          cnf.DataFolder,
-			ResizedImagesFolder: cnf.ResizedImagesFolder,
+			DataFolder:          cnf.DiskStorage.DataFolder,
+			ResizedImagesFolder: cnf.DiskStorage.ResizedImagesFolder,
 			Encrypt:             cnf.Encrypt,
 			PassPhrase:          cnf.PassPhrase,
 		})
@@ -251,7 +266,7 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 		fileReader := io.TeeReader(file, imageReader)
 
 		// Save an original image
-		err = fs.binStorage.SaveFile(fileReader, newFileID, false)
+		err = fs.binStorage.SaveFile(fileReader, newFileID, f.Size, false)
 		if err != nil {
 			// Panic will be recovered
 			panic(err)
@@ -273,13 +288,16 @@ func (fs FileStorage) Upload(f *multipart.FileHeader, tags []int) (err error) {
 			fs.logger.Errorf("can't encode a resized image %s: %s\n", f.Filename, err)
 			break
 		}
-		fs.binStorage.SaveFile(r, newFileID, true)
+
+		var size int64
+		r, size = utils.GetReaderSize(r)
+		fs.binStorage.SaveFile(r, newFileID, size, true)
 		if err != nil {
 			fs.logger.Errorf("can't save a resized image %s: %s\n", f.Filename, err)
 		}
 	default:
 		// Save a file
-		err = fs.binStorage.SaveFile(file, newFileID, false)
+		err = fs.binStorage.SaveFile(file, newFileID, f.Size, false)
 		if err != nil {
 			// Panic will be recovered
 			panic(err)

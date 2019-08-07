@@ -2,7 +2,6 @@ package bs_test
 
 import (
 	"bytes"
-	"crypto/rand"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -22,7 +21,7 @@ const (
 
 func TestDiskStorage_SaveFile(t *testing.T) {
 	t.Run("No encryption", func(t *testing.T) {
-		defer clear()
+		defer clearDisk()
 
 		assert := assert.New(t)
 
@@ -45,10 +44,10 @@ func TestDiskStorage_SaveFile(t *testing.T) {
 			copy(cp, original)
 
 			buff := bytes.NewBuffer(cp)
-			storage.SaveFile(buff, id, false)
+			storage.SaveFile(buff, id, buffSize, false)
 
 			path := dataFolder + "/" + strconv.Itoa(id)
-			assert.True(checkFile(path, original, false, nil), "files are not equal")
+			assert.True(checkFileOnDisk(path, original, false, nil), "files are not equal")
 		})
 
 		t.Run("Resized image", func(t *testing.T) {
@@ -57,15 +56,15 @@ func TestDiskStorage_SaveFile(t *testing.T) {
 			copy(cp, original)
 
 			buff := bytes.NewBuffer(cp)
-			storage.SaveFile(buff, id, true)
+			storage.SaveFile(buff, id, buffSize, true)
 
 			path := resizedImagesFolder + "/" + strconv.Itoa(id)
-			assert.True(checkFile(path, original, false, nil), "files are not equal")
+			assert.True(checkFileOnDisk(path, original, false, nil), "files are not equal")
 		})
 	})
 
 	t.Run("With encryption", func(t *testing.T) {
-		defer clear()
+		defer clearDisk()
 
 		assert := assert.New(t)
 
@@ -89,10 +88,10 @@ func TestDiskStorage_SaveFile(t *testing.T) {
 			copy(cp, original)
 
 			buff := bytes.NewBuffer(cp)
-			storage.SaveFile(buff, id, false)
+			storage.SaveFile(buff, id, buffSize, false)
 
 			path := dataFolder + "/" + strconv.Itoa(id)
-			assert.True(checkFile(path, original, true, cnf.PassPhrase[:]), "files are not equal")
+			assert.True(checkFileOnDisk(path, original, true, cnf.PassPhrase[:]), "files are not equal")
 		})
 
 		t.Run("Resized image", func(t *testing.T) {
@@ -101,10 +100,10 @@ func TestDiskStorage_SaveFile(t *testing.T) {
 			copy(cp, original)
 
 			buff := bytes.NewBuffer(cp)
-			storage.SaveFile(buff, id, true)
+			storage.SaveFile(buff, id, buffSize, true)
 
 			path := resizedImagesFolder + "/" + strconv.Itoa(id)
-			assert.True(checkFile(path, original, true, cnf.PassPhrase[:]), "files are not equal")
+			assert.True(checkFileOnDisk(path, original, true, cnf.PassPhrase[:]), "files are not equal")
 		})
 	})
 }
@@ -136,7 +135,7 @@ func TestDiskStorage_GetFile(t *testing.T) {
 			copy(cp, tt.data)
 
 			buff := bytes.NewBuffer(cp)
-			err := storage.SaveFile(buff, tt.id, tt.resized)
+			err := storage.SaveFile(buff, tt.id, int64(len(tt.data)), tt.resized)
 			if !assert.Nilf(err, "Test #%d: can't create a file", i) {
 				assert.FailNow("can't create a file. Fail now")
 			}
@@ -162,7 +161,7 @@ func TestDiskStorage_GetFile(t *testing.T) {
 	}
 
 	t.Run("No encryption", func(t *testing.T) {
-		defer clear()
+		defer clearDisk()
 
 		assert := assert.New(t)
 
@@ -180,7 +179,7 @@ func TestDiskStorage_GetFile(t *testing.T) {
 	})
 
 	t.Run("With encryption", func(t *testing.T) {
-		defer clear()
+		defer clearDisk()
 
 		assert := assert.New(t)
 
@@ -211,7 +210,7 @@ func TestDiskStorage_DeleteFile(t *testing.T) {
 		assert.FailNow("can't create a new DiskStorage")
 	}
 
-	defer clear()
+	defer clearDisk()
 
 	tests := []struct {
 		id         int
@@ -234,7 +233,7 @@ func TestDiskStorage_DeleteFile(t *testing.T) {
 		copy(cp, tt.data)
 
 		buff := bytes.NewBuffer(cp)
-		err := storage.SaveFile(buff, tt.id, tt.resized)
+		err := storage.SaveFile(buff, tt.id, int64(len(tt.data)), tt.resized)
 		if !assert.Nilf(err, "Test #%d: can't create a file", i) {
 			assert.FailNow("can't create a file. Fail now")
 		}
@@ -248,12 +247,12 @@ func TestDiskStorage_DeleteFile(t *testing.T) {
 }
 
 // clear removes test folders
-func clear() {
+func clearDisk() {
 	os.RemoveAll(testFolder)
 }
 
 // Check file compares data of file with passed path and byte slice
-func checkFile(path string, original []byte, encrypt bool, passPhrase []byte) bool {
+func checkFileOnDisk(path string, original []byte, encrypt bool, passPhrase []byte) bool {
 	f, err := os.Open(path)
 	if err != nil {
 		return false
@@ -275,12 +274,6 @@ func checkFile(path string, original []byte, encrypt bool, passPhrase []byte) bo
 	}
 
 	return bytes.Equal(original, buff.Bytes())
-}
-
-func generateRandomData(n int) []byte {
-	b := make([]byte, n)
-	rand.Read(b)
-	return b
 }
 
 func generatePassPhrase() [32]byte {

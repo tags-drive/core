@@ -832,9 +832,11 @@ func TestDeleteTagFromFiles(t *testing.T) {
 // newStorage creates new jsonFileStorage and call init() function
 func newStorage() *jsonFileStorage {
 	cnf := Config{
-		Debug:               false,
-		DataFolder:          "./data",
-		ResizedImagesFolder: "./data/resizing",
+		Debug: false,
+		DiskStorage: Config_DiskStorage{
+			DataFolder:          "./data",
+			ResizedImagesFolder: "./data/resizing",
+		},
 		MetadataStorageType: "json",
 		FilesJSONFile:       "files.json",
 		Encrypt:             true,
