@@ -13,10 +13,10 @@ This repository contains the backend part of **Tags Drive**
 
 - [Usage](#usage)
   - [Environment variables](#environment-variables)
+- [Technical details](#technical-details)
+  - [File storage](#file-storage)
+  - [File structure](#file-structure)
 - [Development](#development)
-- [File structure](#file-structure)
-  - [Var folder](#var-folder)
-  - [SSL folder](#ssl-folder)
 - [API](#api)
   - [General endpoints](#general-endpoints)
   - [Auth](#auth)
@@ -31,35 +31,42 @@ This repository contains the backend part of **Tags Drive**
 
 ### Environment variables
 
-| Variable                     | Default | Description                                                             |
-| ---------------------------- | ------- | ----------------------------------------------------------------------- |
-| DEBUG                        | false   |                                                                         |
-| WEB_PORT                     | 80      | Port for http server                                                    |
-| WEB_TLS                      | true    | Enable HTTPS                                                            |
-| WEB_LOGIN                    | user    | Set your login                                                          |
-| WEB_PASSWORD                 | qwerty  | Set your password                                                       |
-| WEB_SKIP_LOGIN               | false   | Skip the log-in procedure                                               |
-| WEB_MAX_TOKEN_LIFE           | 1440h   | The max lifetime of a token (default lifetime is 60 days)               |
-| STORAGE_ENCRYPT              | false   | Encrypt uploaded files                                                  |
-| STORAGE_PASS_PHRASE          | ""      | A phrase for file encryption. Cannot be empty if `ENCRYPT == true`      |
-| STORAGE_TIME_BEFORE_DELETING | 168h    | Time before deleting a file from the Trash (default delay is 7 days)    |
-| STORAGE_FILES_TYPE           | disk    | Define the kind of File Storage. The available options are `disk`, `s3` |
-| STORAGE_S3_ENDPOINT          | ""      | URL to object storage service                                           |
-| STORAGE_S3_ACCESS_KEY_ID     | ""      | The user ID that uniquely identifies the account                        |
-| STORAGE_S3_SECRET_ACCESS_KEY | ""      | Password to the account                                                 |
-| STORAGE_S3_SECURE            | false   | Enable secure (HTTPS) access                                            |
-| STORAGE_S3_BUCKET_LOCATION   | ""      | S3 bucket location (can be empty)                                       |
+| Variable                     | Default | Description                                                                          |
+| ---------------------------- | ------- | ------------------------------------------------------------------------------------ |
+| DEBUG                        | false   |                                                                                      |
+| WEB_PORT                     | 80      | Port for http server                                                                 |
+| WEB_TLS                      | true    | Enable HTTPS                                                                         |
+| WEB_LOGIN                    | user    | Set your login                                                                       |
+| WEB_PASSWORD                 | qwerty  | Set your password                                                                    |
+| WEB_SKIP_LOGIN               | false   | Skip the log-in procedure                                                            |
+| WEB_MAX_TOKEN_LIFE           | 1440h   | The max lifetime of a token (default lifetime is 60 days)                            |
+| STORAGE_ENCRYPT              | false   | Encrypt meta files. Uploaded files are encrypted only when `STORAGE_FILES_TYPE=disk` |
+| STORAGE_PASS_PHRASE          | ""      | A phrase for file encryption. Cannot be empty if `ENCRYPT == true`                   |
+| STORAGE_TIME_BEFORE_DELETING | 168h    | Time before deleting a file from the Trash (default delay is 7 days)                 |
+| STORAGE_FILES_TYPE           | disk    | Define the kind of File Storage. The available options are `disk`, `s3`              |
+| STORAGE_S3_ENDPOINT          | ""      | URL to object storage service                                                        |
+| STORAGE_S3_ACCESS_KEY_ID     | ""      | The user ID that uniquely identifies the account                                     |
+| STORAGE_S3_SECRET_ACCESS_KEY | ""      | Password to the account                                                              |
+| STORAGE_S3_SECURE            | false   | Enable secure (HTTPS) access                                                         |
+| STORAGE_S3_BUCKET_LOCATION   | ""      | S3 bucket location (can be empty)                                                    |
 
-## Development
+## Technical details
 
-There are two Python scripts that you can use to run a local version of the backend part:
+### File storage
 
-- [scripts/run/run.py](scripts/run/run.py) – run a local version with `go run`. You can set env vars by editing the [.env file](scripts/run/run.env). It is the fastest way to launch the local version, but you need to have Go installed.
-- [scripts/docker/run_docker.py](scripts/docker/run_docker.py) – build a Docker image and run a container. There are some command-line args (run `python scripts/docker/run_docker.py --help` to show all args)
+#### Disk
 
-## File structure
+Files are stored in `var/data` and `var/data/resized` folders. Files are encrypted according to `STORAGE_ENCRYPT` env var.
 
-### Var folder
+#### S3
+
+Files can be stored in S3 compatible storage in `var-data` and `var-data-resized` buckets. **Tags Drive** interacts with S3 compatible storage by [github.com/minio/minio-go](https://github.com/minio/minio-go) package.
+
+**Note:** `STORAGE_ENCRYPT` doesn't affect if S3 storage is used.
+
+### File structure
+
+#### Var folder
 
 - `auth_tokens.json` - contains valid tokens
 
@@ -149,19 +156,21 @@ There are two Python scripts that you can use to run a local version of the back
       }
     ```
 
-#### Data folder
-
-The `./var/data` folder is used as a file storage.
-
-The `./var/data/resized` folder is used to store resized image previews.
-
-### SSL folder
+#### SSL folder
 
 The `ssl` folder contains TLS certificate files `cert.cert` and `key.key`
 
 Use this command to generate self-signed TLS certificate:
 
 `openssl req -x509 -nodes -newkey rsa:2048 -sha256 -keyout key.key -out cert.cert`
+
+## Development
+
+There are two Python scripts that you can use to run a local version of the backend part:
+
+- [scripts/run/run.py](scripts/run/run.py) – run a local version with `go run`. You can set env vars by editing the [.env file](scripts/run/run.env). It is the fastest way to launch the local version, but you need to have Go installed.
+- [scripts/docker/run_docker.py](scripts/docker/run_docker.py) – build a Docker image and run a container. There are some command-line args (run `python scripts/docker/run_docker.py --help` to show all args)
+
 
 ## API
 
