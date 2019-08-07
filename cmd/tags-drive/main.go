@@ -304,17 +304,17 @@ func (app *App) PrintConfig() {
 	}{
 		{"Debug", app.config.Debug},
 		//
-		{"Port", app.config.Web.Port},
-		{"TLS", app.config.Web.IsTLS},
-		{"Login", app.config.Web.Login},
-		{"SkipLogin", app.config.Web.SkipLogin},
+		{"Web.Port", app.config.Web.Port},
+		{"Web.TLS", app.config.Web.IsTLS},
+		{"Web.SkipLogin", app.config.Web.SkipLogin},
 		//
-		{"MetadataStorageType", app.config.Storage.MetadataStorageType},
-		{"Encrypt", app.config.Storage.Encrypt},
+		{"Storage.Encrypt", app.config.Storage.Encrypt},
+		{"Storage.MetadataStorageType", app.config.Storage.MetadataStorageType},
+		{"Storage.FileStorageType", app.config.Storage.FileStorageType},
 	}
 
 	for _, v := range vars {
-		s += fmt.Sprintf("  * %-11s %v\n", v.name, v.v)
+		s += fmt.Sprintf("  - %-30s %v\n", v.name, v.v)
 	}
 
 	app.logger.WriteString(s)
