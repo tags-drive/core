@@ -65,6 +65,11 @@ type config struct {
 
 // We use const vars for paths because the app is run in Docker container
 const (
+	// Web
+
+	// AuthCookieName is a name of cookie that contains token
+	AuthCookieName = "auth"
+
 	// Storage
 
 	// VarFolder is the main folder. All files are kept here.
@@ -81,9 +86,6 @@ const (
 	AuthTokensJSONFile  = "./var/auth_tokens.json"  // for auth tokens
 	ShareTokensJSONFile = "./var/share_tokens.json" // for share tokens
 )
-
-// AuthCookieName is a name of cookie that contains token
-const AuthCookieName = "auth"
 
 type App struct {
 	config config
@@ -137,9 +139,9 @@ func PrepareNewApp() (*App, error) {
 	return &App{config: cnf}, nil
 }
 
-const encryptRepeats = 11
-
 func encryptPassword(s string) string {
+	const encryptRepeats = 11
+
 	hash := sha256.Sum256([]byte(s))
 
 	for i := 1; i < encryptRepeats; i++ {
