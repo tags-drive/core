@@ -423,8 +423,6 @@ type File struct {
     ID       int    `json:"id"`
     Filename string `json:"filename"`
     Type     Ext    `json:"type"`
-    Origin   string `json:"origin"`
-    Preview  string `json:"preview,omitempty"`
     //
     Tags        []int     `json:"tags"`
     Description string    `json:"description"`
