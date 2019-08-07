@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestDecryptor(t *testing.T) {
-	app := App{
+	app := app{
 		config: config{
 			PassPhrase:    passphrase,
 			FilesJSONFile: jsonFilesConfig,

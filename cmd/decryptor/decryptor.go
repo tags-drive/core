@@ -31,14 +31,14 @@ type config struct {
 	// DataFolder string `long:"data-folder" default:"./data"`
 }
 
-type App struct {
+type app struct {
 	config config
 
 	decodeKey [32]byte
 }
 
-func NewApp() (*App, error) {
-	app := new(App)
+func newApp() (*app, error) {
+	app := new(app)
 	_, err := flags.Parse(&app.config)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func NewApp() (*App, error) {
 }
 
 // Prepare creates OutputFolder and checks FilesJSONFile
-func (a *App) Prepare() error {
+func (a *app) Prepare() error {
 	f, err := os.Open(a.config.FilesJSONFile)
 	if err != nil {
 		return errors.Wrap(err, "invalid path to config file")
@@ -61,7 +61,7 @@ func (a *App) Prepare() error {
 	return errors.Wrap(err, "can't create output folder")
 }
 
-func (a *App) Decrypt() error {
+func (a *app) Decrypt() error {
 	filesList, err := a.getFilesList()
 	if err != nil {
 		return errors.Wrap(err, "invalid json file")
@@ -101,7 +101,7 @@ func (a *App) Decrypt() error {
 	return nil
 }
 
-func (a *App) getFilesList() (res []files.File, err error) {
+func (a *app) getFilesList() (res []files.File, err error) {
 	path := a.config.FilesJSONFile
 	f, err := os.Open(path)
 	if err != nil {
@@ -136,7 +136,7 @@ func (a *App) getFilesList() (res []files.File, err error) {
 	return res, nil
 }
 
-func (a *App) decryptAndSaveFile(encryptedFilePath, decryptedFilePath string) error {
+func (a *app) decryptAndSaveFile(encryptedFilePath, decryptedFilePath string) error {
 	encryptedFile, err := os.Open(encryptedFilePath)
 	if err != nil {
 		return err
@@ -157,7 +157,7 @@ func (a *App) decryptAndSaveFile(encryptedFilePath, decryptedFilePath string) er
 }
 
 func main() {
-	app, err := NewApp()
+	app, err := newApp()
 	if err != nil {
 		log.Fatalln(err)
 	}
