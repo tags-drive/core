@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"crypto/sha256"
@@ -322,7 +322,7 @@ func (app *app) PrintConfig() {
 	app.logger.WriteString(s)
 }
 
-func main() {
+func StartApp() <-chan struct{} {
 	log.SetFlags(0)
 	log.Printf("Tags Drive %s - https://github.com/tags-drive\n", version)
 
@@ -366,5 +366,5 @@ func main() {
 		close(serverErr)
 	}
 
-	<-shutdowned
+	return shutdowned
 }
