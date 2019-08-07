@@ -68,26 +68,26 @@ const (
 	// Web
 
 	// AuthCookieName is a name of cookie that contains token
-	AuthCookieName = "auth"
+	authCookieName = "auth"
 
 	// Storage
 
 	// VarFolder is the main folder. All files are kept here.
 	// DatFolder and ResizedImagesFolder must be subfolders of this directory.
-	VarFolder           = "./var"
-	DataFolder          = "./var/data"
-	ResizedImagesFolder = "./var/data/resized"
+	varFolder           = "./var"
+	dataFolder          = "./var/data"
+	resizedImagesFolder = "./var/data/resized"
 	//
-	DataBucket          = "var-data"
-	ResizedImagesBucket = "var-data-resized"
+	dataBucket          = "var-data"
+	resizedImagesBucket = "var-data-resized"
 
-	FilesJSONFile       = "./var/files.json"        // for files
-	TagsJSONFile        = "./var/tags.json"         // for tags
-	AuthTokensJSONFile  = "./var/auth_tokens.json"  // for auth tokens
-	ShareTokensJSONFile = "./var/share_tokens.json" // for share tokens
+	filesJSONFile       = "./var/files.json"        // for files
+	tagsJSONFile        = "./var/tags.json"         // for tags
+	authTokensJSONFile  = "./var/auth_tokens.json"  // for auth tokens
+	shareTokensJSONFile = "./var/share_tokens.json" // for share tokens
 )
 
-type App struct {
+type app struct {
 	config config
 
 	fileStorage  *files.FileStorage
@@ -99,8 +99,8 @@ type App struct {
 	logger *clog.Logger
 }
 
-// PrepareNewApp parses globalConfig and creates configurated App instance. It doesn't init any services!
-func PrepareNewApp() (*App, error) {
+// prepareNewApp parses globalConfig and creates configurated App instance. It doesn't init any services!
+func prepareNewApp() (*app, error) {
 	defer func() {
 		// Reset sensitive env vars
 		os.Setenv("WEB_LOGIN", "CLEARED")
@@ -136,7 +136,7 @@ func PrepareNewApp() (*App, error) {
 	cnf.Storage.PassPhrase = sha256.Sum256([]byte(cnf.Storage.PassPhraseString))
 	cnf.Storage.PassPhraseString = ""
 
-	return &App{config: cnf}, nil
+	return &app{config: cnf}, nil
 }
 
 func encryptPassword(s string) string {
@@ -152,7 +152,7 @@ func encryptPassword(s string) string {
 }
 
 // ConfigureServices configures services, storages and a web server
-func (app *App) ConfigureServices() error {
+func (app *app) ConfigureServices() error {
 	app.logger = clog.NewProdLogger()
 	if app.config.Debug {
 		app.logger = clog.NewDevLogger()
@@ -163,26 +163,26 @@ func (app *App) ConfigureServices() error {
 	// File storage
 	fileStorageConfig := files.Config{
 		Debug:              app.config.Debug,
-		VarFolder:          VarFolder,
+		VarFolder:          varFolder,
 		Encrypt:            app.config.Storage.Encrypt,
 		PassPhrase:         app.config.Storage.PassPhrase,
 		TimeBeforeDeleting: app.config.Storage.TimeBeforeDeleting,
 		// Binary Storage
 		FileStorageType: app.config.Storage.FileStorageType,
 		DiskStorage: files.Config_DiskStorage{
-			DataFolder:          DataFolder,
-			ResizedImagesFolder: ResizedImagesFolder,
+			DataFolder:          dataFolder,
+			ResizedImagesFolder: resizedImagesFolder,
 		},
 		S3Storage: files.Config_S3Storage{
 			Endpoint:            app.config.Storage.S3.Endpoint,
 			AccessKeyID:         app.config.Storage.S3.AccessKeyID,
 			SecretAccessKey:     app.config.Storage.S3.SecretAccessKey,
-			DataBucket:          DataBucket,
-			ResizedImagesBucket: ResizedImagesBucket,
+			DataBucket:          dataBucket,
+			ResizedImagesBucket: resizedImagesBucket,
 		},
 		// Metadata Storage
 		MetadataStorageType: app.config.Storage.MetadataStorageType,
-		FilesJSONFile:       FilesJSONFile,
+		FilesJSONFile:       filesJSONFile,
 	}
 	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, app.logger)
 	if err != nil {
@@ -193,7 +193,7 @@ func (app *App) ConfigureServices() error {
 	tagStorageConfig := tags.Config{
 		Debug:               app.config.Debug,
 		MetadataStorageType: app.config.Storage.MetadataStorageType,
-		TagsJSONFile:        TagsJSONFile,
+		TagsJSONFile:        tagsJSONFile,
 		Encrypt:             app.config.Storage.Encrypt,
 		PassPhrase:          app.config.Storage.PassPhrase,
 	}
@@ -205,7 +205,7 @@ func (app *App) ConfigureServices() error {
 	// Auth service
 	authConfig := auth.Config{
 		Debug:          app.config.Debug,
-		TokensJSONFile: AuthTokensJSONFile,
+		TokensJSONFile: authTokensJSONFile,
 		Encrypt:        app.config.Storage.Encrypt,
 		PassPhrase:     app.config.Storage.PassPhrase,
 		MaxTokenLife:   app.config.Web.MaxTokenLife,
@@ -217,7 +217,7 @@ func (app *App) ConfigureServices() error {
 
 	// Share service
 	shareConfig := share.Config{
-		ShareTokenJSONFile: ShareTokensJSONFile,
+		ShareTokenJSONFile: shareTokensJSONFile,
 		Encrypt:            app.config.Storage.Encrypt,
 		PassPhrase:         app.config.Storage.PassPhrase,
 	}
@@ -234,7 +234,7 @@ func (app *App) ConfigureServices() error {
 		Login:          app.config.Web.Login,
 		Password:       app.config.Web.Password,
 		SkipLogin:      app.config.Web.SkipLogin,
-		AuthCookieName: AuthCookieName,
+		AuthCookieName: authCookieName,
 		MaxTokenLife:   app.config.Web.MaxTokenLife,
 		Version:        app.config.Version,
 	}
@@ -253,7 +253,7 @@ func (app *App) ConfigureServices() error {
 }
 
 // Start starts the web server and the background jobs. It block the process (like http.ListenAndServe())
-func (app *App) Start() error {
+func (app *app) Start() error {
 	app.logger.Infoln("start Tags Drive")
 
 	app.fileStorage.StartBackgroundJobs()
@@ -263,7 +263,7 @@ func (app *App) Start() error {
 }
 
 // Shutdown stops all services like Web Server, File Storage and etc. It gracefully stops the Web Server, so app.Start() must return <nil> error.
-func (app *App) Shutdown() {
+func (app *app) Shutdown() {
 	// Server must be the first
 
 	app.logger.Debugln("shutdown Web Server")
@@ -297,7 +297,7 @@ func (app *App) Shutdown() {
 	}
 }
 
-func (app *App) PrintConfig() {
+func (app *app) PrintConfig() {
 	s := "Config:\n"
 
 	vars := []struct {
@@ -326,7 +326,7 @@ func main() {
 	log.SetFlags(0)
 	log.Printf("Tags Drive %s - https://github.com/tags-drive\n", version)
 
-	app, err := PrepareNewApp()
+	app, err := prepareNewApp()
 	if err != nil {
 		log.Fatalf("[FAT] can't prepare a new App instance: %s\n", err)
 	}
