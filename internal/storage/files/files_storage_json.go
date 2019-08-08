@@ -322,7 +322,7 @@ func (jfs *jsonFileStorage) deleteFile(id int) error {
 	}
 
 	f.Deleted = true
-	f.TimeToDelete = deleteTime
+	f.TimeToDelete = deleteTime.Unix()
 	jfs.files[id] = f
 
 	atomic.AddUint32(jfs.changes, 1)
@@ -361,7 +361,7 @@ func (jfs *jsonFileStorage) recover(id int) {
 
 	f := jfs.files[id]
 	f.Deleted = false
-	f.TimeToDelete = time.Time{}
+	f.TimeToDelete = 0
 	jfs.files[id] = f
 
 	atomic.AddUint32(jfs.changes, 1)
@@ -489,7 +489,7 @@ func (jfs *jsonFileStorage) getExpiredDeletedFiles() []int {
 	var filesForDeleting []int
 	now := time.Now()
 	for id, file := range jfs.files {
-		if file.Deleted && file.TimeToDelete.Before(now) {
+		if file.Deleted && time.Unix(file.TimeToDelete, 0).Before(now) {
 			filesForDeleting = append(filesForDeleting, id)
 		}
 	}

@@ -72,8 +72,8 @@ type File struct {
 	Size        int64     `json:"size"`
 	AddTime     time.Time `json:"addTime"`
 
-	Deleted      bool      `json:"deleted"`
-	TimeToDelete time.Time `json:"timeToDelete"`
+	Deleted      bool  `json:"deleted"`
+	TimeToDelete int64 `json:"timeToDelete,omitempty"`
 }
 
 type FilesSortMode int
