@@ -12,6 +12,7 @@ This repository contains the backend part of **Tags Drive**
 ##
 
 - [Usage](#usage)
+  - [CL commands](#cl-commands)
   - [Environment variables](#environment-variables)
 - [Technical details](#technical-details)
   - [File storage](#file-storage)
@@ -28,6 +29,11 @@ This repository contains the backend part of **Tags Drive**
   - [General structures](#general-structures)
 
 ## Usage
+
+### CL commands
+
+- `./tags-drive`, `./tags-drive start` – launch **Tags Drive**
+- `./tags-drive decrypt` – launch the **Decryptor**. You can find more information about **Decryptor** [here](./cmd/decryptor/README.md)
 
 ### Environment variables
 
