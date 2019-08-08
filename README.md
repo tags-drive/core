@@ -425,12 +425,12 @@ type File struct {
     Type     Ext    `json:"type"`
     //
     Tags        []int     `json:"tags"`
-    Description string    `json:"description"`
+    Description string    `json:"description,omitempty"`
     Size        int64     `json:"size"`
     AddTime     time.Time `json:"addTime"`
     //
-    Deleted      bool      `json:"deleted"`
-    TimeToDelete time.Time `json:"timeToDelete"`
+    Deleted      bool  `json:"deleted"`
+    TimeToDelete int64 `json:"timeToDelete,omitempty"`
 }
 ```
 
