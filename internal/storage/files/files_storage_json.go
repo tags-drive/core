@@ -3,7 +3,6 @@ package files
 import (
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -216,8 +215,6 @@ func (jfs jsonFileStorage) getFiles(parsedExpr aggregation.LogicalExpr, search s
 }
 
 // addFile adds an element into js.files and call js.write()
-// It also defines FileInfo.Origin and FileInfo.Preview (if file is image) as
-// `originURLPrefix + id` and `previewURLPrefix + id`
 func (jfs *jsonFileStorage) addFile(filename string, fileType extensions.Ext, tags []int, size int64, addTime time.Time) (id int) {
 	fileInfo := File{Filename: filename,
 		Type:    fileType,
@@ -240,11 +237,6 @@ func (jfs *jsonFileStorage) addFile(filename string, fileType extensions.Ext, ta
 	jfs.maxID++
 	fileID = jfs.maxID
 	fileInfo.ID = fileID
-
-	fileInfo.Origin = originURLPrefix + strconv.Itoa(fileID)
-	if fileType.FileType == extensions.FileTypeImage {
-		fileInfo.Preview = previewURLPrefix + strconv.Itoa(fileID)
-	}
 
 	jfs.files[jfs.maxID] = fileInfo
 
@@ -330,7 +322,7 @@ func (jfs *jsonFileStorage) deleteFile(id int) error {
 	}
 
 	f.Deleted = true
-	f.TimeToDelete = deleteTime
+	f.TimeToDelete = deleteTime.Unix()
 	jfs.files[id] = f
 
 	atomic.AddUint32(jfs.changes, 1)
@@ -369,7 +361,7 @@ func (jfs *jsonFileStorage) recover(id int) {
 
 	f := jfs.files[id]
 	f.Deleted = false
-	f.TimeToDelete = time.Time{}
+	f.TimeToDelete = 0
 	jfs.files[id] = f
 
 	atomic.AddUint32(jfs.changes, 1)
@@ -497,7 +489,7 @@ func (jfs *jsonFileStorage) getExpiredDeletedFiles() []int {
 	var filesForDeleting []int
 	now := time.Now()
 	for id, file := range jfs.files {
-		if file.Deleted && file.TimeToDelete.Before(now) {
+		if file.Deleted && time.Unix(file.TimeToDelete, 0).Before(now) {
 			filesForDeleting = append(filesForDeleting, id)
 		}
 	}

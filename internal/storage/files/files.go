@@ -21,11 +21,6 @@ import (
 	"github.com/tags-drive/core/internal/utils"
 )
 
-const (
-	originURLPrefix  = "data/"
-	previewURLPrefix = "data/resized/"
-)
-
 // Errors
 var (
 	ErrFileIsNotExist    = errors.New("the file doesn't exist")
@@ -363,7 +358,7 @@ func (fs FileStorage) DeleteForce(id int) error {
 		errMsg = "can't delete the original file (id is '%d')"
 	}
 
-	if file.Preview != "" {
+	if file.Type.FileType == extensions.FileTypeImage {
 		// Delete the resized image
 		err1 := fs.binStorage.DeleteFile(file.ID, true)
 		if err1 != nil && err != nil {

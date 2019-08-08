@@ -66,16 +66,14 @@ type File struct {
 	ID       int            `json:"id"`
 	Filename string         `json:"filename"`
 	Type     extensions.Ext `json:"type"`
-	Origin   string         `json:"origin"`            // Origin is a URL address of a file
-	Preview  string         `json:"preview,omitempty"` // Preview is a URL address of a resized image (only if Type.FileType == FileTypeImage)
 
 	Tags        []int     `json:"tags"`
-	Description string    `json:"description"`
+	Description string    `json:"description,omitempty"`
 	Size        int64     `json:"size"`
 	AddTime     time.Time `json:"addTime"`
 
-	Deleted      bool      `json:"deleted"`
-	TimeToDelete time.Time `json:"timeToDelete"`
+	Deleted      bool  `json:"deleted"`
+	TimeToDelete int64 `json:"timeToDelete,omitempty"`
 }
 
 type FilesSortMode int
