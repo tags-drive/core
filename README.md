@@ -407,55 +407,55 @@ Uploaded files can be encrypted. **Tags Drive** uses sha256 sum of the `PASS_PHR
 #### FileInfo
 
 ```go
-    type FileType string
+type FileType string
 
-    type PreviewType string
+type PreviewType string
 
-    // Ext is a struct which contains a type of the original file and a type for a preview
-    type Ext struct {
-      Ext         string      `json:"ext"`
-      FileType    FileType    `json:"fileType"`
-      Supported   bool        `json:"supported"`
-      PreviewType PreviewType `json:"previewType"`
-    }
+// Ext is a struct which contains a type of the original file and a type for a preview
+type Ext struct {
+    Ext         string      `json:"ext"`
+    FileType    FileType    `json:"fileType"`
+    Supported   bool        `json:"supported"`
+    PreviewType PreviewType `json:"previewType"`
+}
 
-    type File struct {
-      ID       int    `json:"id"`
-      Filename string `json:"filename"`
-      Type     Ext    `json:"type"`
-      Origin   string `json:"origin"`
-      Preview  string `json:"preview,omitempty"`
-      //
-      Tags        []int     `json:"tags"`
-      Description string    `json:"description"`
-      Size        int64     `json:"size"`
-      AddTime     time.Time `json:"addTime"`
-      //
-      Deleted      bool      `json:"deleted"`
-      TimeToDelete time.Time `json:"timeToDelete"`
-    }
+type File struct {
+    ID       int    `json:"id"`
+    Filename string `json:"filename"`
+    Type     Ext    `json:"type"`
+    Origin   string `json:"origin"`
+    Preview  string `json:"preview,omitempty"`
+    //
+    Tags        []int     `json:"tags"`
+    Description string    `json:"description"`
+    Size        int64     `json:"size"`
+    AddTime     time.Time `json:"addTime"`
+    //
+    Deleted      bool      `json:"deleted"`
+    TimeToDelete time.Time `json:"timeToDelete"`
+}
 ```
 
 #### Tag
 
 ```go
-  type Tag struct {
+type Tag struct {
     ID    int    `json:"id"`
     Name  string `json:"name"`
     Color string `json:"color"`
     Group string `json:"group"`
-  }
+}
 
-  type Tags map[int]Tag
+type Tags map[int]Tag
 ```
 
 #### multiplyResponse
 
 ```go
-  type multiplyResponse struct {
-      Filename string `json:"filename"`
-      IsError  bool   `json:"isError"`
-      Error    string `json:"error"`
-      Status   string `json:"status"` // Status isn't empty when IsError == false
-  }
+type multiplyResponse struct {
+    Filename string `json:"filename"`
+    IsError  bool   `json:"isError"`
+    Error    string `json:"error"`
+    Status   string `json:"status"` // Status isn't empty when IsError == false
+}
 ```
