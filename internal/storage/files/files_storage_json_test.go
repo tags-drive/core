@@ -96,7 +96,6 @@ func TestAddFile(t *testing.T) {
 					Tags:     []int{1, 2, 3},
 					AddTime:  now,
 					Type:     extensions.Ext{},
-					Origin:   originURLPrefix + "1",
 				},
 			},
 		},
@@ -114,7 +113,6 @@ func TestAddFile(t *testing.T) {
 					Tags:     []int{1, 2, 3},
 					AddTime:  now,
 					Type:     extensions.Ext{},
-					Origin:   originURLPrefix + "1",
 				},
 				2: {
 					ID:       2,
@@ -123,7 +121,6 @@ func TestAddFile(t *testing.T) {
 					Tags:     []int{88},
 					AddTime:  now,
 					Type:     extensions.Ext{},
-					Origin:   originURLPrefix + "2",
 				},
 			},
 		},
@@ -146,7 +143,6 @@ func TestAddFile(t *testing.T) {
 					Tags:     []int{1, 2, 3},
 					AddTime:  now,
 					Type:     extensions.Ext{},
-					Origin:   originURLPrefix + "1",
 				},
 				2: {
 					ID:       2,
@@ -155,7 +151,6 @@ func TestAddFile(t *testing.T) {
 					Tags:     []int{88},
 					AddTime:  now,
 					Type:     extensions.Ext{},
-					Origin:   originURLPrefix + "2",
 				},
 				3: {
 					ID:       3,
@@ -169,8 +164,6 @@ func TestAddFile(t *testing.T) {
 						Supported:   true,
 						PreviewType: extensions.PreviewTypeImage,
 					},
-					Origin:  originURLPrefix + "3",
-					Preview: previewURLPrefix + "3",
 				},
 			},
 		},
