@@ -21,11 +21,6 @@ import (
 	"github.com/tags-drive/core/internal/utils"
 )
 
-const (
-	originURLPrefix  = "data/"
-	previewURLPrefix = "data/resized/"
-)
-
 // Errors
 var (
 	ErrFileIsNotExist    = errors.New("the file doesn't exist")
