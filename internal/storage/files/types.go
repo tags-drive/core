@@ -68,7 +68,7 @@ type File struct {
 	Type     extensions.Ext `json:"type"`
 
 	Tags        []int     `json:"tags"`
-	Description string    `json:"description"`
+	Description string    `json:"description,omitempty"`
 	Size        int64     `json:"size"`
 	AddTime     time.Time `json:"addTime"`
 
