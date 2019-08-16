@@ -16,7 +16,7 @@ import (
 	"github.com/minio/minio-go"
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/tags-drive/core/cmd/common"
 )
@@ -75,259 +75,167 @@ func getS3TestConfig() (cnf s3TestConfig, ok bool) {
 func TestMigrator(t *testing.T) {
 	const passPhrase = "test"
 
+	cnf, ok := getS3TestConfig()
+	if !ok {
+		t.Skip("Skip test because env vars for connection to an S3 Storage weren't set")
+	}
+
 	t.Run("from disk to s3", func(t *testing.T) {
+		// Prepare args
+
+		args := []string{
+			"--from", "disk",
+			"--to", "s3",
+			"--s3.endpoint", cnf.Endpoint,
+			"--s3.access-key", cnf.AccessKeyID,
+			"--s3.secret-key", cnf.SecretAccessKey,
+		}
+		if cnf.Secure {
+			args = append(args, "--s3.secure")
+		}
+
 		t.Run("without encryption", func(t *testing.T) {
-			// ! Warning !
-			// We have to use t.Fail() and return to call defer functions!
+			require := require.New(t)
 
-			assert := assert.New(t)
-
-			// Prepare args
-
-			cnf, ok := getS3TestConfig()
-			if !ok {
-				t.Skip("Skip test because env vars for connection to an S3 Storage weren't set")
-			}
-
+			// Can use defer because "require" package calls t.FailNow() if needed.
 			defer clearDisk()
 			defer clearS3(cnf.Endpoint, cnf.AccessKeyID, cnf.SecretAccessKey, cnf.Secure)
 
-			args := []string{
-				"--from", "disk",
-				"--to", "s3",
-				// "--disk.encrypted",
-				// "--disk.pass-phrase", "",
-				"--s3.endpoint", cnf.Endpoint,
-				"--s3.access-key", cnf.AccessKeyID,
-				"--s3.secret-key", cnf.SecretAccessKey,
-			}
-			if cnf.Secure {
-				args = append(args, "--s3.secure")
-			}
-
-			// Prepare disk
+			// Prepare the disk
 
 			files := generateTestFiles()
 			err := prepareDisk(files, false, [32]byte{})
-			if !assert.Nil(err) {
-				assert.Fail("can't prepare test files on the disk")
-				return
-			}
+			require.Nil(err, "can't prepare test files on the disk")
 
 			// Start testing
 
 			app, err := newApp(args)
-			if !assert.Nil(err) {
-				assert.Fail("can't create a new app")
-				return
-			}
+			require.Nil(err, "can't create a new app")
 
 			err = app.prepare()
-			if !assert.Nil(err) {
-				assert.Fail("can't prepare the app")
-				return
-			}
+			require.Nil(err, "can't prepare the app")
 
 			// Upload files
 			app.start()
 
 			// Check files
-			err = checkFilesInS3(assert, files, app.s3)
-			if !assert.Nil(err) {
-				assert.Fail(err.Error())
-				return
-			}
+			err = checkFilesInS3(files, app.s3)
+			require.Nil(err)
 		})
 
 		t.Run("with encryption", func(t *testing.T) {
-			// ! Warning !
-			// We have to use t.Fail() and return to call defer function!
+			require := require.New(t)
 
-			assert := assert.New(t)
-
-			// Prepare args
-
-			cnf, ok := getS3TestConfig()
-			if !ok {
-				t.Skip("Skip test because env vars for connection to an S3 Storage weren't set")
-			}
-
+			// Can use defer because "require" package calls t.FailNow() if needed.
 			defer clearDisk()
 			defer clearS3(cnf.Endpoint, cnf.AccessKeyID, cnf.SecretAccessKey, cnf.Secure)
 
-			args := []string{
-				"--from", "disk",
-				"--to", "s3",
+			// Add some args
+			args := append(args,
 				"--disk.encrypted",
 				"--disk.pass-phrase", passPhrase,
-				"--s3.endpoint", cnf.Endpoint,
-				"--s3.access-key", cnf.AccessKeyID,
-				"--s3.secret-key", cnf.SecretAccessKey,
-			}
-			if cnf.Secure {
-				args = append(args, "--s3.secure")
-			}
+			)
 
-			// Prepare disk
+			// Prepare the disk
 
 			files := generateTestFiles()
 			err := prepareDisk(files, true, sha256.Sum256([]byte(passPhrase)))
-			if !assert.Nil(err) {
-				assert.Fail("can't prepare test files on the disk")
-				return
-			}
+			require.Nil(err, "can't prepare test files on the disk")
 
 			// Start testing
 
 			app, err := newApp(args)
-			if !assert.Nil(err) {
-				assert.Fail("can't create a new app")
-				return
-			}
+			require.Nil(err, "can't create a new app")
 
 			err = app.prepare()
-			if !assert.Nil(err) {
-				assert.Fail("can't prepare the app")
-				return
-			}
+			require.Nil(err, "can't prepare the app")
 
 			// Upload files
 			app.start()
 
 			// Check files
-			err = checkFilesInS3(assert, files, app.s3)
-			if !assert.Nil(err) {
-				assert.Fail(err.Error())
-				return
-			}
+			err = checkFilesInS3(files, app.s3)
+			require.Nil(err)
 		})
 	})
 
 	t.Run("from s3 to disk", func(t *testing.T) {
+		// Prepare args
+
+		args := []string{
+			"--from", "s3",
+			"--to", "disk",
+			"--s3.endpoint", cnf.Endpoint,
+			"--s3.access-key", cnf.AccessKeyID,
+			"--s3.secret-key", cnf.SecretAccessKey,
+		}
+		if cnf.Secure {
+			args = append(args, "--s3.secure")
+		}
+
 		t.Run("without encryption", func(t *testing.T) {
-			// ! Warning !
-			// We have to use t.Fail() and return to call defer functions!
+			require := require.New(t)
 
-			assert := assert.New(t)
-
-			// Prepare args
-
-			cnf, ok := getS3TestConfig()
-			if !ok {
-				t.Skip("Skip test because env vars for connection to an S3 Storage weren't set")
-			}
-
+			// Can use defer because "require" package calls t.FailNow() if needed.
 			defer clearDisk()
 			defer clearS3(cnf.Endpoint, cnf.AccessKeyID, cnf.SecretAccessKey, cnf.Secure)
-
-			args := []string{
-				"--from", "s3",
-				"--to", "disk",
-				// "--disk.encrypted",
-				// "--disk.pass-phrase", "",
-				"--s3.endpoint", cnf.Endpoint,
-				"--s3.access-key", cnf.AccessKeyID,
-				"--s3.secret-key", cnf.SecretAccessKey,
-			}
-			if cnf.Secure {
-				args = append(args, "--s3.secure")
-			}
 
 			// Prepare S3
 
 			files := generateTestFiles()
 			err := prepareS3(files, cnf.Endpoint, cnf.AccessKeyID, cnf.SecretAccessKey, cnf.Secure)
-			if !assert.Nil(err) {
-				assert.Fail("can't prepare test files in an S3 Storage")
-				return
-			}
+			require.Nil(err, "can't prepare test files in an S3 Storage")
 
 			// Start testing
 
 			app, err := newApp(args)
-			if !assert.Nil(err) {
-				assert.Fail("can't create a new app")
-				return
-			}
+			require.Nil(err, "can't create a new app")
 
 			err = app.prepare()
-			if !assert.Nil(err) {
-				assert.Fail("can't prepare the app")
-				return
-			}
+			require.Nil(err, "can't prepare the app")
 
 			// Upload files
 			app.start()
 
 			// Check files
-			err = checkFilesOnDisk(assert, files, false, [32]byte{})
-			if !assert.Nil(err) {
-				assert.Fail(err.Error())
-				return
-			}
+			err = checkFilesOnDisk(files, false, [32]byte{})
+			require.Nil(err)
 		})
 
 		t.Run("with encryption", func(t *testing.T) {
-			// ! Warning !
-			// We have to use t.Fail() and return to call defer functions!
+			require := require.New(t)
 
-			assert := assert.New(t)
-
-			// Prepare args
-
-			cnf, ok := getS3TestConfig()
-			if !ok {
-				t.Skip("Skip test because env vars for connection to an S3 Storage weren't set")
-			}
-
+			// Can use defer because "require" package calls t.FailNow() if needed.
 			defer clearDisk()
 			defer clearS3(cnf.Endpoint, cnf.AccessKeyID, cnf.SecretAccessKey, cnf.Secure)
 
-			args := []string{
-				"--from", "s3",
-				"--to", "disk",
+			// Add some args
+
+			args := append(args,
 				"--disk.encrypted",
 				"--disk.pass-phrase", passPhrase,
-				"--s3.endpoint", cnf.Endpoint,
-				"--s3.access-key", cnf.AccessKeyID,
-				"--s3.secret-key", cnf.SecretAccessKey,
-			}
-			if cnf.Secure {
-				args = append(args, "--s3.secure")
-			}
+			)
 
 			// Prepare S3
 
 			files := generateTestFiles()
 			err := prepareS3(files, cnf.Endpoint, cnf.AccessKeyID, cnf.SecretAccessKey, cnf.Secure)
-			if !assert.Nil(err) {
-				assert.Fail("can't prepare test files in an S3 Storage")
-				return
-			}
+			require.Nil(err, "can't prepare test files in an S3 Storage")
 
 			// Start testing
 
 			app, err := newApp(args)
-			if !assert.Nil(err) {
-				assert.Fail("can't create a new app")
-				return
-			}
+			require.Nil(err, "can't create a new app")
 
 			err = app.prepare()
-			if !assert.Nil(err) {
-				assert.Fail("can't prepare the app")
-				return
-			}
+			require.Nil(err, "can't prepare the app")
 
 			// Upload files
 			app.start()
 
 			// Check files
-			err = checkFilesOnDisk(assert, files, true, sha256.Sum256([]byte(passPhrase)))
-			if !assert.Nil(err) {
-				assert.Fail(err.Error())
-				return
-			}
+			err = checkFilesOnDisk(files, true, sha256.Sum256([]byte(passPhrase)))
+			require.Nil(err)
 		})
 	})
 }
@@ -466,7 +374,7 @@ func prepareS3(files []testFile, endpoint string, accessKeyID string, secretAcce
 
 // Check functions
 
-func checkFilesOnDisk(assert *assert.Assertions, files []testFile, encrypted bool, passPhrase [32]byte) error {
+func checkFilesOnDisk(files []testFile, encrypted bool, passPhrase [32]byte) error {
 	for _, f := range files {
 		path := common.DataFolder
 		if f.resized {
@@ -475,7 +383,7 @@ func checkFilesOnDisk(assert *assert.Assertions, files []testFile, encrypted boo
 		path += "/" + f.name
 
 		file, err := os.Open(path)
-		if !assert.Nil(err) {
+		if err != nil {
 			return errors.Wrap(err, "can't open a file")
 		}
 		defer file.Close()
@@ -484,18 +392,18 @@ func checkFilesOnDisk(assert *assert.Assertions, files []testFile, encrypted boo
 		if encrypted {
 			buff := bytes.NewBuffer(nil)
 			_, err = sio.Decrypt(buff, src, sio.Config{Key: passPhrase[:]})
-			if !assert.Nil(err) {
+			if err != nil {
 				return errors.Wrap(err, "can't decrypt a file")
 			}
 			src = buff
 		}
 
 		data, err := ioutil.ReadAll(src)
-		if !assert.Nil(err) {
+		if err != nil {
 			return errors.Wrap(err, "can't read data from a file")
 		}
 
-		if !assert.Equal(f.data, data) {
+		if !bytes.Equal(f.data, data) {
 			return errors.New("content of original file and file on a disk are different")
 		}
 	}
@@ -503,7 +411,7 @@ func checkFilesOnDisk(assert *assert.Assertions, files []testFile, encrypted boo
 	return nil
 }
 
-func checkFilesInS3(assert *assert.Assertions, files []testFile, client *minio.Client) error {
+func checkFilesInS3(files []testFile, client *minio.Client) error {
 	for _, f := range files {
 		bucket := common.DataBucket
 		if f.resized {
@@ -512,17 +420,17 @@ func checkFilesInS3(assert *assert.Assertions, files []testFile, client *minio.C
 		key := f.name
 
 		obj, err := client.GetObject(bucket, key, minio.GetObjectOptions{})
-		if !assert.Nil(err) {
+		if err != nil {
 			return errors.Wrapf(err, "can't get file '%s/%s'", bucket, key)
 		}
 
 		data, err := ioutil.ReadAll(obj)
-		if !assert.Nil(err) {
+		if err != nil {
 			return errors.Wrapf(err, "can't read data from file '%s/%s'", bucket, key)
 		}
 		obj.Close()
 
-		if !assert.Equal(f.data, data) {
+		if !bytes.Equal(f.data, data) {
 			return errors.New("content of original file and file in S3 Storage are different")
 		}
 	}
