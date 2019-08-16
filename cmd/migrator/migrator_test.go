@@ -2,7 +2,7 @@ package migrator
 
 import (
 	"bytes"
-	"crypto/rand"
+	cryptoRand "crypto/rand"
 	"crypto/sha256"
 	"io"
 	"io/ioutil"
@@ -258,7 +258,7 @@ func generateTestFiles() []testFile {
 	for i := 0; i < resizedFileAmount; i++ {
 		fileSize := mathRand.Intn(1<<20) + 1<<10 // from 1KB to ~1MB
 		data := make([]byte, fileSize)
-		rand.Read(data)
+		cryptoRand.Read(data)
 
 		file := testFile{
 			name:    strconv.Itoa(i),
@@ -272,7 +272,7 @@ func generateTestFiles() []testFile {
 	for i := 0; i < usualFileAmount; i++ {
 		fileSize := mathRand.Intn(1<<20) + 1<<10 // from 1KB to ~1MB
 		data := make([]byte, fileSize)
-		rand.Read(data)
+		cryptoRand.Read(data)
 
 		file := testFile{
 			name:    strconv.Itoa(i),
