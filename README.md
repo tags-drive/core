@@ -34,6 +34,7 @@ This repository contains the backend part of **Tags Drive**
 
 - `./tags-drive`, `./tags-drive start` – launch **Tags Drive**
 - `./tags-drive decrypt` – launch the **Decryptor**. You can find more information about **Decryptor** [here](./cmd/decryptor/README.md)
+- `./tags-drive migrate` – launch the **Migrator**. You can find more information about **Migrator** [here](./cmd/migrator/README.md)
 
 ### Environment variables
 
