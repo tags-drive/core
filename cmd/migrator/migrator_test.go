@@ -203,14 +203,131 @@ func TestMigrator(t *testing.T) {
 		})
 	})
 
-	// TODO
 	t.Run("from s3 to disk", func(t *testing.T) {
 		t.Run("without encryption", func(t *testing.T) {
+			// ! Warning !
+			// We have to use t.Fail() and return to call defer functions!
 
+			assert := assert.New(t)
+
+			// Prepare args
+
+			cnf, ok := getS3TestConfig()
+			if !ok {
+				t.Skip("Skip test because env vars for connection to an S3 Storage weren't set")
+			}
+
+			defer clearDisk()
+			defer clearS3(cnf.Endpoint, cnf.AccessKeyID, cnf.SecretAccessKey, cnf.Secure)
+
+			args := []string{
+				"--from", "s3",
+				"--to", "disk",
+				// "--disk.encrypted",
+				// "--disk.pass-phrase", "",
+				"--s3.endpoint", cnf.Endpoint,
+				"--s3.access-key", cnf.AccessKeyID,
+				"--s3.secret-key", cnf.SecretAccessKey,
+			}
+			if cnf.Secure {
+				args = append(args, "--s3.secure")
+			}
+
+			// Prepare S3
+
+			files := generateTestFiles()
+			err := prepareS3(files, cnf.Endpoint, cnf.AccessKeyID, cnf.SecretAccessKey, cnf.Secure)
+			if !assert.Nil(err) {
+				assert.Fail("can't prepare test files in an S3 Storage")
+				return
+			}
+
+			// Start testing
+
+			app, err := newApp(args)
+			if !assert.Nil(err) {
+				assert.Fail("can't create a new app")
+				return
+			}
+
+			err = app.prepare()
+			if !assert.Nil(err) {
+				assert.Fail("can't prepare the app")
+				return
+			}
+
+			// Upload files
+			app.start()
+
+			// Check files
+			err = checkFilesOnDisk(assert, files, false, [32]byte{})
+			if !assert.Nil(err) {
+				assert.Fail(err.Error())
+				return
+			}
 		})
 
 		t.Run("with encryption", func(t *testing.T) {
+			// ! Warning !
+			// We have to use t.Fail() and return to call defer functions!
 
+			assert := assert.New(t)
+
+			// Prepare args
+
+			cnf, ok := getS3TestConfig()
+			if !ok {
+				t.Skip("Skip test because env vars for connection to an S3 Storage weren't set")
+			}
+
+			defer clearDisk()
+			defer clearS3(cnf.Endpoint, cnf.AccessKeyID, cnf.SecretAccessKey, cnf.Secure)
+
+			args := []string{
+				"--from", "s3",
+				"--to", "disk",
+				"--disk.encrypted",
+				"--disk.pass-phrase", passPhrase,
+				"--s3.endpoint", cnf.Endpoint,
+				"--s3.access-key", cnf.AccessKeyID,
+				"--s3.secret-key", cnf.SecretAccessKey,
+			}
+			if cnf.Secure {
+				args = append(args, "--s3.secure")
+			}
+
+			// Prepare S3
+
+			files := generateTestFiles()
+			err := prepareS3(files, cnf.Endpoint, cnf.AccessKeyID, cnf.SecretAccessKey, cnf.Secure)
+			if !assert.Nil(err) {
+				assert.Fail("can't prepare test files in an S3 Storage")
+				return
+			}
+
+			// Start testing
+
+			app, err := newApp(args)
+			if !assert.Nil(err) {
+				assert.Fail("can't create a new app")
+				return
+			}
+
+			err = app.prepare()
+			if !assert.Nil(err) {
+				assert.Fail("can't prepare the app")
+				return
+			}
+
+			// Upload files
+			app.start()
+
+			// Check files
+			err = checkFilesOnDisk(assert, files, true, sha256.Sum256([]byte(passPhrase)))
+			if !assert.Nil(err) {
+				assert.Fail(err.Error())
+				return
+			}
 		})
 	})
 }
@@ -309,7 +426,82 @@ func prepareDisk(files []testFile, encrypted bool, passPhrase [32]byte) error {
 	return nil
 }
 
+func prepareS3(files []testFile, endpoint string, accessKeyID string, secretAccessKey string, secure bool) error {
+	client, err := minio.New(endpoint, accessKeyID, secretAccessKey, secure)
+	if err != nil {
+		return errors.Wrap(err, "can't connect to the S3 Storage")
+	}
+
+	// Create buckets (buckets must not exist)
+	err = client.MakeBucket(common.DataBucket, "")
+	if err != nil {
+		return errors.Wrap(err, "can't create DataBucket")
+	}
+	err = client.MakeBucket(common.ResizedImagesBucket, "")
+	if err != nil {
+		return errors.Wrap(err, "can't create ResizedImagesBucket")
+	}
+
+	// Put files
+	for _, f := range files {
+		bucket := common.DataBucket
+		if f.resized {
+			bucket = common.ResizedImagesBucket
+		}
+		key := f.name
+
+		// Make the copy of f.data
+		cp := make([]byte, len(f.data))
+		copy(cp, f.data)
+		buff := bytes.NewBuffer(cp)
+
+		_, err = client.PutObject(bucket, key, buff, int64(buff.Len()), minio.PutObjectOptions{})
+		if err != nil {
+			return errors.Wrap(err, "can't put an object")
+		}
+	}
+
+	return nil
+}
+
 // Check functions
+
+func checkFilesOnDisk(assert *assert.Assertions, files []testFile, encrypted bool, passPhrase [32]byte) error {
+	for _, f := range files {
+		path := common.DataFolder
+		if f.resized {
+			path = common.ResizedImagesFolder
+		}
+		path += "/" + f.name
+
+		file, err := os.Open(path)
+		if !assert.Nil(err) {
+			return errors.Wrap(err, "can't open a file")
+		}
+		defer file.Close()
+
+		var src io.Reader = file
+		if encrypted {
+			buff := bytes.NewBuffer(nil)
+			_, err = sio.Decrypt(buff, src, sio.Config{Key: passPhrase[:]})
+			if !assert.Nil(err) {
+				return errors.Wrap(err, "can't decrypt a file")
+			}
+			src = buff
+		}
+
+		data, err := ioutil.ReadAll(src)
+		if !assert.Nil(err) {
+			return errors.Wrap(err, "can't read data from a file")
+		}
+
+		if !assert.Equal(f.data, data) {
+			return errors.New("content of original file and file on a disk are different")
+		}
+	}
+
+	return nil
+}
 
 func checkFilesInS3(assert *assert.Assertions, files []testFile, client *minio.Client) error {
 	for _, f := range files {
