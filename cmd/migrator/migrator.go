@@ -2,11 +2,13 @@ package migrator
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"io"
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/ShoshinNikita/log/v2"
 	"github.com/jessevdk/go-flags"
@@ -395,6 +397,8 @@ func (app *app) toS3(files <-chan file) {
 func StartMigrator() <-chan struct{} {
 	logger := clog.NewProdConfig().PrintTime(false).Build()
 
+	logger.Infoln("init Migrator")
+
 	app, err := newApp(os.Args[1:])
 	if err != nil {
 		logger.Fatalf("can't init a new app: %s\n", err)
@@ -407,9 +411,53 @@ func StartMigrator() <-chan struct{} {
 		logger.Fatalf("can't prepare app: %s\n", err)
 	}
 
-	app.start()
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		app.start()
+
+		cancel()
+	}()
+	printWaitingMessage(ctx, logger, "migration")
+
+	logger.Infoln("migration is finished")
 
 	done := make(chan struct{})
 	close(done)
 	return done
+}
+
+func printWaitingMessage(ctx context.Context, l *clog.Logger, msg string) {
+	usedSpace := len(msg) + 9 // "[INF] " + "..." = 9
+
+	var clearingString string
+	for i := 0; i < usedSpace; i++ {
+		clearingString += " "
+	}
+
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+
+	// Print for the first time
+	l.Info(msg)
+
+	n := 0
+	for {
+		select {
+		case <-ticker.C:
+			if n > 3 {
+				n = 0
+				// Clear space and update the message
+				l.Print("\r", clearingString, "\r")
+				l.Info(msg)
+			}
+
+			if n != 0 {
+				l.Print(".")
+			}
+			n++
+		case <-ctx.Done():
+			l.Print("\n")
+			return
+		}
+	}
 }
