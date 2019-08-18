@@ -59,7 +59,8 @@ func newApp(args []string) (*app, error) {
 	}
 
 	// Parse config
-	parser := flags.NewParser(&app.config, flags.HelpFlag|flags.PassDoubleDash)
+	parser := flags.NewParser(&app.config, flags.HelpFlag|flags.PassDoubleDash|flags.IgnoreUnknown)
+
 	_, err := parser.ParseArgs(args)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't parse flags")
