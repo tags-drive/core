@@ -1,8 +1,8 @@
 module github.com/tags-drive/core
 
 require (
+	github.com/ShoshinNikita/go-disk-buffer v0.1.0
 	github.com/ShoshinNikita/log/v2 v2.1.0
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/disintegration/imaging v1.6.0
 	github.com/fvbommel/util v0.0.0-20180919145318-efcd4e0f9787
 	github.com/go-ini/ini v1.44.0 // indirect
@@ -18,7 +18,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.4.0
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4 // indirect
 	golang.org/x/image v0.0.0-20190622003408-7e034cad6442 // indirect

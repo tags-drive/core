@@ -1,3 +1,5 @@
+# github.com/ShoshinNikita/go-disk-buffer v0.1.0
+github.com/ShoshinNikita/go-disk-buffer
 # github.com/ShoshinNikita/log/v2 v2.1.0
 github.com/ShoshinNikita/log/v2
 # github.com/davecgh/go-spew v1.1.1
@@ -41,7 +43,7 @@ github.com/modern-go/reflect2
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/stretchr/testify v1.3.0
+# github.com/stretchr/testify v1.4.0
 github.com/stretchr/testify/assert
 # golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4
 golang.org/x/crypto/chacha20poly1305
@@ -67,3 +69,5 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/transform
+# gopkg.in/yaml.v2 v2.2.2
+gopkg.in/yaml.v2
