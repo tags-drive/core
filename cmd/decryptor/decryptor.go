@@ -167,6 +167,8 @@ func (a *app) decryptAndSaveFile(encryptedFilePath, decryptedFilePath string) er
 func StartDecryptor(version string) <-chan struct{} {
 	log = clog.NewProdConfig().PrintTime(false).Build()
 
+	log.Printf("Tags Drive %s - https://github.com/tags-drive\n\n", version)
+
 	log.Infoln("init Decryptor")
 
 	app, err := newApp()

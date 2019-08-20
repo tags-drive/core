@@ -397,6 +397,8 @@ func (app *app) toS3(files <-chan file) {
 func StartMigrator(version string) <-chan struct{} {
 	logger := clog.NewProdConfig().PrintTime(false).Build()
 
+	logger.Printf("Tags Drive %s - https://github.com/tags-drive\n\n", version)
+
 	logger.Infoln("init Migrator")
 
 	app, err := newApp(os.Args[1:])

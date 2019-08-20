@@ -22,8 +22,6 @@ import (
 	"github.com/tags-drive/core/internal/web"
 )
 
-const version = "v0.9.0"
-
 type config struct {
 	Version string `ignored:"true"`
 
@@ -85,7 +83,7 @@ type app struct {
 }
 
 // prepareNewApp parses globalConfig and creates configurated App instance. It doesn't init any services!
-func prepareNewApp() (*app, error) {
+func prepareNewApp(version string) (*app, error) {
 	defer func() {
 		// Reset sensitive env vars
 		os.Setenv("WEB_LOGIN", "CLEARED")
@@ -309,9 +307,9 @@ func (app *app) PrintConfig() {
 
 func StartApp(version string) <-chan struct{} {
 	log.SetFlags(0)
-	log.Printf("Tags Drive %s - https://github.com/tags-drive\n", version)
+	log.Printf("Tags Drive %s - https://github.com/tags-drive\n\n", version)
 
-	app, err := prepareNewApp()
+	app, err := prepareNewApp(version)
 	if err != nil {
 		log.Fatalf("[FAT] can't prepare a new App instance: %s\n", err)
 	}
