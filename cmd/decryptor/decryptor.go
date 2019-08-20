@@ -4,17 +4,23 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/json"
-	"log"
 	"os"
 	"strconv"
 	"sync"
 
+	"github.com/ShoshinNikita/log/v2"
 	"github.com/jessevdk/go-flags"
 	"github.com/minio/sio"
 	"github.com/pkg/errors"
 
 	"github.com/tags-drive/core/internal/storage/files"
 )
+
+var log *clog.Logger
+
+func init() {
+	log = clog.NewProdLogger()
+}
 
 const (
 	workersCount = 5
@@ -90,7 +96,7 @@ func (a *app) Decrypt() error {
 				output = a.config.OutputFolder + "/" + file.Filename
 				err = a.decryptAndSaveFile(input, output)
 				if err != nil {
-					log.Printf("[ERR] can't decrypt file %s: %s\n", file.Filename, err)
+					log.Errorf("can't decrypt file %s: %s\n", file.Filename, err)
 				}
 			}
 		}()
@@ -157,6 +163,10 @@ func (a *app) decryptAndSaveFile(encryptedFilePath, decryptedFilePath string) er
 }
 
 func StartDecryptor() <-chan struct{} {
+	log = clog.NewProdConfig().PrintTime(false).Build()
+
+	log.Infoln("init Decryptor")
+
 	app, err := newApp()
 	if err != nil {
 		log.Fatalln(err)
@@ -167,10 +177,14 @@ func StartDecryptor() <-chan struct{} {
 		log.Fatalln(err)
 	}
 
+	log.Infoln("start decryption")
+
 	err = app.Decrypt()
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	log.Infoln("decryption is finished")
 
 	done := make(chan struct{})
 	close(done)
