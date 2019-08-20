@@ -1,7 +1,6 @@
 package migrator
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"io"
@@ -10,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ShoshinNikita/go-disk-buffer"
 	"github.com/ShoshinNikita/log/v2"
 	"github.com/jessevdk/go-flags"
 	"github.com/minio/minio-go"
@@ -195,7 +195,7 @@ func (app *app) fromDisk() <-chan file {
 				if app.config.Disk.Encrypted {
 					// Have to decrypt a file. File must be closed after decryption!
 
-					buff := bytes.NewBuffer(nil)
+					buff := buffer.NewBuffer(nil)
 					_, err := sio.Decrypt(buff, f, sio.Config{Key: app.config.Disk.PassPhrase[:]})
 					if err != nil {
 						app.logger.Errorf("can't decrypt a file '%s': %s\n", path, err)
@@ -338,7 +338,7 @@ func (app *app) toDisk(files <-chan file) {
 				var src io.Reader = file.r
 				if app.config.Disk.Encrypted {
 					// Have to encrypt a file
-					buff := bytes.NewBuffer(nil)
+					buff := buffer.NewBuffer(nil)
 					_, err := sio.Encrypt(buff, file.r, sio.Config{Key: app.config.Disk.PassPhrase[:]})
 					if err != nil {
 						app.logger.Errorf("can't encrypt file '%s': %s\n", file.name, err)
