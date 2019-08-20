@@ -14,6 +14,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 
+	"github.com/tags-drive/core/cmd/common"
 	auth "github.com/tags-drive/core/internal/storage/auth_tokens"
 	"github.com/tags-drive/core/internal/storage/files"
 	share "github.com/tags-drive/core/internal/storage/share_tokens"
@@ -69,22 +70,6 @@ const (
 
 	// AuthCookieName is a name of cookie that contains token
 	authCookieName = "auth"
-
-	// Storage
-
-	// VarFolder is the main folder. All files are kept here.
-	// DatFolder and ResizedImagesFolder must be subfolders of this directory.
-	varFolder           = "./var"
-	dataFolder          = "./var/data"
-	resizedImagesFolder = "./var/data/resized"
-	//
-	dataBucket          = "var-data"
-	resizedImagesBucket = "var-data-resized"
-
-	filesJSONFile       = "./var/files.json"        // for files
-	tagsJSONFile        = "./var/tags.json"         // for tags
-	authTokensJSONFile  = "./var/auth_tokens.json"  // for auth tokens
-	shareTokensJSONFile = "./var/share_tokens.json" // for share tokens
 )
 
 type app struct {
@@ -163,26 +148,26 @@ func (app *app) ConfigureServices() error {
 	// File storage
 	fileStorageConfig := files.Config{
 		Debug:              app.config.Debug,
-		VarFolder:          varFolder,
+		VarFolder:          common.VarFolder,
 		Encrypt:            app.config.Storage.Encrypt,
 		PassPhrase:         app.config.Storage.PassPhrase,
 		TimeBeforeDeleting: app.config.Storage.TimeBeforeDeleting,
 		// Binary Storage
 		FileStorageType: app.config.Storage.FileStorageType,
 		DiskStorage: files.Config_DiskStorage{
-			DataFolder:          dataFolder,
-			ResizedImagesFolder: resizedImagesFolder,
+			DataFolder:          common.DataFolder,
+			ResizedImagesFolder: common.ResizedImagesFolder,
 		},
 		S3Storage: files.Config_S3Storage{
 			Endpoint:            app.config.Storage.S3.Endpoint,
 			AccessKeyID:         app.config.Storage.S3.AccessKeyID,
 			SecretAccessKey:     app.config.Storage.S3.SecretAccessKey,
-			DataBucket:          dataBucket,
-			ResizedImagesBucket: resizedImagesBucket,
+			DataBucket:          common.DataBucket,
+			ResizedImagesBucket: common.ResizedImagesBucket,
 		},
 		// Metadata Storage
 		MetadataStorageType: app.config.Storage.MetadataStorageType,
-		FilesJSONFile:       filesJSONFile,
+		FilesJSONFile:       common.FilesJSONFile,
 	}
 	app.fileStorage, err = files.NewFileStorage(fileStorageConfig, app.logger)
 	if err != nil {
@@ -193,7 +178,7 @@ func (app *app) ConfigureServices() error {
 	tagStorageConfig := tags.Config{
 		Debug:               app.config.Debug,
 		MetadataStorageType: app.config.Storage.MetadataStorageType,
-		TagsJSONFile:        tagsJSONFile,
+		TagsJSONFile:        common.TagsJSONFile,
 		Encrypt:             app.config.Storage.Encrypt,
 		PassPhrase:          app.config.Storage.PassPhrase,
 	}
@@ -205,7 +190,7 @@ func (app *app) ConfigureServices() error {
 	// Auth service
 	authConfig := auth.Config{
 		Debug:          app.config.Debug,
-		TokensJSONFile: authTokensJSONFile,
+		TokensJSONFile: common.AuthTokensJSONFile,
 		Encrypt:        app.config.Storage.Encrypt,
 		PassPhrase:     app.config.Storage.PassPhrase,
 		MaxTokenLife:   app.config.Web.MaxTokenLife,
@@ -217,7 +202,7 @@ func (app *app) ConfigureServices() error {
 
 	// Share service
 	shareConfig := share.Config{
-		ShareTokenJSONFile: shareTokensJSONFile,
+		ShareTokenJSONFile: common.ShareTokensJSONFile,
 		Encrypt:            app.config.Storage.Encrypt,
 		PassPhrase:         app.config.Storage.PassPhrase,
 	}

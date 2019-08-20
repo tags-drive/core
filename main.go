@@ -7,6 +7,7 @@ import (
 
 	"github.com/tags-drive/core/cmd/app"
 	"github.com/tags-drive/core/cmd/decryptor"
+	"github.com/tags-drive/core/cmd/migrator"
 )
 
 type Command func() <-chan struct{}
@@ -16,6 +17,7 @@ func main() {
 		"":        app.StartApp, // the default command is app.StartApp
 		"start":   app.StartApp,
 		"decrypt": decryptor.StartDecryptor,
+		"migrate": migrator.StartMigrator,
 	}
 
 	var (
