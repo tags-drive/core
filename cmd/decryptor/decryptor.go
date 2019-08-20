@@ -44,8 +44,10 @@ type app struct {
 }
 
 func newApp() (*app, error) {
-	app := new(app)
-	_, err := flags.Parse(&app.config)
+	app := &app{}
+
+	parser := flags.NewParser(&app.config, flags.HelpFlag|flags.PassDoubleDash|flags.IgnoreUnknown)
+	_, err := parser.Parse()
 	if err != nil {
 		return nil, err
 	}
