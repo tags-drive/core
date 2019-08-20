@@ -10,7 +10,9 @@ import (
 	"github.com/tags-drive/core/cmd/migrator"
 )
 
-type Command func() <-chan struct{}
+var version = "unknown"
+
+type Command func(version string) <-chan struct{}
 
 func main() {
 	commandList := map[string]Command{
@@ -39,5 +41,5 @@ func main() {
 	}
 
 	// Run
-	<-cmd()
+	<-cmd(version)
 }

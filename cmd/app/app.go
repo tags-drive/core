@@ -307,7 +307,7 @@ func (app *app) PrintConfig() {
 	app.logger.WriteString(s)
 }
 
-func StartApp() <-chan struct{} {
+func StartApp(version string) <-chan struct{} {
 	log.SetFlags(0)
 	log.Printf("Tags Drive %s - https://github.com/tags-drive\n", version)
 

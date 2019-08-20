@@ -394,7 +394,7 @@ func (app *app) toS3(files <-chan file) {
 	wg.Wait()
 }
 
-func StartMigrator() <-chan struct{} {
+func StartMigrator(version string) <-chan struct{} {
 	logger := clog.NewProdConfig().PrintTime(false).Build()
 
 	logger.Infoln("init Migrator")

@@ -164,7 +164,7 @@ func (a *app) decryptAndSaveFile(encryptedFilePath, decryptedFilePath string) er
 	return errors.Wrap(err, "can't decrypt file")
 }
 
-func StartDecryptor() <-chan struct{} {
+func StartDecryptor(version string) <-chan struct{} {
 	log = clog.NewProdConfig().PrintTime(false).Build()
 
 	log.Infoln("init Decryptor")
