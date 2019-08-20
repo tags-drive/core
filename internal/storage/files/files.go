@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ShoshinNikita/go-disk-buffer"
 	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/pkg/errors"
 
@@ -179,8 +180,7 @@ func (fs FileStorage) GetRecent(number int) []File {
 // Archive archives passed files and returns io.Reader with archive
 func (fs FileStorage) Archive(ids []int) (body io.Reader, err error) {
 	// Max size of an archive in memory is 20MB
-	buff := utils.NewBuffer(20 << 20)
-	defer buff.Finish()
+	buff := buffer.NewBufferWithMaxMemorySize(20 << 20)
 
 	zipWriter := zip.NewWriter(buff)
 	defer zipWriter.Close()
