@@ -24,6 +24,6 @@ def setupEnv(file: str):
 setupEnv("./scripts/run/run.env")
 
 try:
-    os.system("go run main.go")
+    os.system("go run -mod=vendor main.go")
 except KeyboardInterrupt:
     pass
