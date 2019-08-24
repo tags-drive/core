@@ -73,7 +73,7 @@ func TestS3Storage_SaveFile(t *testing.T) {
 			continue
 		}
 
-		assert.Equal(original, buff.Bytes(), "diffrent data")
+		assert.Equal(original, buff.Bytes(), "different data")
 	}
 
 	// Clear S3 storage
