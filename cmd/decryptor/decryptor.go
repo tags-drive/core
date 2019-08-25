@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/ShoshinNikita/log/v2"
+	clog "github.com/ShoshinNikita/log/v2"
 	"github.com/jessevdk/go-flags"
 	"github.com/minio/sio"
 	"github.com/pkg/errors"

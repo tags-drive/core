@@ -2,9 +2,10 @@ package decryptor
 
 import (
 	"crypto/sha256"
-	"log"
 	"os"
 	"testing"
+
+	clog "github.com/ShoshinNikita/log/v2"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 func TestMain(m *testing.M) {
 	err := os.Chdir(testFolder)
 	if err != nil {
-		log.Fatalln(err)
+		clog.Fatalln(err)
 	}
 
 	code := m.Run()
