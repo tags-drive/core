@@ -13,8 +13,9 @@ const (
 	passphrase      = "test"
 	jsonFilesConfig = "./var/files.json"
 	dataFolder      = "./var/data"
-	outputFolder    = "./decrypted-files"
 )
+
+var outputFolder = os.TempDir() + "/decrypted-files"
 
 func TestMain(m *testing.M) {
 	err := os.Chdir(testFolder)

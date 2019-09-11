@@ -13,10 +13,10 @@ import (
 	bs "github.com/tags-drive/core/internal/storage/files/binary_storage"
 )
 
-const (
-	testFolder          = "./test"
-	dataFolder          = "./test/data"
-	resizedImagesFolder = "./test/data/resized"
+var (
+	testFolder          = os.TempDir() + "/test"
+	dataFolder          = os.TempDir() + "/test/data"
+	resizedImagesFolder = os.TempDir() + "/test/data/resized"
 )
 
 func TestDiskStorage_SaveFile(t *testing.T) {
