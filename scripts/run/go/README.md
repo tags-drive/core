@@ -1,4 +1,4 @@
-# scripts/run/docker
+# scripts/run/go
 
 This script runs **Tags Drive** with `go run` command
 
