@@ -25,7 +25,7 @@ parser.add_argument("--image-name",
 parser.add_argument("--image-tag",
                     type=str,
                     default="latest",
-                    help="tag of a Docker image (default: 'lastest')")
+                    help="tag of a Docker image (default: 'latest')")
 parser.add_argument("--container-name",
                     type=str,
                     default="dev-tags-drive",
@@ -54,7 +54,7 @@ args = parser.parse_args()
 
 def buildDockerImage():
     # Build a Docker image (run in root folder)
-    runCommand(f"docker build -t {args.image_name}:{args.image_tag} -f scripts/docker/Dockerfile .",
+    runCommand(f"docker build -t {args.image_name}:{args.image_tag} -f scripts/run/docker/Dockerfile .",
                "can't build a Docker image")
 
 
