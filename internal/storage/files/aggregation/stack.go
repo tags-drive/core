@@ -2,20 +2,20 @@ package aggregation
 
 // logicalStack is used for parsing logical expression
 type logicalStack struct {
-	data []byte
+	data []rune
 	len  int
 }
 
-func (s *logicalStack) push(b byte) {
+func (s *logicalStack) push(b rune) {
 	s.data = append(s.data, b)
 	s.len++
 }
 
-func (s logicalStack) top() byte {
+func (s logicalStack) top() rune {
 	return s.data[s.len-1]
 }
 
-func (s *logicalStack) pop() byte {
+func (s *logicalStack) pop() rune {
 	b := s.data[s.len-1]
 	s.data = s.data[:s.len-1]
 	s.len--

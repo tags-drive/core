@@ -34,7 +34,7 @@ func ParseLogicalExpr(expr string) (result LogicalExpr, err error) {
 		return "", nil
 	}
 
-	if !isCorrectExpression(expr) {
+	if !isCorrectExpression([]rune(expr)) {
 		return "", ErrBadSyntax
 	}
 
@@ -44,21 +44,20 @@ func ParseLogicalExpr(expr string) (result LogicalExpr, err error) {
 		lastDigit = false
 	)
 
-	for i := 0; i < len(expr); i++ {
-		c := expr[i]
+	for _, c := range expr {
 		switch {
 		case isDigit(c):
 			if !lastDigit {
 				builder.WriteByte(' ')
 			}
-			builder.WriteByte(c)
+			builder.WriteRune(c)
 			lastDigit = true
 		case c == '&' || c == '|':
 			lastDigit = false
 			for operators.len > 0 &&
 				(operators.top() == '!' || isGreaterPriority(c, operators.top())) {
 				builder.WriteByte(' ')
-				builder.WriteByte(operators.pop())
+				builder.WriteRune(operators.pop())
 			}
 			operators.push(c)
 		case c == '!':
@@ -79,7 +78,7 @@ func ParseLogicalExpr(expr string) (result LogicalExpr, err error) {
 					break
 				}
 				builder.WriteByte(' ')
-				builder.WriteByte(operators.pop())
+				builder.WriteRune(operators.pop())
 			}
 		default:
 			return "", ErrBadSyntax
@@ -88,7 +87,7 @@ func ParseLogicalExpr(expr string) (result LogicalExpr, err error) {
 
 	for operators.len > 0 {
 		builder.WriteByte(' ')
-		builder.WriteByte(operators.pop())
+		builder.WriteRune(operators.pop())
 	}
 
 	res := builder.String()
@@ -117,7 +116,7 @@ func removeAllSpaces(s string) string {
 	return b.String()
 }
 
-func isGreaterPriority(a, b byte) bool {
+func isGreaterPriority(a, b rune) bool {
 	switch a {
 	case '&':
 		return b == '&' || b == '|'
@@ -128,7 +127,7 @@ func isGreaterPriority(a, b byte) bool {
 	}
 }
 
-func isCorrectExpression(expr string) bool {
+func isCorrectExpression(expr []rune) bool {
 	if len(expr) == 0 || !isValidSymbol(expr[0]) {
 		return false
 	}
@@ -139,8 +138,8 @@ func isCorrectExpression(expr string) bool {
 	}
 
 	invalidPares := []struct {
-		f byte
-		s byte
+		f rune
+		s rune
 	}{
 		{'(', ')'},
 		{'(', '&'},
@@ -173,7 +172,7 @@ func isCorrectExpression(expr string) bool {
 	}
 	for _, r := range invalidRegexpes {
 		reg := regexp.MustCompile(r)
-		if reg.Match([]byte(expr)) {
+		if reg.MatchString(string(expr)) {
 			return false
 		}
 	}
@@ -181,10 +180,10 @@ func isCorrectExpression(expr string) bool {
 	return true
 }
 
-func isValidSymbol(c byte) bool {
+func isValidSymbol(c rune) bool {
 	return ('0' <= c && c <= '9') || c == '!' || c == '&' || c == '|' || c == '(' || c == ')'
 }
 
-func isDigit(c byte) bool {
+func isDigit(c rune) bool {
 	return '0' <= c && c <= '9'
 }
