@@ -18,6 +18,7 @@ This repository contains the backend part of **Tags Drive**
   - [File storage](#file-storage)
   - [File structure](#file-structure)
 - [Development](#development)
+  - [Run a local version](#run-a-local-version)
 - [API](#api)
   - [General endpoints](#general-endpoints)
   - [Auth](#auth)
@@ -173,10 +174,10 @@ Use this command to generate self-signed TLS certificate:
 
 ## Development
 
-There are two Python scripts that you can use to run a local version of the backend part:
+### Run a local version
 
-- [scripts/run/run.py](scripts/run/run.py) – run a local version with `go run`. You can set env vars by editing the [.env file](scripts/run/run.env). It is the fastest way to launch the local version, but you need to have Go installed.
-- [scripts/docker/run_docker.py](scripts/docker/run_docker.py) – build a Docker image and run a container. There are some command-line args (run `python scripts/docker/run_docker.py --help` to show all args)
+- [scripts/run/go](scripts/run/go/README.md) – run a local version with `go run`. You can set env vars by editing the [.env file](scripts/run/go/run.env). It is the fastest way to launch the local version, but you need to have Go installed.
+- [scripts/run/docker](scripts/run/docker/README.md) – build a Docker image and run a container
 
 
 ## API

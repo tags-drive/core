@@ -18,6 +18,6 @@ RUN mkdir /app
 WORKDIR /app
 
 COPY --from=builder /build/tags-drive .
-COPY ./scripts/docker/run.sh .
+COPY ./scripts/run/docker/run.sh .
 
 ENTRYPOINT [ "./run.sh" ]
