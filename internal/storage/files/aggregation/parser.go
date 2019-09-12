@@ -1,6 +1,7 @@
 package aggregation
 
 import (
+	"bytes"
 	"regexp"
 	"strings"
 
@@ -28,6 +29,7 @@ func ParseLogicalExpr(expr string) (result LogicalExpr, err error) {
 		}
 	}()
 
+	expr = removeAllSpaces(expr)
 	if expr == "" {
 		return "", nil
 	}
@@ -100,6 +102,19 @@ func ParseLogicalExpr(expr string) (result LogicalExpr, err error) {
 	}
 
 	return LogicalExpr(res), nil
+}
+
+func removeAllSpaces(s string) string {
+	var b bytes.Buffer
+	b.Grow(len(s))
+
+	for _, r := range s {
+		if r != ' ' {
+			b.WriteRune(r)
+		}
+	}
+
+	return b.String()
 }
 
 func isGreaterPriority(a, b byte) bool {
