@@ -37,7 +37,7 @@ def setupEnv(file: str):
     f.close()
 
 
-setupEnv("./scripts/run/run.env")
+setupEnv("./scripts/run/go/run.env")
 
 try:
     os.system("go run -mod=vendor main.go")
