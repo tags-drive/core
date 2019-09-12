@@ -2,6 +2,7 @@ package aggregation
 
 import (
 	"regexp"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -27,8 +28,6 @@ func ParseLogicalExpr(expr string) (result LogicalExpr, err error) {
 		}
 	}()
 
-	var res string
-
 	if expr == "" {
 		return "", nil
 	}
@@ -37,18 +36,27 @@ func ParseLogicalExpr(expr string) (result LogicalExpr, err error) {
 		return "", ErrBadSyntax
 	}
 
-	var operators logicalStack
-
-	lastDigit := false
+	var (
+		builder   strings.Builder
+		operators logicalStack
+		lastDigit = false
+	)
 
 	for i := 0; i < len(expr); i++ {
 		c := expr[i]
 		switch {
+		case isDigit(c):
+			if !lastDigit {
+				builder.WriteByte(' ')
+			}
+			builder.WriteByte(c)
+			lastDigit = true
 		case c == '&' || c == '|':
 			lastDigit = false
 			for operators.len > 0 &&
 				(operators.top() == '!' || isGreaterPriority(c, operators.top())) {
-				res += " " + string(operators.pop())
+				builder.WriteByte(' ')
+				builder.WriteByte(operators.pop())
 			}
 			operators.push(c)
 		case c == '!':
@@ -68,23 +76,20 @@ func ParseLogicalExpr(expr string) (result LogicalExpr, err error) {
 					operators.pop()
 					break
 				}
-				res += " " + string(operators.pop())
+				builder.WriteByte(' ')
+				builder.WriteByte(operators.pop())
 			}
-
-		case isDigit(c):
-			if !lastDigit {
-				res += " "
-			}
-			res += string(c)
-			lastDigit = true
 		default:
 			return "", ErrBadSyntax
 		}
 	}
 
 	for operators.len > 0 {
-		res += " " + string(operators.pop())
+		builder.WriteByte(' ')
+		builder.WriteByte(operators.pop())
 	}
+
+	res := builder.String()
 
 	// Trim first and last spaces
 	if res[0] == ' ' {
