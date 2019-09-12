@@ -1,0 +1,17 @@
+FROM golang:1.12.5
+
+ARG CGO_ENABLED=0
+ARG GOOS=linux
+ARG GOARCH=amd64
+# Test env vars
+ARG TEST_STORAGE_S3_ENDPOINT
+ARG TEST_STORAGE_S3_ACCESS_KEY_ID
+ARG TEST_STORAGE_S3_SECRET_ACCESS_KEY
+ARG TEST_STORAGE_S3_SECURE
+
+WORKDIR /build/test
+
+# Copy source files
+COPY . .
+
+CMD [ "go", "test", "--mod=vendor", "-v", "./..." ]
