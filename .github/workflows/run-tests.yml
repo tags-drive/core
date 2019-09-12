@@ -1,5 +1,14 @@
 name: Run tests on push
-on: push
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+
 jobs:
   test:
     name: Run tests
