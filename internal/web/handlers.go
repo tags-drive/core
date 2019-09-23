@@ -103,7 +103,7 @@ func (s Server) login(w http.ResponseWriter, r *http.Request) {
 	f.Close()
 }
 
-// GET /version
+// GET /api/version
 //
 // Response: backend version
 //

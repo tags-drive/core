@@ -99,7 +99,7 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		newRoute("/api/share/token/{token}", DELETE, s.deleteShareToken),
 
 		// Other
-		newRoute("/version", GET, s.backendVersion).disableAuth(),
+		newRoute("/api/version", GET, s.backendVersion).disableAuth(),
 		newRoute("/api/ping", GET, s.ping).disableAuth(),
 	}
 

@@ -404,7 +404,7 @@ Use this command to generate self-signed TLS certificate:
 
 ### Other
 
-- `GET /version` – returns the version of the backend part
+- `GET /api/version` – returns the version of the backend part
 - `GET /api/ping` – ping **Tags Drive**
 
   **Response:** `http.StatusOK` (200)
