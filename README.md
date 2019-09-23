@@ -26,6 +26,7 @@ This repository contains the backend part of **Tags Drive**
   - [Files](#files)
   - [Tags](#tags)
   - [Share](#share)
+  - [Other](#other)
 - [Additional info](#additional-info)
   - [Security](#security)
   - [General structures](#general-structures)
@@ -192,7 +193,6 @@ Use this command to generate self-signed TLS certificate:
 - `GET /mobile` – mobile version
 - `GET /share?shareToken=token` - **Tags Drive** in share mode
 - `GET /login` – login page
-- `GET /version` – returns version of the backend part
 - `GET /data/{id}` – returns a file
 
 ### Auth
@@ -401,6 +401,13 @@ Use this command to generate self-signed TLS certificate:
   - **token**: share token
 
   **Response:** -
+
+### Other
+
+- `GET /version` – returns the version of the backend part
+- `GET /api/ping` – ping **Tags Drive**
+
+  **Response:** `http.StatusOK` (200)
 
 ## Additional info
 

@@ -59,7 +59,6 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		newRoute("/mobile", GET, s.mobile).supportOpenGraph("Tags Drive | Mobile Page"),
 		newRoute("/share", GET, s.share).enableShare().supportOpenGraph("Tags Drive | Share"),
 		newRoute("/login", GET, s.login).disableAuth().supportOpenGraph("Tags Drive | Login Page"),
-		newRoute("/version", GET, s.backendVersion).disableAuth(),
 
 		// Auth
 		newRoute("/api/user", GET, s.checkUser).disableAuth(),
@@ -98,6 +97,10 @@ func (s *Server) addDefaultRoutes(router *mux.Router) {
 		newRoute("/api/share/token/{token}", GET, s.getFilesSharedByToken),
 		newRoute("/api/share/token", POST, s.createShareToken),
 		newRoute("/api/share/token/{token}", DELETE, s.deleteShareToken),
+
+		// Other
+		newRoute("/version", GET, s.backendVersion).disableAuth(),
+		newRoute("/api/ping", GET, s.ping).disableAuth(),
 	}
 
 	for _, r := range routes {

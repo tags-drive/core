@@ -111,6 +111,14 @@ func (s Server) backendVersion(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(s.config.Version))
 }
 
+// GET /api/ping
+//
+// Response: http.StatusOK (200)
+//
+func (s Server) ping(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 // GET /data/.../{id}
 //
 // Params:
