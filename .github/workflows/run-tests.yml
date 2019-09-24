@@ -15,8 +15,5 @@ jobs:
 
       - name: Test with docker-compose
         run: >
-          docker-compose -f ./scripts/test/docker/docker-compose.yml
-          up
-          --build
-          --abort-on-container-exit
-          --exit-code-from tags-drive
+          chmod +x ./scripts/test/docker/test.sh &&
+          ./scripts/test/docker/test.sh
