@@ -1,5 +1,71 @@
 package web
 
+import (
+	"net/http"
+)
+
+const (
+	iconExtension = ".svg"
+	folder        = "./web/static/icons/files/"
+)
+
+// GET /file-icons
+//
+// Params (at least one param must be specified):
+//   - ext: the extension of a file
+//   - filename: name of a file
+//
+func (s Server) serveFileIcons(w http.ResponseWriter, r *http.Request) {
+	var (
+		// The default file icon is "file"
+		iconName = "file"
+
+		extension = func() string {
+			// Return "ext" without dot
+			ext := r.FormValue("ext")
+			if len(ext) > 0 && ext[0] == '.' {
+				return ext[1:]
+			}
+			return ext
+		}()
+		filename = r.FormValue("filename")
+	)
+
+	if icon := defineIcon(extension, filename); icon != "" {
+		iconName = icon
+	}
+
+	iconPath := folder + iconName + iconExtension
+
+	w.Header().Set("Content-Type", "image/svg+xml")
+	http.ServeFile(w, r, iconPath)
+}
+
+// defineIcon returns a name of icon that correspond to an extension or filename (exactly in this order!)
+func defineIcon(extension, filename string) (iconName string) {
+	for i := range icons {
+		// Check extensions
+		if extension != "" {
+			for _, ext := range icons[i].extensions {
+				if extension == ext {
+					return icons[i].iconFilename
+				}
+			}
+		}
+
+		// Check filenames
+		if filename != "" {
+			for _, name := range icons[i].filenames {
+				if filename == name {
+					return icons[i].iconFilename
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
 type icon struct {
 	// Name of an icon without ".svg"
 	iconFilename string

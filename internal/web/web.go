@@ -78,9 +78,11 @@ func (s *Server) Start() error {
 	dataHandler = s.authMiddleware(dataHandler, true)
 	router.PathPrefix("/data/").Handler(dataHandler)
 
-	// For exitensions
-	exitensionsHandler := http.StripPrefix("/ext/", s.extensionHandler(http.Dir("./web/static/ext/48px/")))
-	router.PathPrefix("/ext/").Handler(cacheMiddleware(exitensionsHandler, 60*60*24*180)) // cache for 180 days
+	// For file icons
+	iconHandler := http.Handler(http.HandlerFunc(s.serveFileIcons))
+	iconHandler = cacheMiddleware(iconHandler, 60*60*24*180) // cache for 180 days
+	iconHandler = s.authMiddleware(iconHandler, true)
+	router.Handle("/file-icons", iconHandler)
 
 	// Add usual routes
 	s.addDefaultRoutes(router)
