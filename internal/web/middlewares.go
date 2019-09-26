@@ -200,7 +200,7 @@ func (s Server) debugMiddleware(h http.Handler) http.Handler {
 		}
 
 		// Don't log extensions requests
-		if !logExtRequests && strings.HasPrefix(urlPath, "/ext/") {
+		if !logExtRequests && strings.HasPrefix(urlPath, "/file-icons") {
 			return false
 		}
 
