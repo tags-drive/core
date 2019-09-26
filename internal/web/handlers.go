@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -147,7 +148,25 @@ func (s Server) serveData() (handler http.Handler) {
 		return id, true
 	}
 
-	handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	shouldUseCache := func(modTime time.Time, r *http.Request) bool {
+		// Next code are taken from "net/http/fs.go", "checkIfModifiedSince" function
+
+		ims := r.Header.Get("If-Modified-Since")
+		if ims == "" {
+			return false
+		}
+
+		t, err := http.ParseTime(ims)
+		if err != nil {
+			return false
+		}
+
+		// The Date-Modified header truncates sub-second precision, so
+		// use mtime < t+1s instead of mtime <= t to check for unmodified.
+		return modTime.Before(t.Add(1 * time.Second))
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.EscapedPath()
 
 		id, ok := getFileID(url)
@@ -175,16 +194,34 @@ func (s Server) serveData() (handler http.Handler) {
 			return
 		}
 
+		// Get a file to learn the modification time
+		file, err := s.fileStorage.GetFile(id)
+		if err != nil {
+			s.processError(w, "can't load file", http.StatusInternalServerError, "can't get file from FileStorage:", err)
+			return
+		}
+
+		// Always add "Last-Modified" header
+		w.Header().Set("Last-Modified", file.AddTime.Format(http.TimeFormat))
+
+		if shouldUseCache(file.AddTime, r) {
+			// Response with http.StatusNotModified (304)
+
+			// From "net/http/fs.go", "writeNotModified" function
+			h := w.Header()
+			delete(h, "Content-Type")
+			delete(h, "Content-Length")
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+
+		// Write a file
 		resized := strings.Contains(url, "resized")
-		err := s.fileStorage.CopyFile(w, id, resized)
+		err = s.fileStorage.CopyFile(w, id, resized)
 		if err != nil {
 			s.processError(w, "can't load file", http.StatusInternalServerError, err)
 		}
 	})
-
-	handler = cacheMiddleware(handler, 60*60*24*14) // cache for 14 days
-
-	return handler
 }
 
 // extensionHandler servers extensions
