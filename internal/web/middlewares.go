@@ -68,8 +68,10 @@ func cacheMiddleware(h http.Handler, maxAge int64) http.Handler {
 	maxAgeString := fmt.Sprintf("max-age=%d", maxAge)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", maxAgeString)
-		w.Header().Set("Cache-Control", "private")
+		expTime := time.Now().Add(time.Duration(maxAge * int64(time.Second)))
+
+		w.Header().Set("Expires", expTime.Format(http.TimeFormat))
+		w.Header().Set("Cache-Control", "private, "+maxAgeString)
 		h.ServeHTTP(w, r)
 	})
 }
