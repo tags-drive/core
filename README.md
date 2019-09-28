@@ -194,6 +194,11 @@ Use this command to generate self-signed TLS certificate:
 - `GET /share?shareToken=token` - **Tags Drive** in share mode
 - `GET /login` – login page
 - `GET /data/{id}` – returns a file
+- `GET /file-icons` – returns file icon
+
+  **Params** (at least one param must be specified):
+  - **ext**: extension of a file
+  - **filename**: name of a file
 
 ### Auth
 
