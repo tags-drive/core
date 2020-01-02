@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	errIncompleteCode          = errors.New("ccitt: incomplete code")
 	errInvalidBounds           = errors.New("ccitt: invalid bounds")
 	errInvalidCode             = errors.New("ccitt: invalid code")
 	errInvalidMode             = errors.New("ccitt: invalid mode")
@@ -73,6 +74,56 @@ func reverseBitsWithinBytes(b []byte) {
 	}
 }
 
+// highBits writes to dst (1 bit per pixel, most significant bit first) the
+// high (0x80) bits from src (1 byte per pixel). It returns the number of bytes
+// written and read such that dst[:d] is the packed form of src[:s].
+//
+// For example, if src starts with the 8 bytes [0x7D, 0x7E, 0x7F, 0x80, 0x81,
+// 0x82, 0x00, 0xFF] then 0x1D will be written to dst[0].
+//
+// If src has (8 * len(dst)) or more bytes then only len(dst) bytes are
+// written, (8 * len(dst)) bytes are read, and invert is ignored.
+//
+// Otherwise, if len(src) is not a multiple of 8 then the final byte written to
+// dst is padded with 1 bits (if invert is true) or 0 bits. If inverted, the 1s
+// are typically temporary, e.g. they will be flipped back to 0s by an
+// invertBytes call in the highBits caller, reader.Read.
+func highBits(dst []byte, src []byte, invert bool) (d int, s int) {
+	// Pack as many complete groups of 8 src bytes as we can.
+	n := len(src) / 8
+	if n > len(dst) {
+		n = len(dst)
+	}
+	dstN := dst[:n]
+	for i := range dstN {
+		src8 := src[i*8 : i*8+8]
+		dstN[i] = ((src8[0] & 0x80) >> 0) |
+			((src8[1] & 0x80) >> 1) |
+			((src8[2] & 0x80) >> 2) |
+			((src8[3] & 0x80) >> 3) |
+			((src8[4] & 0x80) >> 4) |
+			((src8[5] & 0x80) >> 5) |
+			((src8[6] & 0x80) >> 6) |
+			((src8[7] & 0x80) >> 7)
+	}
+	d, s = n, 8*n
+	dst, src = dst[d:], src[s:]
+
+	// Pack up to 7 remaining src bytes, if there's room in dst.
+	if (len(dst) > 0) && (len(src) > 0) {
+		dstByte := byte(0)
+		if invert {
+			dstByte = 0xFF >> uint(len(src))
+		}
+		for n, srcByte := range src {
+			dstByte |= (srcByte & 0x80) >> uint(n)
+		}
+		dst[0] = dstByte
+		d, s = d+1, s+len(src)
+	}
+	return d, s
+}
+
 type bitReader struct {
 	r io.Reader
 
@@ -84,7 +135,7 @@ type bitReader struct {
 	// order is whether to process r's bytes LSB first or MSB first.
 	order Order
 
-	// The low nBits bits of the bits field hold upcoming bits in LSB order.
+	// The high nBits bits of the bits field hold upcoming bits in MSB order.
 	bits  uint64
 	nBits uint32
 
@@ -96,7 +147,7 @@ type bitReader struct {
 
 func (b *bitReader) alignToByteBoundary() {
 	n := b.nBits & 7
-	b.bits >>= n
+	b.bits <<= n
 	b.nBits -= n
 }
 
@@ -108,11 +159,11 @@ func (b *bitReader) alignToByteBoundary() {
 // bitReader.nBits value above nextBitMaxNBits.
 const nextBitMaxNBits = 31
 
-func (b *bitReader) nextBit() (uint32, error) {
+func (b *bitReader) nextBit() (uint64, error) {
 	for {
 		if b.nBits > 0 {
-			bit := uint32(b.bits) & 1
-			b.bits >>= 1
+			bit := b.bits >> 63
+			b.bits <<= 1
 			b.nBits--
 			return bit, nil
 		}
@@ -124,12 +175,12 @@ func (b *bitReader) nextBit() (uint32, error) {
 			// checks that the generated maxCodeLength constant fits.
 			//
 			// If changing the Uint32 call, also change nextBitMaxNBits.
-			b.bits = uint64(binary.LittleEndian.Uint32(b.bytes[b.br:]))
+			b.bits = uint64(binary.BigEndian.Uint32(b.bytes[b.br:])) << 32
 			b.br += 4
 			b.nBits = 32
 			continue
 		} else if available > 0 {
-			b.bits = uint64(b.bytes[b.br])
+			b.bits = uint64(b.bytes[b.br]) << (7 * 8)
 			b.br++
 			b.nBits = 8
 			continue
@@ -144,20 +195,23 @@ func (b *bitReader) nextBit() (uint32, error) {
 		b.bw = uint32(n)
 		b.readErr = err
 
-		if b.order != LSB {
+		if b.order != MSB {
 			reverseBitsWithinBytes(b.bytes[:b.bw])
 		}
 	}
 }
 
 func decode(b *bitReader, decodeTable [][2]int16) (uint32, error) {
-	nBitsRead, bitsRead, state := uint32(0), uint32(0), int32(1)
+	nBitsRead, bitsRead, state := uint32(0), uint64(0), int32(1)
 	for {
 		bit, err := b.nextBit()
 		if err != nil {
+			if err == io.EOF {
+				err = errIncompleteCode
+			}
 			return 0, err
 		}
-		bitsRead |= bit << nBitsRead
+		bitsRead |= bit << (63 - nBitsRead)
 		nBitsRead++
 		// The "&1" is redundant, but can eliminate a bounds check.
 		state = int32(decodeTable[state][bit&1])
@@ -165,7 +219,7 @@ func decode(b *bitReader, decodeTable [][2]int16) (uint32, error) {
 			return uint32(^state), nil
 		} else if state == 0 {
 			// Unread the bits we've read, then return errInvalidCode.
-			b.bits = (b.bits << nBitsRead) | uint64(bitsRead)
+			b.bits = (b.bits >> nBitsRead) | bitsRead
 			b.nBits += nBitsRead
 			return 0, errInvalidCode
 		}
@@ -219,6 +273,14 @@ type reader struct {
 	// seenStartOfImage is whether we've called the startDecode method.
 	seenStartOfImage bool
 
+	// truncated is whether the input is missing the final 6 consecutive EOL's
+	// (for Group3) or 2 consecutive EOL's (for Group4). Omitting that trailer
+	// (but otherwise padding to a byte boundary, with either all 0 bits or all
+	// 1 bits) is invalid according to the spec, but happens in practice when
+	// exporting from Adobe Acrobat to TIFF + CCITT. This package silently
+	// ignores CCITT input that has been truncated in that fashion.
+	truncated bool
+
 	// readErr is a sticky error for the Read method.
 	readErr error
 }
@@ -251,31 +313,16 @@ func (z *reader) Read(p []byte) (int, error) {
 				z.readErr = io.EOF
 				break
 			}
-			if z.readErr = z.decodeRow(); z.readErr != nil {
+			if z.readErr = z.decodeRow(z.rowsRemaining == 1); z.readErr != nil {
 				break
 			}
 			z.rowsRemaining--
 		}
 
-		// Pack from z.curr (1 byte per pixel) to p (1 bit per pixel), up to 8
-		// elements per iteration.
-		i := 0
-		for ; i < len(p); i++ {
-			numToPack := len(z.curr) - z.ri
-			if numToPack <= 0 {
-				break
-			} else if numToPack > 8 {
-				numToPack = 8
-			}
-
-			byteValue := byte(0)
-			for j := 0; j < numToPack; j++ {
-				byteValue |= (z.curr[z.ri] & 0x80) >> uint(j)
-				z.ri++
-			}
-			p[i] = byteValue
-		}
-		p = p[i:]
+		// Pack from z.curr (1 byte per pixel) to p (1 bit per pixel).
+		packD, packS := highBits(p, z.curr[z.ri:], z.invert)
+		p = p[packD:]
+		z.ri += packS
 
 		// Prepare to decode the next row, if necessary.
 		if z.ri == len(z.curr) {
@@ -285,7 +332,6 @@ func (z *reader) Read(p []byte) (int, error) {
 	}
 
 	n := len(originalP) - len(p)
-	// TODO: when invert is true, should the end-of-row padding bits be 0 or 1?
 	if z.invert {
 		invertBytes(originalP[:n])
 	}
@@ -321,6 +367,9 @@ func (z *reader) finishDecode() error {
 	numberOfEOLs := 0
 	switch z.subFormat {
 	case Group3:
+		if z.truncated {
+			return nil
+		}
 		// The stream ends with a RTC (Return To Control) of 6 consecutive
 		// EOL's, but we should have already just seen an EOL, either in
 		// z.startDecode (for a zero-height image) or in z.decodeRow.
@@ -335,6 +384,9 @@ func (z *reader) finishDecode() error {
 		} else if err == errInvalidCode {
 			// Try again, this time starting from a byte boundary.
 			z.br.alignToByteBoundary()
+		} else if err == errMissingEOL {
+			z.truncated = true
+			return nil
 		} else {
 			return err
 		}
@@ -357,6 +409,9 @@ func (z *reader) decodeEOL() error {
 	// cater for optional byte-alignment, or an arbitrary number (potentially
 	// more than 8) of 0-valued padding bits.
 	if mode, err := decode(&z.br, modeDecodeTable[:]); err != nil {
+		if err == errIncompleteCode {
+			return errMissingEOL
+		}
 		return err
 	} else if mode != modeEOL {
 		return errMissingEOL
@@ -364,10 +419,14 @@ func (z *reader) decodeEOL() error {
 	return nil
 }
 
-func (z *reader) decodeRow() error {
+func (z *reader) decodeRow(finalRow bool) error {
 	z.wi = 0
 	z.atStartOfRow = true
 	z.penColorIsWhite = true
+
+	if z.align {
+		z.br.alignToByteBoundary()
+	}
 
 	switch z.subFormat {
 	case Group3:
@@ -376,13 +435,14 @@ func (z *reader) decodeRow() error {
 				return err
 			}
 		}
-		return z.decodeEOL()
+		err := z.decodeEOL()
+		if finalRow && (err == errMissingEOL) {
+			z.truncated = true
+			return nil
+		}
+		return err
 
 	case Group4:
-		if z.align {
-			z.br.alignToByteBoundary()
-		}
-
 		for ; z.wi < len(z.curr); z.atStartOfRow = false {
 			mode, err := decode(&z.br, modeDecodeTable[:])
 			if err != nil {
@@ -620,7 +680,7 @@ func DecodeIntoGray(dst *image.Gray, r io.Reader, order Order, sf SubFormat, opt
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		p := (y - bounds.Min.Y) * dst.Stride
 		z.curr = dst.Pix[p : p+width]
-		if err := z.decodeRow(); err != nil {
+		if err := z.decodeRow(y+1 == bounds.Max.Y); err != nil {
 			return err
 		}
 		z.curr, z.prev = nil, z.curr

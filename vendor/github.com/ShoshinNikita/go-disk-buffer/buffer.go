@@ -2,25 +2,24 @@ package buffer
 
 import (
 	"bytes"
+	"crypto/rand"
 	"io"
-	"math/rand"
+	"io/ioutil"
 	"os"
-	"time"
+	"path/filepath"
 	"unicode/utf8"
 
+	"github.com/minio/sio"
 	"github.com/pkg/errors"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
 const (
-	tempFilenameLength   = 5
+	// DefaultMaxMemorySize is used when Buffer is created with NewBuffer() or NewBufferString()
 	DefaultMaxMemorySize = 2 << 20 // 2 MB
 )
 
 var (
+	// ErrBufferFinished is used when Buffer.Write() method is called after Buffer.Read()
 	ErrBufferFinished = errors.New("buffer is finished")
 )
 
@@ -34,16 +33,25 @@ type Buffer struct {
 	size   int
 	offset int
 
+	// tempFileDir is a directory for temp files. It is empty by default (so, "ioutil.TempFile" uses os.TempDir)
+	tempFileDir string
+
+	encrypt       bool
+	encryptionKey [32]byte
+
 	// buff is used to store data in memory
 	buff bytes.Buffer
 
-	// file is used to store data on a disk
-	file     *os.File
+	// writeFile is used to write the data on a disk
+	writeFile io.WriteCloser
+	// readFile is used to read the data from a disk
+	readFile io.ReadCloser
+
 	useFile  bool
 	filename string
 }
 
-// NewBufferWithMemorySize creates a new Buffer with passed maxInMemorySize
+// NewBufferWithMaxMemorySize creates a new Buffer with passed maxInMemorySize
 func NewBufferWithMaxMemorySize(maxInMemorySize int) *Buffer {
 	b := &Buffer{
 		maxInMemorySize: maxInMemorySize,
@@ -78,6 +86,50 @@ func NewBufferString(s string) *Buffer {
 	return NewBuffer([]byte(s))
 }
 
+// ChangeTempDir changes directory for temp files
+func (b *Buffer) ChangeTempDir(dir string) error {
+	f, err := os.Open(dir)
+	if err != nil {
+		return errors.Wrapf(err, "can't open directory '%s'", dir)
+	}
+	defer f.Close()
+
+	stats, err := f.Stat()
+	if err != nil {
+		return errors.Wrapf(err, "can't get stats of the directory '%s'", dir)
+	}
+	if !stats.IsDir() {
+		return errors.Errorf("'%s' is not a directory", dir)
+	}
+
+	path, err := filepath.Abs(dir)
+	if err != nil {
+		return errors.New("can't get an absolute path")
+	}
+
+	// Change
+	b.tempFileDir = path
+
+	return nil
+}
+
+// EnableEncryption enables encryption and generates an encryption key
+func (b *Buffer) EnableEncryption() error {
+	b.encrypt = true
+
+	key := make([]byte, len(b.encryptionKey))
+	_, err := rand.Read(key)
+	if err != nil {
+		return errors.Wrap(err, "can't read random data")
+	}
+
+	for i := range key {
+		b.encryptionKey[i] = key[i]
+	}
+
+	return nil
+}
+
 // Write writes data into bytes.Buffer while size of the Buffer is less than maxInMemorySize, when size of Buffer is equal to maxInMemorySize, Write creates a temporary file and writes remaining data into this one.
 // Write returns ErrBufferFinished after the call of Buffer.Read(), Buffer.ReadByte() or Buffer.Next()
 //
@@ -110,18 +162,27 @@ func (b *Buffer) Write(data []byte) (n int, err error) {
 
 		b.useFile = true
 
-		// Create a file in TempDir
-		b.filename = os.TempDir() + "/" + generateRandomString(tempFilenameLength) + ".tmp"
-		b.file, err = os.Create(b.filename)
+		// Create a temporary file
+		file, err := ioutil.TempFile(b.tempFileDir, "go-disk-buffer-*.tmp")
 		if err != nil {
 			return n, errors.Wrap(err, "can't create a temp file")
 		}
+
+		var writeFile io.WriteCloser = file
+		if b.encrypt {
+			writeFile, err = sio.EncryptWriter(file, sio.Config{Key: b.encryptionKey[:]})
+			if err != nil {
+				return n, errors.Wrap(err, "can't create an encryption stream")
+			}
+		}
+		b.writeFile = writeFile
+		b.filename = file.Name()
 
 		// fallthrough
 	}
 
 	// Write data into the file
-	n1, err := b.file.Write(data)
+	n1, err := b.writeFile.Write(data)
 	n += n1
 	return
 }
@@ -135,7 +196,7 @@ func (b *Buffer) WriteByte(c byte) error {
 	return err
 }
 
-// WriteByte writes a rune.
+// WriteRune writes a rune.
 //
 // It uses bytes.Buffer and Buffer.Write underhood.
 func (b *Buffer) WriteRune(r rune) (n int, err error) {
@@ -148,7 +209,7 @@ func (b *Buffer) WriteRune(r rune) (n int, err error) {
 	return b.Write(tmp.Bytes())
 }
 
-// WriteByte writes a string
+// WriteString writes a string
 func (b *Buffer) WriteString(s string) (n int, err error) {
 	return b.Write([]byte(s))
 }
@@ -187,9 +248,9 @@ func (b *Buffer) Read(data []byte) (n int, err error) {
 
 	if !b.writingFinished {
 		// Finish writing and close Write&Read file if needed
-		if b.file != nil {
-			b.file.Close()
-			b.file = nil
+		if b.writeFile != nil {
+			b.writeFile.Close()
+			b.writeFile = nil
 		}
 		b.writingFinished = true
 	}
@@ -203,12 +264,12 @@ func (b *Buffer) Read(data []byte) (n int, err error) {
 			b.readingFinished = true
 		}
 
-		if b.readingFinished && b.file != nil {
+		if b.readingFinished && b.readFile != nil {
 			// Can close the file
-			b.file.Close()
+			b.readFile.Close()
 			os.Remove(b.filename)
 
-			b.file = nil
+			b.readFile = nil
 			b.filename = ""
 		}
 	}()
@@ -252,14 +313,25 @@ func (b *Buffer) readFromBuffer(data []byte) (n int, err error) {
 }
 
 func (b *Buffer) readFromFile(data []byte) (n int, err error) {
-	if b.file == nil {
-		b.file, err = os.Open(b.filename)
+	if b.readFile == nil {
+		file, err := os.Open(b.filename)
 		if err != nil {
 			return 0, errors.Wrapf(err, "can't open a temp file '%s'", b.filename)
 		}
+
+		var readFile io.ReadCloser = file
+		if b.encrypt {
+			reader, err := sio.DecryptReader(file, sio.Config{Key: b.encryptionKey[:]})
+			if err != nil {
+				return 0, errors.Wrap(err, "can't create a decryption stream")
+			}
+			readFile = newSioDecryptReaderWrapper(reader, file)
+		}
+
+		b.readFile = readFile
 	}
 
-	return b.file.Read(data)
+	return b.readFile.Read(data)
 }
 
 // ReadByte reads a single byte.
@@ -303,6 +375,7 @@ func (b *Buffer) Next(n int) []byte {
 	return slice
 }
 
+// WriteTo writes data to w until the buffer is drained or an error occurs.
 func (b *Buffer) WriteTo(w io.Writer) (int64, error) {
 	var n int64
 
@@ -342,32 +415,44 @@ func (b *Buffer) Cap() int {
 func (b *Buffer) Reset() {
 	b.buff.Reset()
 
-	if b.file != nil {
-		b.file.Close()
+	if b.writeFile != nil {
+		b.writeFile.Close()
+	}
+	if b.readFile != nil {
+		b.readFile.Close()
+	}
 
-		if b.filename != "" {
-			os.Remove(b.filename)
-		}
+	if b.filename != "" {
+		os.Remove(b.filename)
 	}
 
 	b.writingFinished = false
 	b.readingFinished = false
-	b.file = nil
+	b.writeFile = nil
+	b.readFile = nil
 	b.useFile = false
 	b.filename = ""
 }
 
-const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+// sioDecryptReaderWrapper is a wrapper for sio.DecryptReader() function
+// that satisfy io.ReadCloser.
+// It reads from passed io.Reader and closes the original file
+type sioDecryptReaderWrapper struct {
+	r            io.Reader
+	originalFile *os.File
+}
 
-func generateRandomString(length int) string {
-	const alphabetSize = len(alphabet)
-
-	filename := make([]byte, 0, length)
-
-	for i := 0; i < length; i++ {
-		n := rand.Intn(alphabetSize)
-		filename = append(filename, alphabet[n])
+func newSioDecryptReaderWrapper(r io.Reader, file *os.File) *sioDecryptReaderWrapper {
+	return &sioDecryptReaderWrapper{
+		r:            r,
+		originalFile: file,
 	}
+}
 
-	return string(filename)
+func (rw *sioDecryptReaderWrapper) Read(p []byte) (int, error) {
+	return rw.r.Read(p)
+}
+
+func (rw *sioDecryptReaderWrapper) Close() error {
+	return rw.originalFile.Close()
 }
