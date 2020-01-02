@@ -65,7 +65,7 @@ func (a *app) Prepare() error {
 	}
 	f.Close()
 
-	err = os.MkdirAll(a.config.OutputFolder, 0666)
+	err = os.MkdirAll(a.config.OutputFolder, 0700)
 	return errors.Wrap(err, "can't create output folder")
 }
 

@@ -103,12 +103,12 @@ func (app *app) setLogger(l *clog.Logger) {
 func (app *app) prepare() error {
 	switch app.config.To {
 	case "disk":
-		err := os.MkdirAll(common.DataFolder, 0666)
+		err := os.MkdirAll(common.DataFolder, 0700)
 		if err != nil {
 			return errors.Wrap(err, "can't create DataFolder")
 		}
 
-		err = os.MkdirAll(common.ResizedImagesFolder, 0666)
+		err = os.MkdirAll(common.ResizedImagesFolder, 0700)
 		if err != nil {
 			return errors.Wrap(err, "can't create ResizedImagesFolder")
 		}

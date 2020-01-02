@@ -49,7 +49,7 @@ func NewFileStorage(cnf Config, lg *clog.Logger) (*FileStorage, error) {
 	)
 
 	// Create var folder
-	if err := os.MkdirAll(cnf.VarFolder, 0666); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(cnf.VarFolder, 0700); err != nil && !os.IsExist(err) {
 		return nil, errors.Wrapf(err, "can't create var folder '%s'", cnf.VarFolder)
 	}
 
