@@ -14,7 +14,7 @@ import (
 
 func TestMain(m *testing.M) {
 	// Create "configs"folder
-	err := os.Mkdir("configs", 0666)
+	err := os.Mkdir("configs", 0700)
 	if err != nil {
 		clog.Fatalln("can't create folder \"configs\":", err)
 	}

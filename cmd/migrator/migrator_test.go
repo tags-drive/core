@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 	const testFolder = "testdata"
 
 	// Create the test folder
-	err := os.Mkdir(testFolder, 0666)
+	err := os.Mkdir(testFolder, 0700)
 	if err != nil {
 		log.Fatalf("can't create the test folder: %s\n", err)
 	}
@@ -288,15 +288,15 @@ func generateTestFiles() []testFile {
 // Prepare functions
 
 func prepareDisk(files []testFile, encrypted bool, passPhrase [32]byte) error {
-	err := os.MkdirAll(common.VarFolder, 0666)
+	err := os.MkdirAll(common.VarFolder, 0700)
 	if err != nil {
 		return errors.Wrap(err, "can't create VarFolder")
 	}
-	err = os.MkdirAll(common.DataFolder, 0666)
+	err = os.MkdirAll(common.DataFolder, 0700)
 	if err != nil {
 		return errors.Wrap(err, "can't create DataFolder")
 	}
-	err = os.MkdirAll(common.ResizedImagesFolder, 0666)
+	err = os.MkdirAll(common.ResizedImagesFolder, 0700)
 	if err != nil {
 		return errors.Wrap(err, "can't create ResizedImagesFolder")
 	}

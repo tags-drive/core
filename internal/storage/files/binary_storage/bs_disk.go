@@ -24,11 +24,11 @@ type DiskStorageConfig struct {
 
 func NewDiskStorage(cnf DiskStorageConfig) (*DiskStorage, error) {
 	// Create folders
-	if err := os.MkdirAll(cnf.DataFolder, 0666); err != nil {
+	if err := os.MkdirAll(cnf.DataFolder, 0700); err != nil {
 		return nil, errors.Wrap(err, "can't create DataFolder")
 	}
 
-	if err := os.MkdirAll(cnf.ResizedImagesFolder, 0666); err != nil {
+	if err := os.MkdirAll(cnf.ResizedImagesFolder, 0700); err != nil {
 		return nil, errors.Wrap(err, "can't create ResizedImagesFolder")
 	}
 
